@@ -1,0 +1,8 @@
+fastapi==0.95.1
+uvicorn==0.22.0
+pydantic==1.10.7
+websockets==11.0.3
+langchain==0.0.163
+openai==0.27.6
+Jinja2==3.1.2
+chromadb==0.3.22
