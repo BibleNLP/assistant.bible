@@ -1,10 +1,15 @@
 """The entrypoint for the server app."""
+import string
+import random
+import time
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.vectorstores import VectorStore
 import chromadb
 from chromadb.config import Settings
+
+from log_configs import log
 
 app = FastAPI(title="Assistant.Bible  APIs", version="0.0.1-alpha.1",
     description="The server application that provides APIs to interact \
@@ -23,7 +28,7 @@ DB_COLLECTION = None
 @app.on_event("startup")
 async def startup_event():
     '''Set up ChromaDB connection'''
-    
+    log.info("Connecting to vector DB...")
     # Option 1
     # This method connects to the DB that get stored on the server itself where the app is running
     chroma_client = chromadb.Client(Settings(
@@ -50,8 +55,26 @@ async def startup_event():
         )
     DB_COLLECTION = collection
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    '''Place to define common logging for all API calls'''
+    idem = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    log.info(f"rid={idem} start request: {request.method} {request.url.path}")
+    start_time = time.time()
+    log.debug(f"rid={idem} request headers: {request.headers}")
+    log.debug(f"rid={idem} request parameters: {request.path_params} {request.query_params} ")
+
+    response = await call_next(request)
+    process_time = (time.time() - start_time) * 1000
+    formatted_process_time = '{0:.2f}'.format(process_time)
+    log.info(f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}")
+
+    return response
+
+
 @app.get("/")
-async def get_root(request: Request):
+async def get_root():
     '''Landing page with basic info about the App'''
+    log.info("In root endpoint")
     return {"message": "App is up and running"}
 
