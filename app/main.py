@@ -10,8 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-# from langchain.vectorstores import VectorStore
-
 from log_configs import log
 import schema
 
@@ -121,7 +119,6 @@ async def index(request:Request):
 async def get_root():
     '''Landing page with basic info about the App'''
     log.info("In root endpoint")
-    # Could replace this response with an index html page
     return {"message": "App is up and running"}
 
 @app.get("/ui",
@@ -136,3 +133,27 @@ async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
     return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
+
+@app.post("/chat",
+    response_model=schema.TextOut,
+    responses={
+        422: {"model": schema.ErrorResponse},
+        403: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["ChatBot"])
+@auth_check_decorator
+async def http_chat_endpoint(input_obj: schema.TextIn):
+    '''The http chat endpoint'''
+    new_response = ""
+    sources_list = []
+    chat_id = 000
+    if input_obj.chatId is not None:
+        chat_id = input_obj.chatId
+    # get chat history+question embedding
+    # get matched documents from vector store, using filters for permissible sources
+    # get new response from LLM
+    # post process the response(
+        # filter out of context answers, 
+        # add links, images, etc
+        # translate )
+    return {"text": new_response, "chatId": chat_id, "sources": sources_list}
