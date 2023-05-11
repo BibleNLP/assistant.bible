@@ -7,6 +7,9 @@ from functools import wraps
 
 from fastapi import FastAPI, Request#, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+
 # from langchain.vectorstores import VectorStore
 
 from log_configs import log
@@ -29,6 +32,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+templates = Jinja2Templates(directory="templates")
 
 DB_COLLECTION = None
 
@@ -96,13 +101,38 @@ def auth_check_decorator(func):
         return await func(*args, **kwargs)
     return wrapper
 
-@app.get("/",response_model=schema.NormalResponse,
+@app.get("/",
+    response_class=HTMLResponse,
     responses={
         422: {"model": schema.ErrorResponse},
         500: {"model": schema.ErrorResponse}},
-    status_code=200,tags=["General"])
+    status_code=200, tags=["General", "UI"])
+async def index(request:Request):
+    '''Landing page'''
+    log.info("In index router")
+    return templates.TemplateResponse("index.html", {"request": request})
+
+@app.get("/test",
+    response_model=schema.NormalResponse,
+    responses={
+        422: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["General"])
 async def get_root():
     '''Landing page with basic info about the App'''
     log.info("In root endpoint")
     # Could replace this response with an index html page
     return {"message": "App is up and running"}
+
+@app.get("/ui",
+    response_class=HTMLResponse,
+    responses={
+        422: {"model": schema.ErrorResponse},
+        403: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["UI"])
+@auth_check_decorator
+async def get_ui(request: Request):
+    '''The development UI using http for chat'''
+    log.info("In ui endpoint!!!")
+    return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
