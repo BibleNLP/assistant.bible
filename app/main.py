@@ -1,4 +1,5 @@
 """The entrypoint for the server app."""
+import os
 import string
 import random
 import time
@@ -9,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from langchain.vectorstores import VectorStore
 
 from log_configs import log
+import schema
 
 import chromadb
 from chromadb.config import Settings
@@ -94,8 +96,13 @@ def auth_check_decorator(func):
         return await func(*args, **kwargs)
     return wrapper
 
-@app.get("/")
+@app.get("/",response_model=schema.NormalResponse,
+    responses={
+        422: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200,tags=["General"])
 async def get_root():
     '''Landing page with basic info about the App'''
     log.info("In root endpoint")
+    # Could replace this response with an index html page
     return {"message": "App is up and running"}
