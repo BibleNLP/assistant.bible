@@ -155,7 +155,7 @@ async def http_chat_endpoint(input_obj: schema.ChatIn):
     # get matched documents from vector store, using filters for permissible sources
     # get new response from LLM
     # post process the response(
-        # filter out of context answers, 
+        # filter out of context answers,
         # add links, images, etc
         # translate )
     return {"text": new_response, "chatId": chat_id, "sources": sources_list}
@@ -206,3 +206,22 @@ async def check_job_status(job_id:int = Path(...)):
     '''Returns the status of background jobs like upload-documemts'''
     print(job_id)
     return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
+
+@app.get("/source-tags",
+    response_model=List[str],
+    responses={
+        422: {"model": schema.ErrorResponse},
+        403: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["Data Management"])
+@auth_check_decorator
+async def get_source_tags():
+    '''Returns the distinct set of source tags available in chorma DB'''
+    source_tags = []
+    # metas = DB_COLLECTION.get(
+    #         include=["metadatas"]
+    #     )
+    # source_tags = [item['sourceTag'] for item in metas]
+
+    # Then filter these tags based on requesting users access rights
+    return source_tags

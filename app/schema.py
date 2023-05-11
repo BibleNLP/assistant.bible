@@ -52,8 +52,8 @@ class Job(BaseModel):
 
 class SourceSentence(BaseModel):
     '''List of sentences to be vectorised and stored for later querying'''
-    sentId: str = Field(..., 
-                        example="NIV Bible Mat 1:1-20", 
+    sentId: str = Field(...,
+                        example="NIV Bible Mat 1:1-20",
                         desc="Unique for a sentence. Used by the LLM to specify which document "+\
                         "it answers from. Better to combine the source tag and a serial number.")
     sourceTag: str = Field(...,
