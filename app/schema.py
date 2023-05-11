@@ -13,6 +13,12 @@ class ErrorResponse(BaseModel):
     error: str = Field(...,example="Database Error")
     details: str = Field(...,example="Violation of unique constraint blah blah blah")
 
+class DBSelector(BaseModel):
+    '''The credentials to connect to a remotely hosted chorma DB'''
+    dbHost: str = Field(..., desc="Host name to connect to a remote chroma DB deployment")
+    dbPort: str = Field(..., desc="Port to connect to a remote chroma DB deployment")
+    collectionName:str = Field(..., desc="Collection to connect to a remote chroma DB deployment")
+
 class ChatIn(BaseModel):
     '''Input chat text from the user'''
     text: str = Field(...,example="Who is Jesus?")
@@ -20,8 +26,7 @@ class ChatIn(BaseModel):
     sources: List[str] = Field(None,
         desc = "The list of documents to be used for answering",
         example=["tyndale", "Open Bible Stories", "Paratext User Manual", "The Bible"])
-    dbHost: str = Field(None, desc="host name to connect to a remote chroma DB deployment")
-    dbHost: str = Field(None, desc="port to connect to a remote chroma DB deployment")
+    db: DBSelector = Field(None)
 
 class ChatOut(BaseModel):
     '''Chat response from bot to user'''

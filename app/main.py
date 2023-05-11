@@ -6,7 +6,7 @@ import time
 from functools import wraps
 
 from typing import List
-from fastapi import FastAPI, Request, Body, Path#, Query, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, Request, Body, Path, Query#, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -169,7 +169,8 @@ async def http_chat_endpoint(input_obj: schema.ChatIn):
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def upload_documents(
-    document_objs:List[schema.SourceSentence]=Body(..., desc="List of pre-processed sentences")):
+    document_objs:List[schema.SourceSentence]=Body(..., desc="List of pre-processed sentences"),
+    db_config:schema.DBSelector = Body(None, desc="If not provided, local db of server is used")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
@@ -215,8 +216,13 @@ async def check_job_status(job_id:int = Path(...)):
         500: {"model": schema.ErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
-async def get_source_tags():
+async def get_source_tags(
+    dbHost: str = Query(None, desc="Host name to connect to a remote chroma DB deployment"),
+    dbPort: str = Query(None, desc="Port to connect to a remote chroma DB deployment"),
+    collectionName:str = Query(None, desc="Collection to connect to a remote chroma DB deployment")
+):
     '''Returns the distinct set of source tags available in chorma DB'''
+    print(dbHost, dbPort, collectionName)
     source_tags = []
     # metas = DB_COLLECTION.get(
     #         include=["metadatas"]
