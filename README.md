@@ -20,12 +20,15 @@ An intelligent search engine for domain specific data, that not only provides re
 
 1. `cd docker/`
 1. `docker build -t assistant.bible .`
-1. `docker run \
-	-v chroma-db-vol:../chromadb \
-	-v ab-logs:../logs \
-	-p 8000:8000 \
-	-e OPENAI_API_KEY=<sk-...> \
-	<imageid>`
+1. 
+	```
+	docker run \
+		-v chroma-db-vol:../chromadb \
+		-v ab-logs:../logs \
+		-p 8000:8000 \
+		-e OPENAI_API_KEY=<sk-...> \
+		<imageid>
+	```
 
 Environment variables and their default values, 
 * `OPEN_API_KEY`
