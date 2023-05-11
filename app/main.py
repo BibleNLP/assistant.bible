@@ -217,12 +217,12 @@ async def check_job_status(job_id:int = Path(...)):
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def get_source_tags(
-    dbHost: str = Query(None, desc="Host name to connect to a remote chroma DB deployment"),
-    dbPort: str = Query(None, desc="Port to connect to a remote chroma DB deployment"),
-    collectionName:str = Query(None, desc="Collection to connect to a remote chroma DB deployment")
+    db_host: str = Query(None, desc="Host name to connect to a remote chroma DB deployment"),
+    db_port: str = Query(None, desc="Port to connect to a remote chroma DB deployment"),
+    collection_name:str = Query(None, desc="Collection to connect to a remote chroma DB deployment")
 ):
     '''Returns the distinct set of source tags available in chorma DB'''
-    print(dbHost, dbPort, collectionName)
+    print(db_host, db_port, collection_name)
     source_tags = []
     # metas = DB_COLLECTION.get(
     #         include=["metadatas"]
