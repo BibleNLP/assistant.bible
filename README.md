@@ -55,3 +55,19 @@ If using default values, once started the app should be running at [http://local
 	uvicorn main:app --port 8000
 	```
 If successfully started, the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
+
+### Run tests
+
+From `app/`, with virtual enviroment and Environment variables all set run
+
+```
+python -m pytest
+```
+
+### Run linting
+
+After activating the virtual environment, from project root folder (`assistant.bible/`), run 
+
+```
+pylint --rcfile=.pylintrc app/*.py app/tests/*.py
+```
