@@ -174,7 +174,7 @@ async def upload_documents(
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
-    print(document_objs)
+    print(document_objs, db_config)
     # Get openAI embeddings
     # documents = [item['text'] for item in document_objs]
     # embeddings = OpenAIEmbeddings()
