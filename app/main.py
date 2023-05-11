@@ -5,7 +5,8 @@ import random
 import time
 from functools import wraps
 
-from fastapi import FastAPI, Request#, WebSocket, WebSocketDisconnect
+from typing import List
+from fastapi import FastAPI, Request, Body, Path#, Query, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -18,6 +19,7 @@ from chromadb.config import Settings
 
 CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "../chromadb")
 CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "a_dot_b_collection")
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 app = FastAPI(title="Assistant.Bible  APIs", version="0.0.1-alpha.1",
     description="The server application that provides APIs to interact \
@@ -135,14 +137,14 @@ async def get_ui(request: Request):
     return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
 
 @app.post("/chat",
-    response_model=schema.TextOut,
+    response_model=schema.ChatOut,
     responses={
         422: {"model": schema.ErrorResponse},
         403: {"model": schema.ErrorResponse},
         500: {"model": schema.ErrorResponse}},
     status_code=200, tags=["ChatBot"])
 @auth_check_decorator
-async def http_chat_endpoint(input_obj: schema.TextIn):
+async def http_chat_endpoint(input_obj: schema.ChatIn):
     '''The http chat endpoint'''
     new_response = ""
     sources_list = []
@@ -157,3 +159,50 @@ async def http_chat_endpoint(input_obj: schema.TextIn):
         # add links, images, etc
         # translate )
     return {"text": new_response, "chatId": chat_id, "sources": sources_list}
+
+@app.post("/documents/sentences",
+    response_model=schema.Job,
+    responses={
+        422: {"model": schema.ErrorResponse},
+        403: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["Data Management"])
+@auth_check_decorator
+async def upload_documents(
+    document_objs:List[schema.SourceSentence]=Body(..., desc="List of pre-processed sentences")):
+    '''* Upload of any kind of data that has been pre-processed as list of sentences.
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    print(document_objs)
+    # Get openAI embeddings
+    # documents = [item['text'] for item in document_objs]
+    # embeddings = OpenAIEmbeddings()
+    # Add the data to vetcorstore (ChromaDB)
+    # DB_COLLECTION.add(
+    #     embeddings=embeddings,
+    #     documents=documents,
+    #     metadatas=[{
+    #                "sourceTag":item['sourceTag']
+    #                "link": item['link'],
+    #                "media": item['media'],
+    #                } for item in documents],
+    #     ids=[item["senId"] for item in raw_documents]
+    # )
+
+    # This may have to be a background job!!!
+
+    return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
+
+@app.get("/job/{job_id}",
+    response_model=schema.Job,
+    responses={
+        404: {"model": schema.ErrorResponse},
+        422: {"model": schema.ErrorResponse},
+        403: {"model": schema.ErrorResponse},
+        500: {"model": schema.ErrorResponse}},
+    status_code=200, tags=["Data Management"])
+@auth_check_decorator
+async def check_job_status(job_id:int = Path(...)):
+    '''Returns the status of background jobs like upload-documemts'''
+    print(job_id)
+    return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
