@@ -2,6 +2,7 @@
 import string
 import random
 import time
+from functools import wraps
 
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -47,6 +48,7 @@ async def startup_event():
     # Also need to sort out the following 
     # * how authentication for chorma DB access will work in that case
     # * how the connection can be handled like session that is started upon each user's API request
+    #   to let each user connect to the DB that he prefers and has rights for
 
     collection = chroma_client.get_or_create_collection(
         name="adotb_collection",
@@ -71,6 +73,18 @@ async def log_requests(request: Request, call_next):
 
     return response
 
+
+def auth_check_decorator(func):
+    '''checks a predefined token in request header'''
+    @wraps(func)
+    async def wrapper(*args, **kwargs):    
+        # To be implemented.
+        # Uses Supabase, gets user roles 
+        # Verify the DB requesting to connect to and sources listed for querying are permissible 
+        # Raises 403 error for unauthorized access
+        # Passes the list of accessible sources to the calling function
+        return await func(*args, **kwargs)
+    return wrapper
 
 @app.get("/")
 async def get_root():
