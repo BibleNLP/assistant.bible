@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assistant.Bible</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      </head>
+      <body>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+              <h1 class="text-center">Chat Demo</h1>
+              <div class="well" id="messages"></div>
+              <form class="form-inline" action="" method="post">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="message" name="message" autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+<!--         <script>
+          var socket = io.connect('http://' + document.domain + ':' + location.port);
+          socket.on('message', function(data) {
+            $('#messages').append('<div>' + data + '</div>');
+          });
+          $('form').submit(function(event) {
+            socket.emit('message', $('#message').val());
+            $('#message').val('').focus();
+            event.preventDefault();
+          });
+        </script> -->
+      </body>
+      
+</html>

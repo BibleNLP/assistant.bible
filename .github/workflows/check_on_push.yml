@@ -1,0 +1,43 @@
+# This is a basic workflow to help you run linting and test upon pushing to github or making PRs
+
+name: lint-n-test
+
+# Triggers the workflow on push or pull request
+on: [push, pull_request ]
+
+# Jobs can run in parallel
+jobs:
+  build-n-lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+            python-version: '3.10.6' # Version range or exact version
+            architecture: 'x64' # optional x64 or x86.
+
+      - name: install packages
+        run: pip3 install -r requirements.txt
+        
+      - name: Run linter
+        run: pylint --rcfile=.pylintrc app/*.py app/tests/*.py
+
+  build-n-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+            python-version: '3.10.6' # Version range or exact version
+            architecture: 'x64' # optional x64 or x86.
+
+      - name: install packages
+        run: pip3 install -r requirements.txt
+        
+      - name: Run Pytest
+        working-directory: ./app
+        run: python3 -m pytest
