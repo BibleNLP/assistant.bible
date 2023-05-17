@@ -1,4 +1,4 @@
-# assitant.bible
+# assistant.bible
 The codebase for assistant.bible: A Bible assistant.
 
 An intelligent search engine for domain specific data, that not only provides relevant links to resources but also synthesizes and summarizes results to provide a succinct and relevant answer through an interactive interface. It connects to LLMs and other AI models that are trained on the ground truth texts uploaded by the organization. This enables the software to provide highly accurate and relevant responses to user queries, based on the specific context of the organization's data. With the natural language chat interface, users can easily interact with the data and gain insights that would be difficult or time-consuming to obtain otherwise.
