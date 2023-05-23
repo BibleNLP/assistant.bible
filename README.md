@@ -31,7 +31,7 @@ An intelligent search engine for domain specific data, that not only provides re
 	```
 
 Environment variables and their default values, 
-* `OPEN_API_KEY`
+* `OPENAI_API_KEY`
 * `CHROMA_DB_PATH` default '../chormadb', if changing this should be changed in the volume also.
 * `CHROMA_DB_COLLECTION` default 'a_dot_b_collection'.
 
@@ -49,7 +49,7 @@ If using default values, once started the app should be running at [http://local
 	```
 	OPENAI_API_KEY=sk-...
 	CHROMA_DB_PATH=../chromadb
-	CHROMA_DB_COLLECTION=../chromadb
+	CHROMA_DB_COLLECTION=chromadb
 	```
 	These values need to be set and saved in current terminal or in `.bashrc` file in home directory
 1. Start the app
