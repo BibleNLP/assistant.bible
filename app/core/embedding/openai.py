@@ -1,0 +1,1 @@
+'''Implemetations for embedding interface'''
