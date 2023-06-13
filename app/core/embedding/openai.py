@@ -8,7 +8,7 @@ from core.embedding import EmbeddingInterface
 from custom_exception import AccessException, OpenAIException
 
 
-#pylint: disable=too-few-public-methods, unused-argument
+#pylint: disable=too-few-public-methods
 
 class OpenAIEmbedding(EmbeddingInterface):
     '''Uses OpenAI APIs to create vectors for text'''

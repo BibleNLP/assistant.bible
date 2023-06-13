@@ -21,6 +21,14 @@ class DatabaseTech(str, Enum):
     '''Available Database type choices'''
     CHROMA = "chroma_db"
 
+class FileType(str, Enum):
+    '''Supported file/content types for populating DB'''
+    TEXT = "Continuous text"
+    MD = "Generic markdown"
+    CSV = "CSV with fields (id, text, labels, links, medialinks)"
+    # USFM = "Bible book in USFM format"
+    # USX = "Bible book in USFM format"
+
 class DBSelector(BaseModel):
     '''The credentials to connect to a remotely hosted chorma DB'''
     # dbTech: str = Field(DatabaseTech.CHROMA, desc="Technology choice like chroma, pinecone etc")
@@ -72,12 +80,12 @@ class Document(BaseModel):
                         "it answers from. Better to combine the source tag and a serial number.")
     text: str = Field(..., desc="The sentence to be vectorised and used for question answering")
     embedding: List[float] = Field(None, desc="vector embedding for the text field")
-    labels: List[str] = Field(...,
-                        example=["paratext user manual", "open licensed bible"],
+    labels: List[str] = Field(["open-access"],
+                        example=["paratext user manual", "bible", "door-43-users"],
                         desc="The common tag for all sentences under a set. "+\
                         "Used for specifying access rules and filtering during querying")
-    link: AnyUrl = Field(None, desc="The links to fetch the actual resource. "+\
-                        "To be used by end user link a search result")
+    links: List[AnyUrl] = Field(None, desc="The links to fetch the actual resource. "+\
+                        "To be used by end user like a search result")
     media: List[AnyUrl] = Field(None, desc="Additional media links, like images, videos etc "+\
                         "to be used in output to make the chat interface multimodel")
     metadata: dict = Field(None, desc="Any additional data that needs to go along with the text,"+\

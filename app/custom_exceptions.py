@@ -31,4 +31,11 @@ class OpenAIException(Exception):
         self.name = "Error from OpenAI"
         self.detail = detail
         self.status_code = 502
-        
+
+class GenericException(Exception):
+    '''Format for Database error'''
+    def __init__(self, detail: str):
+        super().__init__()
+        self.name = "Error"
+        self.detail = detail
+        self.status_code = 500
