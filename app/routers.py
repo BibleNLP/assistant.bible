@@ -80,7 +80,7 @@ async def http_chat_endpoint(input_obj: schema.ChatIn):
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def upload_documents(
-    document_objs:List[schema.SourceSentence]=Body(..., desc="List of pre-processed sentences"),
+    document_objs:List[schema.Document]=Body(..., desc="List of pre-processed sentences"),
     db_config:schema.DBSelector = Body(None, desc="If not provided, local db of server is used")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
