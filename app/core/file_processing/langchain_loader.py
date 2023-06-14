@@ -6,7 +6,7 @@ from langchain.document_loaders import TextLoader
 
 from core.file_processing import FileProcessingInterface
 import schema
-from custom_exception import GenericException
+from custom_exceptions import GenericException
 
 
 #pylint: disable=too-few-public-methods, unused-argument
@@ -14,7 +14,7 @@ from custom_exception import GenericException
 class LangchainLoader(FileProcessingInterface):
     '''Langchain based implementation for file handling'''
     def process_file(self,
-                 file: TextIOWrapper,
+                 file: str,
                  labels:List[str],
                  name: str = None,
                  metadata: dict = None,
@@ -57,11 +57,16 @@ class LangchainLoader(FileProcessingInterface):
             labels = ["open-access"]
         if name is None or name.strip() == "":
             name = file.name
+        if metadata is None:
+            metadata = {}
         for i, split in enumerate(text_splits):
-            doc = schema.Document()
-            doc.docId = f"{name}-{i}"
-            doc.text = split
-            doc.labels = labels
-            doc.metadata = metadata
+            meta = {}
+            meta.update(split.metadata)
+            meta.update(metadata)
+            doc = schema.Document(
+                docId = f"{name}-{i}",
+                text = split.page_content,
+                labels = labels,
+                metadata = meta)
             output_list.append(doc)
         return output_list

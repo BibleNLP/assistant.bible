@@ -32,6 +32,14 @@ class OpenAIException(Exception):
         self.detail = detail
         self.status_code = 502
 
+class ChromaException(Exception):
+    '''Format for errors from ChromaDB's APIs'''
+    def __init__(self, detail):
+        super().__init__()
+        self.name = "Error from ChromaDB"
+        self.detail = detail
+        self.status_code = 502
+
 class GenericException(Exception):
     '''Format for Database error'''
     def __init__(self, detail: str):

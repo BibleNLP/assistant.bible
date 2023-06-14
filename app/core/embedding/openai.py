@@ -5,7 +5,7 @@ import openai
 
 import schema
 from core.embedding import EmbeddingInterface
-from custom_exception import AccessException, OpenAIException
+from custom_exceptions import AccessException, OpenAIException
 
 
 #pylint: disable=too-few-public-methods
@@ -29,10 +29,11 @@ class OpenAIEmbedding(EmbeddingInterface):
 
     def get_embeddings(self, doc_list: List[schema.Document]) -> None: 
         '''Generate embedding for the .text values and sets them to .embedding field of i/p items'''
-        response = self.api_object.Embedding.create(
-                        input = [doc.text.replace("\n", " ") for doc in doc_list],
+        for doc in doc_list:
+            input_text = doc.text.replace("\n", " ")
+            response = openai.Embedding.create(
+                        input = input_text,
                         model=self.model)
-        if not "data" in response:
-            raise OpenAIException(str(response))
-        for doc,resp in zip(doc_list,response['data']):
-            doc.embedding = resp['embedding']
+            if not "data" in response:
+                raise OpenAIException(str(response))
+            doc.embedding = response['data'][0]['embedding']

@@ -13,6 +13,10 @@ class ErrorResponse(BaseModel):
     error: str = Field(...,example="Database Error")
     details: str = Field(...,example="Violation of unique constraint blah blah blah")
 
+class FileProcessingTech(str, Enum):
+    '''Available file processing technology choices'''
+    LANGCHAIN = "Langchain's loaders"
+
 class EmbeddingTech(str, Enum):
     '''Available text embedding technology choices'''
     OPENAI = "OpenAI"
@@ -84,10 +88,10 @@ class Document(BaseModel):
                         example=["paratext user manual", "bible", "door-43-users"],
                         desc="The common tag for all sentences under a set. "+\
                         "Used for specifying access rules and filtering during querying")
-    links: List[AnyUrl] = Field(None, desc="The links to fetch the actual resource. "+\
+    links: List[AnyUrl] = Field([], desc="The links to fetch the actual resource. "+\
                         "To be used by end user like a search result")
-    media: List[AnyUrl] = Field(None, desc="Additional media links, like images, videos etc "+\
+    media: List[AnyUrl] = Field([], desc="Additional media links, like images, videos etc "+\
                         "to be used in output to make the chat interface multimodel")
-    metadata: dict = Field(None, desc="Any additional data that needs to go along with the text,"+\
+    metadata: dict = Field([], desc="Any additional data that needs to go along with the text,"+\
                         " as per usecases. Could help in pre- and/or post-processing",
                         example={"displayimages": True})
