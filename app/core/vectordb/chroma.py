@@ -73,9 +73,13 @@ class Chroma(VectordbInterface):
                          "media": ",".join(doc.media), 
                          'links':",".join(doc.links)})
             metas.append(meta)
+        if docs[0].embedding is None:
+            embeddings = None
+        else:
+            embeddings=[doc.embedding for doc in docs]
         try:
             self.db_conn.add(
-                embeddings=[doc.embedding for doc in docs],
+                embeddings=embeddings,
                 documents=[doc.text for doc in docs],
                 metadatas=metas,
                 ids=[doc.docId for doc in docs]
