@@ -2,7 +2,7 @@
 #pylint: disable=too-many-lines
 from typing import Optional, List
 from enum import Enum
-from pydantic import BaseModel, Field, AnyUrl#, constr, validator
+from pydantic import BaseModel, Field, AnyUrl, constr#, validator
 
 class NormalResponse(BaseModel):
     '''Response with only a message'''
@@ -32,6 +32,8 @@ class FileType(str, Enum):
     CSV = "CSV with fields (id, text, labels, links, medialinks)"
     # USFM = "Bible book in USFM format"
     # USX = "Bible book in USFM format"
+
+HostnPortPattern = constr(regex=r"^.*:\d+$")
 
 class DBSelector(BaseModel):
     '''The credentials to connect to a remotely hosted chorma DB'''

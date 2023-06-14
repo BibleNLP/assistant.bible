@@ -56,18 +56,17 @@ class DataUploadPipeline:
 
     def set_vectordb_tech(self,
         choice:schema.DatabaseTech,
-        host:str=None,
-        port:str=None,
+        host_n_port:schema.HostnPortPattern=None,
         path:str=None,
         collection_name:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         if choice == schema.DatabaseTech.CHROMA:
             args = {}
-            if not host is None:
-                args['host'] = host
-            if not port is None:
-                args['port'] = port
+            if not host_n_port is None:
+                parts = host_n_port.split(":")
+                args['host'] = "".join(parts[:-1])
+                args['port'] = parts[-1]
             if not path is None:
                 args['path'] = path
             if not collection_name is None:

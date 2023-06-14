@@ -34,7 +34,7 @@ class Chroma(VectordbInterface):
                     chroma_db_impl='duckdb+parquet',
                     persist_directory=path))
             except Exception as exe:
-                raise ChromaException("While initializing client: "+str(e)) from exe
+                raise ChromaException("While initializing client: "+str(exe)) from exe
         else:
             # This method requires us to run the chroma DB as a separate service 
             # (say in docker-compose).
@@ -54,14 +54,14 @@ class Chroma(VectordbInterface):
                     chroma_server_http_port=port
                 ))
             except Exception as exe:
-                raise ChromaException("While initializing client: "+str(e)) from exe
+                raise ChromaException("While initializing client: "+str(exe)) from exe
         try:
             self.db_conn = chroma_client.get_or_create_collection(
                 name=self.collection_name,
                 # embedding_function=custom_openai_emb_fn,
                 )
         except Exception as exe:
-            raise ChromaException("While initializing collection: "+str(e)) from exe
+            raise ChromaException("While initializing collection: "+str(exe)) from exe
 
     def add_to_collection(self, docs: List[schema.Document], **kwargs) -> None:
         '''Loads the document object as per chroma DB formats into the collection'''
