@@ -22,7 +22,7 @@ jobs:
         run: pip3 install -r requirements.txt
         
       - name: Run linter
-        run: pylint --rcfile=.pylintrc app/*.py app/tests/*.py
+        run: pylint --rcfile=.pylintrc app/*.py app/tests/*.py app/core/*/*.py
 
   build-n-test:
     runs-on: ubuntu-latest
