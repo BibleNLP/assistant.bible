@@ -15,20 +15,20 @@ class LangchainLoader(FileProcessingInterface):
     '''Langchain based implementation for file handling'''
     def process_file(self,
                  file: str,
-                 labels:List[str],
-                 name: str = None,
-                 metadata: dict = None,
+                 label:str="open-access",
                  file_type:str=schema.FileType.TEXT,
                  **kwargs) -> List[schema.Document]:
         '''Converts the file contents to Document type, as per the format and its implementation.
         file_type can be more content specific like "paratext manual" or "usfm bible"
         with custom handling for its format and contents.
         Implementations should try to fill as much additional information like links, media etc.
-        labels, when provided, should apply to all documents in the o/p list'''
+        label, when provided, should apply to all documents in the o/p list'''
         if file_type in [schema.FileType.TEXT, schema.FileType.MD]:
+            name = kwargs.get("name", None)
+            metadata = kwargs.get("metadata", {})
             output_list = self.process_file_text(
                 file = file,
-                labels = labels,
+                label = label,
                 name = name,
                 metadata = metadata)
         elif file_type == schema.FileType.CSV:
@@ -43,7 +43,7 @@ class LangchainLoader(FileProcessingInterface):
 
     def process_file_text(self,
                  file: TextIOWrapper,
-                 labels:List[str],
+                 label:str,
                  name: str = None,
                  metadata: dict = None) -> List[schema.Document]:
         '''Uses langchain's CharacterTextSplitter to convert text contents into document format'''
@@ -53,8 +53,8 @@ class LangchainLoader(FileProcessingInterface):
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         text_splits = text_splitter.split_documents(texts)
 
-        if not labels:
-            labels = ["open-access"]
+        if not label:
+            label = "open-access"
         if name is None or name.strip() == "":
             name = file.name
         if metadata is None:
@@ -66,7 +66,7 @@ class LangchainLoader(FileProcessingInterface):
             doc = schema.Document(
                 docId = f"{name}-{i}",
                 text = split.page_content,
-                labels = labels,
+                label = label,
                 metadata = meta)
             output_list.append(doc)
         return output_list

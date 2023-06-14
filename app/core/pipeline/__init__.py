@@ -74,4 +74,3 @@ class DataUploadPipeline:
             self.vectordb_tech = Chroma(**args)
         else:
             raise GenericException("This technology type is not supported (yet)!")
-

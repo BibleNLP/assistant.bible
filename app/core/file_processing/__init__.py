@@ -10,33 +10,42 @@ import schema
 class FileProcessingInterface:
     '''Interface for file handling techniques'''
     def process_file(self,
-                 file: TextIOWrapper, # TextIOWrapper is just the type() of file object in python
-                 labels:List[str]=None,
+                 file: str,
+                 label:str=None,
                  file_type:str=schema.FileType.TEXT,
                  **kwargs) -> List[schema.Document]:
         '''Converts the file contents to Document type, as per the format and its implementation.
         file_type can be more content specific like "paratext manual" or "usfm bible"
         with custom handling for its format and contents.
         Implementations should try to fill as much additional information like links, media etc.
-        labels, when provided, should apply to all documents in the o/p list'''
+        label, when provided, should apply to all documents in the o/p list'''
 
         return []
 
     def process_file_csv(self,
-            file: TextIOWrapper,
+            file: str,
             col_delimiter:str=",") -> List[schema.Document]:
-        '''Converts CSV files with format, (id, text, labels, links, medialinks)
-        labels, links and media links must be comma separated values in the same field.
+        '''Converts CSV files with format, (id, text, label, links, medialinks)
+        label, links and media links must be comma separated values in the same field.
         into document objects'''
         output_list = []
-        reader = csv.DictReader(file, delimiter=col_delimiter)
-
-        for row in reader:
-            doc = schema.Document()
-            doc.docId = row['id'].strip()
-            doc.text = row['text']
-            doc.labels = [ lbl.strip() for lbl in row['labels'].split(',')]
-            doc.links = [ lnk.strip() for lnk in row['links'].split(',')]
-            doc.media = [ med.strip() for med in row['medialinks'].split(',')]
-            output_list.append(doc)
-        return output_list
+        with open(file, 'r', encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=col_delimiter)
+            for row in reader:
+                print(row)
+                if row['links'] is None or row['links'].strip() == "":
+                    links = []
+                else:
+                    links = [ lnk.strip() for lnk in row['links'].split(',')]
+                if row['medialinks'] is None or row['medialinks'].strip() == "":
+                    media = []
+                else:
+                    media = [ med.strip() for med in row['medialinks'].split(',')]
+                doc = schema.Document(
+                    docId = row['id'].strip(),
+                    text = row['text'],
+                    label = row['label'],
+                    links = links,
+                    media = media)
+                output_list.append(doc)
+            return output_list

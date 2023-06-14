@@ -13,6 +13,6 @@ class EmbeddingInterface:
     def __init__(self, key:str, **kwargs) -> None:
         '''Sets the API key and initializes library objects if any'''
         self.api_key = key
-    def get_embeddings(self, doc_list: List[schema.Document]) -> None: 
+    def get_embeddings(self, doc_list: List[schema.Document]) -> None:
         '''Generate embedding for the .text values and sets them to .embedding field of i/p items'''
         return

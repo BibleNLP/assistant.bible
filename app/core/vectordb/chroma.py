@@ -1,12 +1,12 @@
 '''Implemetations for vectordb interface for chroma'''
-import os
 from typing import List
-import chromadb
-from chromadb.config import Settings
 
 from core.vectordb import VectordbInterface
 import schema
 from custom_exceptions import ChromaException
+
+import chromadb
+from chromadb.config import Settings
 
 #pylint: disable=too-few-public-methods, unused-argument
 
@@ -17,7 +17,7 @@ class Chroma(VectordbInterface):
     db_path: str = "../chromadb" # Path for a local DB, if that is being used
     collection_name:str = "aDotBCollection"  # Collection to connect to a remote/local DB
     db_conn=None
-    def __init__(self, host=None, port=None, path="../chromadb", collection_name=None) -> None:
+    def __init__(self, host=None, port=None, path="../chromadb", collection_name=None) -> None: #pylint: disable=super-init-not-called
         '''Instanciate a chroma client'''
         if host:
             self.db_host = host
@@ -27,7 +27,7 @@ class Chroma(VectordbInterface):
         if collection_name:
             self.collection_name = collection_name
         if(self.db_host is None and self.db_port is None):
-            # This method connects to the DB that get stored on the server itself 
+            # This method connects to the DB that get stored on the server itself
             # where the app is running
             try:
                 chroma_client = chromadb.Client(Settings(
@@ -36,7 +36,7 @@ class Chroma(VectordbInterface):
             except Exception as exe:
                 raise ChromaException("While initializing client: "+str(exe)) from exe
         else:
-            # This method requires us to run the chroma DB as a separate service 
+            # This method requires us to run the chroma DB as a separate service
             # (say in docker-compose).
             # In future this would allow us to keep multiple options for DB connection,
             # letting different users set up and host their own chroma DBs where ever they please
@@ -44,8 +44,8 @@ class Chroma(VectordbInterface):
             # Also need to sort out the following
             # * Let the connection details, host, port and collection name be passed in requests
             # * how authentication for chorma DB access will work in that case
-            # * how the connection can be handled like session that is started upon 
-            #   each user's API request to let each user connect to the DB 
+            # * how the connection can be handled like session that is started upon
+            #   each user's API request to let each user connect to the DB
             #   that he prefers and has rights for(fastapi's Depends())
             try:
                 chroma_client = chromadb.Client(Settings(
@@ -69,8 +69,8 @@ class Chroma(VectordbInterface):
         for doc in docs:
             meta = {}
             meta.update(doc.metadata)
-            meta.update({'labels':",".join(doc.labels), 
-                         "media": ",".join(doc.media), 
+            meta.update({'label':doc.label,
+                         "media": ",".join(doc.media),
                          'links':",".join(doc.links)})
             metas.append(meta)
         if docs[0].embedding is None:
