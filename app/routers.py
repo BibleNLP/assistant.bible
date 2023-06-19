@@ -15,8 +15,8 @@ templates = Jinja2Templates(directory="templates")
 @router.get("/",
     response_class=HTMLResponse,
     responses={
-        422: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["General", "UI"])
 async def index(request:Request):
     '''Landing page'''
@@ -24,10 +24,10 @@ async def index(request:Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @router.get("/test",
-    response_model=schema.NormalResponse,
+    response_model=schema.APIInfoResponse,
     responses={
-        422: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["General"])
 async def get_root():
     '''Landing page with basic info about the App'''
@@ -37,9 +37,9 @@ async def get_root():
 @router.get("/ui",
     response_class=HTMLResponse,
     responses={
-        422: {"model": schema.ErrorResponse},
-        403: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
 @auth_check_decorator
 async def get_ui(request: Request):
@@ -50,9 +50,9 @@ async def get_ui(request: Request):
 @router.post("/chat",
     response_model=schema.ChatOut,
     responses={
-        422: {"model": schema.ErrorResponse},
-        403: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["ChatBot"])
 @auth_check_decorator
 async def http_chat_endpoint(input_obj: schema.ChatIn):
@@ -74,9 +74,9 @@ async def http_chat_endpoint(input_obj: schema.ChatIn):
 @router.post("/documents/sentences",
     response_model=schema.Job,
     responses={
-        422: {"model": schema.ErrorResponse},
-        403: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def upload_documents(
@@ -108,10 +108,10 @@ async def upload_documents(
 @router.get("/job/{job_id}",
     response_model=schema.Job,
     responses={
-        404: {"model": schema.ErrorResponse},
-        422: {"model": schema.ErrorResponse},
-        403: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        404: {"model": schema.APIErrorResponse},
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def check_job_status(job_id:int = Path(...)):
@@ -122,9 +122,9 @@ async def check_job_status(job_id:int = Path(...)):
 @router.get("/source-tags",
     response_model=List[str],
     responses={
-        422: {"model": schema.ErrorResponse},
-        403: {"model": schema.ErrorResponse},
-        500: {"model": schema.ErrorResponse}},
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def get_source_tags(

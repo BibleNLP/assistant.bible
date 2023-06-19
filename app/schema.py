@@ -4,11 +4,11 @@ from typing import Optional, List
 from enum import Enum
 from pydantic import BaseModel, Field, AnyUrl, constr#, validator
 
-class NormalResponse(BaseModel):
+class APIInfoResponse(BaseModel):
     '''Response with only a message'''
     message : str = Field(...,example="App is up and running")
 
-class ErrorResponse(BaseModel):
+class APIErrorResponse(BaseModel):
     '''Common error response format'''
     error: str = Field(...,example="Database Error")
     details: str = Field(...,example="Violation of unique constraint blah blah blah")
