@@ -18,8 +18,8 @@ import schema
 ######## Configure the pipeline's tech stack ############
 data_stack = DataUploadPipeline()
 data_stack.set_file_processing_tech(
-    schema.FileProcessingTech.LANGCHAIN)
-data_stack.set_vectordb_tech(schema.DatabaseTech.CHROMA,
+    schema.FileProcessingType.LANGCHAIN)
+data_stack.set_vectordb_tech(schema.DatabaseType.CHROMA,
     path="../chromadb",
     collection_name='aDotBCollection_chromaDefaultEmbeddings')
 

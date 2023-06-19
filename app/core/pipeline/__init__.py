@@ -30,21 +30,21 @@ class DataUploadPipeline:
         self.vectordb_tech = vectordb_tech()
 
     def set_file_processing_tech(self,
-        choice: schema.FileProcessingTech,
+        choice: schema.FileProcessingType,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
-        if choice == schema.FileProcessingTech.LANGCHAIN:
+        if choice == schema.FileProcessingType.LANGCHAIN:
             self.file_processing_tech = LangchainLoader()
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
     def set_embedding_tech(self,
-        choice:schema.EmbeddingTech,
+        choice:schema.EmbeddingType,
         api_key:str=None,
         model:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
-        if choice == schema.EmbeddingTech.OPENAI:
+        if choice == schema.EmbeddingType.OPENAI:
             args = {}
             if not api_key is None:
                 args['key'] = api_key
@@ -55,13 +55,13 @@ class DataUploadPipeline:
             raise GenericException("This technology type is not supported (yet)!")
 
     def set_vectordb_tech(self,
-        choice:schema.DatabaseTech,
+        choice:schema.DatabaseType,
         host_n_port:schema.HostnPortPattern=None,
         path:str=None,
         collection_name:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
-        if choice == schema.DatabaseTech.CHROMA:
+        if choice == schema.DatabaseType.CHROMA:
             args = {}
             if not host_n_port is None:
                 parts = host_n_port.split(":")

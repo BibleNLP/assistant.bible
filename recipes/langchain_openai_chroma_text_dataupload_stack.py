@@ -18,12 +18,12 @@ import schema
 ######## Configure the pipeline's tech stack ############
 data_stack = DataUploadPipeline()
 data_stack.set_file_processing_tech(
-    schema.FileProcessingTech.LANGCHAIN)
+    schema.FileProcessingType.LANGCHAIN)
 data_stack.set_embedding_tech(
-    schema.EmbeddingTech.OPENAI,
+    schema.EmbeddingType.OPENAI,
     api_key=os.getenv('OPENAI_API_KEY'),
     model='text-embedding-ada-002')
-data_stack.set_vectordb_tech(schema.DatabaseTech.CHROMA,
+data_stack.set_vectordb_tech(schema.DatabaseType.CHROMA,
     path="../chromadb",
     collection_name='aDotBCollection')
 

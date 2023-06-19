@@ -13,15 +13,15 @@ class APIErrorResponse(BaseModel):
     error: str = Field(...,example="Database Error")
     details: str = Field(...,example="Violation of unique constraint blah blah blah")
 
-class FileProcessingTech(str, Enum):
+class FileProcessingType(str, Enum):
     '''Available file processing technology choices'''
     LANGCHAIN = "Langchain's loaders"
 
-class EmbeddingTech(str, Enum):
+class EmbeddingType(str, Enum):
     '''Available text embedding technology choices'''
     OPENAI = "OpenAI"
 
-class DatabaseTech(str, Enum):
+class DatabaseType(str, Enum):
     '''Available Database type choices'''
     CHROMA = "chroma_db"
 

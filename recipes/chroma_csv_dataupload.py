@@ -17,7 +17,7 @@ import schema
 
 ######## Configure the pipeline's tech stack ############
 data_stack = DataUploadPipeline()
-data_stack.set_vectordb_tech(schema.DatabaseTech.CHROMA,
+data_stack.set_vectordb_tech(schema.DatabaseType.CHROMA,
     path="../chromadb",
     collection_name='aDotBCollection_fromTSV')
 
