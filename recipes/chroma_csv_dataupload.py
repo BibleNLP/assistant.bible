@@ -17,7 +17,7 @@ import schema
 
 ######## Configure the pipeline's tech stack ############
 data_stack = DataUploadPipeline()
-data_stack.set_vectordb_tech(schema.DatabaseType.CHROMA,
+data_stack.set_vectordb(schema.DatabaseType.CHROMA,
     path="../chromadb",
     collection_name='aDotBCollection_fromTSV')
 
@@ -25,7 +25,7 @@ data_stack.set_vectordb_tech(schema.DatabaseType.CHROMA,
 ######## File Processing #############
 INPUTFILE = "./data/dataupload.tsv"
 
-processed_documents = data_stack.file_processing_tech.process_file(
+processed_documents = data_stack.file_processing.process_file(
         file=INPUTFILE,
         file_type=schema.FileType.CSV,
         col_delimiter="\t")
@@ -39,8 +39,8 @@ print('One Sample Document: ', processed_documents[0], '\n\n')
 
 
 # ########### Adding to chroma DB #################
-data_stack.vectordb_tech.add_to_collection(docs=processed_documents[:10])
-rows = data_stack.vectordb_tech.db_conn.get(
+data_stack.vectordb.add_to_collection(docs=processed_documents[:10])
+rows = data_stack.vectordb.db_conn.get(
     include=["metadatas"]
 )
 print("First Row meta from DB",rows['metadatas'][0])

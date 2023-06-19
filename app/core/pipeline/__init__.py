@@ -16,29 +16,29 @@ from core.vectordb.chroma import Chroma
 
 class DataUploadPipeline:
     '''Interface for implementing dataupload tech stack'''
-    file_processing_tech: FileProcessingInterface = None
-    embedding_tech: EmbeddingInterface = None
-    vectordb_tech: VectordbInterface = None
+    file_processing: FileProcessingInterface = None
+    embedding: EmbeddingInterface = None
+    vectordb: VectordbInterface = None
 
     def __init__(self,
         file_processing_tech: FileProcessingInterface=LangchainLoader,
         embedding_tech: EmbeddingInterface=OpenAIEmbedding,
         vectordb_tech: VectordbInterface=Chroma) -> None:
         '''Define the stack with defaults, in the constructor'''
-        self.file_processing_tech = file_processing_tech()
-        self.embedding_tech = embedding_tech()
-        self.vectordb_tech = vectordb_tech()
+        self.file_processing = file_processing_tech()
+        self.embedding = embedding_tech()
+        self.vectordb = vectordb_tech()
 
-    def set_file_processing_tech(self,
+    def set_file_processing(self,
         choice: schema.FileProcessingType,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         if choice == schema.FileProcessingType.LANGCHAIN:
-            self.file_processing_tech = LangchainLoader()
+            self.file_processing = LangchainLoader()
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
-    def set_embedding_tech(self,
+    def set_embedding(self,
         choice:schema.EmbeddingType,
         api_key:str=None,
         model:str=None,
@@ -50,11 +50,11 @@ class DataUploadPipeline:
                 args['key'] = api_key
             if not model is None:
                 args['model'] = model
-            self.embedding_tech = OpenAIEmbedding(**args)
+            self.embedding = OpenAIEmbedding(**args)
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
-    def set_vectordb_tech(self,
+    def set_vectordb(self,
         choice:schema.DatabaseType,
         host_n_port:schema.HostnPortPattern=None,
         path:str=None,
@@ -71,6 +71,6 @@ class DataUploadPipeline:
                 args['path'] = path
             if not collection_name is None:
                 args['collection_name'] = collection_name
-            self.vectordb_tech = Chroma(**args)
+            self.vectordb = Chroma(**args)
         else:
             raise GenericException("This technology type is not supported (yet)!")
