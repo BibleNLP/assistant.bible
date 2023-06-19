@@ -4,11 +4,11 @@ from typing import List
 
 import schema
 from custom_exceptions import GenericException
-from core.file_processing import FileProcessingInterface
+from core.file_processor import FileProcessorInterface
 from core.embedding import EmbeddingInterface
 from core.vectordb import VectordbInterface
 
-from core.file_processing.langchain_loader import LangchainLoader
+from core.file_processor.langchain_loader import LangchainLoader
 from core.embedding.openai import OpenAIEmbedding
 from core.vectordb.chroma import Chroma
 
@@ -16,25 +16,25 @@ from core.vectordb.chroma import Chroma
 
 class DataUploadPipeline:
     '''Interface for implementing dataupload tech stack'''
-    file_processing: FileProcessingInterface = None
+    file_processor: FileProcessorInterface = None
     embedding: EmbeddingInterface = None
     vectordb: VectordbInterface = None
 
     def __init__(self,
-        file_processing_tech: FileProcessingInterface=LangchainLoader,
-        embedding_tech: EmbeddingInterface=OpenAIEmbedding,
-        vectordb_tech: VectordbInterface=Chroma) -> None:
+        file_processor: FileProcessorInterface=LangchainLoader,
+        embedding: EmbeddingInterface=OpenAIEmbedding,
+        vectordb: VectordbInterface=Chroma) -> None:
         '''Define the stack with defaults, in the constructor'''
-        self.file_processing = file_processing_tech()
-        self.embedding = embedding_tech()
-        self.vectordb = vectordb_tech()
+        self.file_processor = file_processor()
+        self.embedding = embedding()
+        self.vectordb = vectordb()
 
-    def set_file_processing(self,
-        choice: schema.FileProcessingType,
+    def set_file_processor(self,
+        choice: schema.FileProcessorType,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
-        if choice == schema.FileProcessingType.LANGCHAIN:
-            self.file_processing = LangchainLoader()
+        if choice == schema.FileProcessorType.LANGCHAIN:
+            self.file_processor = LangchainLoader()
         else:
             raise GenericException("This technology type is not supported (yet)!")
 

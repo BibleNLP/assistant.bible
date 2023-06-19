@@ -4,14 +4,14 @@ from typing import List
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.document_loaders import TextLoader
 
-from core.file_processing import FileProcessingInterface
+from core.file_processor import FileProcessorInterface
 import schema
 from custom_exceptions import GenericException
 
 
 #pylint: disable=too-few-public-methods, unused-argument
 
-class LangchainLoader(FileProcessingInterface):
+class LangchainLoader(FileProcessorInterface):
     '''Langchain based implementation for file handling'''
     def process_file(self,
                  file: str,

@@ -7,7 +7,7 @@ import schema
 
 #pylint: disable=too-few-public-methods, unused-argument
 
-class FileProcessingInterface:
+class FileProcessorInterface:
     '''Interface for file handling techniques'''
     def process_file(self,
                  file: str,

@@ -13,8 +13,8 @@ class APIErrorResponse(BaseModel):
     error: str = Field(...,example="Database Error")
     details: str = Field(...,example="Violation of unique constraint blah blah blah")
 
-class FileProcessingType(str, Enum):
-    '''Available file processing technology choices'''
+class FileProcessorType(str, Enum):
+    '''Available file processor technology choices'''
     LANGCHAIN = "Langchain's loaders"
 
 class EmbeddingType(str, Enum):

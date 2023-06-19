@@ -1,6 +1,6 @@
 '''Inputs text data into vector db.
 Content type: CSV/TSV with following header(id,text,label,links,medialinks)
-File processing: the Common CSV processing inherited into the LangchainLoader class
+File processor: the Common CSV processor inherited into the LangchainLoader class
 Embedding: Using the chroma db's default embedding()
 DB: chroma
 '''
@@ -22,10 +22,10 @@ data_stack.set_vectordb(schema.DatabaseType.CHROMA,
     collection_name='aDotBCollection_fromTSV')
 
 
-######## File Processing #############
+######## File Processor #############
 INPUTFILE = "./data/dataupload.tsv"
 
-processed_documents = data_stack.file_processing.process_file(
+processed_documents = data_stack.file_processor.process_file(
         file=INPUTFILE,
         file_type=schema.FileType.CSV,
         col_delimiter="\t")

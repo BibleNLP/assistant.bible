@@ -1,6 +1,6 @@
 '''Inputs text data into vector db.
 Content type: text/markdown files
-File processing: Langchain loaders and splitters
+File processor: Langchain loaders and splitters
 Embedding: Openai's ada
 DB: chroma
 '''
@@ -17,8 +17,8 @@ import schema
 
 ######## Configure the pipeline's tech stack ############
 data_stack = DataUploadPipeline()
-data_stack.set_file_processing(
-    schema.FileProcessingType.LANGCHAIN)
+data_stack.set_file_processor(
+    schema.FileProcessorType.LANGCHAIN)
 data_stack.set_embedding(
     schema.EmbeddingType.OPENAI,
     api_key=os.getenv('OPENAI_API_KEY'),
@@ -30,14 +30,14 @@ data_stack.set_vectordb(schema.DatabaseType.CHROMA,
 
 
 
-######## File Processing #############
+######## File Processor #############
 input_files = glob.glob(
     "./data/translationwords/*.md")
 
 processed_documents = []
 for path in input_files:
     # with open(path, 'r', encoding='utf-8') as infile:
-    docs = data_stack.file_processing.process_file(
+    docs = data_stack.file_processor.process_file(
         file=path,
         file_type=schema.FileType.MD,
         label="TranslationWords",
