@@ -48,14 +48,14 @@ async def get_ui(request: Request):
     return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
 
 @router.post("/chat",
-    response_model=schema.ChatOut,
+    response_model=schema.BotResponse,
     responses={
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["ChatBot"])
 @auth_check_decorator
-async def http_chat_endpoint(input_obj: schema.ChatIn):
+async def http_chat_endpoint(input_obj: schema.UserPrompt):
     '''The http chat endpoint'''
     new_response = ""
     sources_list = []

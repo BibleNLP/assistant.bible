@@ -42,7 +42,7 @@ class DBSelector(BaseModel):
     dbPort: str = Field(None, desc="Port to connect to a remote DB deployment")
     collectionName:str = Field(None, desc="Collection to connect to a remote DB deployment")
 
-class ChatIn(BaseModel):
+class UserPrompt(BaseModel):
     '''Input chat text from the user'''
     text: str = Field(...,example="Who is Jesus?")
     chatId: Optional[str] = Field(None, example=10001)
@@ -51,7 +51,7 @@ class ChatIn(BaseModel):
         example=["tyndale", "Open Bible Stories", "Paratext User Manual", "The Bible"])
     db: DBSelector = Field(None)
 
-class ChatOut(BaseModel):
+class BotResponse(BaseModel):
     '''Chat response from bot to user'''
     text: str = Field(...,example="Good Morning to you too!")
     chatId: str = Field(...,example=10001)
