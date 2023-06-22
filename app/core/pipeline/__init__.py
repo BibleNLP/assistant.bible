@@ -9,6 +9,7 @@ from core.embedding import EmbeddingInterface
 from core.vectordb import VectordbInterface
 
 from core.file_processor.langchain_loader import LangchainLoader
+from core.file_processor.vanilla_loader import VanillaLoader
 from core.embedding.openai import OpenAIEmbedding
 from core.vectordb.chroma import Chroma
 
@@ -35,6 +36,8 @@ class DataUploadPipeline:
         '''Change the default tech with one of our choice'''
         if choice == schema.FileProcessorType.LANGCHAIN:
             self.file_processor = LangchainLoader()
+        elif choice == schema.FileProcessorType.VANILLA:
+            self.file_processor = VanillaLoader()
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
