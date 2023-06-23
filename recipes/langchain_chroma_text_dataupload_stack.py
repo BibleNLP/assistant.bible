@@ -20,7 +20,7 @@ data_stack = DataUploadPipeline()
 data_stack.set_file_processor(
     schema.FileProcessorType.LANGCHAIN)
 data_stack.set_vectordb(schema.DatabaseType.CHROMA,
-    path="../chromadb",
+    path="chromadb_store",
     collection_name='aDotBCollection_chromaDefaultEmbeddings')
 
 
@@ -55,3 +55,17 @@ print("First Row meta from DB",rows['metadatas'][0])
 print("Last Row meta from DB:", rows['metadatas'][-1])
 print("Total rows: ", len(rows['metadatas']))
 print("!!!!!!!!!!!!!! Finished !!!!!!!!!!!!!!!!")
+
+
+new_stack = DataUploadPipeline()
+new_stack.set_vectordb(schema.DatabaseType.CHROMA,
+    path="../chromadb",
+    collection_name='aDotBCollection_chromaDefaultEmbeddings')
+rows = new_stack.vectordb.db_conn.get(
+    include=["metadatas"]
+)
+print("First Row meta from DB",rows['metadatas'][0])
+print("Last Row meta from DB:", rows['metadatas'][-1])
+print("Total rows: ", len(rows['metadatas']))
+
+new_stack.vectordb.db_client.persist()

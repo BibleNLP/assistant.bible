@@ -24,7 +24,7 @@ data_stack.set_embedding(
     api_key=os.getenv('OPENAI_API_KEY'),
     model='text-embedding-ada-002')
 data_stack.set_vectordb(schema.DatabaseType.CHROMA,
-    path="../chromadb",
+    path="chromadb_store",
     collection_name='aDotBCollection')
 
 
