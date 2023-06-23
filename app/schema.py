@@ -25,6 +25,10 @@ class DatabaseType(str, Enum):
     '''Available Database type choices'''
     CHROMA = "chroma_db"
 
+class LLMFrameworkType(str, Enum):
+    '''Available framework types'''
+    LANGCHAIN = "openai langchain"
+
 class FileType(str, Enum):
     '''Supported file/content types for populating DB'''
     TEXT = "Continuous text"
