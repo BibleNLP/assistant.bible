@@ -10,6 +10,7 @@ from core.vectordb import VectordbInterface
 from core.vectordb.chroma4langchain import Chroma
 
 from custom_exceptions import AccessException, OpenAIException
+from log_configs import log
 
 
 #pylint: disable=too-few-public-methods
@@ -45,8 +46,11 @@ class LangchainOpenAI(LLMFrameworkInterface):
 
     def generate_text(self,
     	query:str,
-    	chat_history:List[Tuple[str,str]]) -> str:
+    	chat_history:List[Tuple[str,str]],
+        **kwargs) -> dict:
         '''Prompt completion for QA or Chat reponse, based on specific documents, if provided'''
+        if len(kwargs) > 0:
+            log.warning("Unused arguments in LangchainOpenAI.generate_text(): ",**kwargs)
         try:
             return self.chain({"question": query, "chat_history": chat_history})
         except Exception as exe:
