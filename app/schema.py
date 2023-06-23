@@ -16,6 +16,7 @@ class APIErrorResponse(BaseModel):
 class FileProcessorType(str, Enum):
     '''Available file processor technology choices'''
     LANGCHAIN = "Langchain's loaders"
+    VANILLA = "Vanilla Python loaders"
 
 class EmbeddingType(str, Enum):
     '''Available text embedding technology choices'''
