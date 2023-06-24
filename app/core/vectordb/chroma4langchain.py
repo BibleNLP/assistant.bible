@@ -1,16 +1,16 @@
 '''Implemetations for vectordb interface for chroma'''
 from typing import List
-
+from langchain.schema import Document as LangchainDocument
+from langchain.schema import BaseRetriever
 from core.vectordb import VectordbInterface
 import schema
 from custom_exceptions import ChromaException
 
 import chromadb
 from chromadb.config import Settings
-
 #pylint: disable=too-few-public-methods, unused-argument
 
-class Chroma(VectordbInterface):
+class Chroma(VectordbInterface, BaseRetriever):
     '''Interface for vector database technology, its connection, configs and operations'''
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None # Port to connect to a remote DB deployment
@@ -90,7 +90,18 @@ class Chroma(VectordbInterface):
         except Exception as exe:
             raise ChromaException("While adding data: "+str(exe)) from exe
 
-    def get_relevant_documents(self, query: str) -> List:
+    def get_relevant_documents(self, query: str) -> List[LangchainDocument]:
+        '''Similarity search on the vector store'''
+        results = self.db_conn.query(
+            query_texts=[query],
+            n_results=3,
+            # where={"metadata_field": "is_equal_to_this"},
+            # where_document={"$contains":"search_string"}
+        )
+        return [ LangchainDocument(page_content= doc, metadata={ "source": id_ } )
+                                for doc, id_ in zip(results['documents'][0], results['ids'][0])]
+
+    async def aget_relevant_documents(self, query: str) -> List[LangchainDocument]:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
@@ -98,4 +109,5 @@ class Chroma(VectordbInterface):
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )
-        return results
+        return [ LangchainDocument(page_content= doc, metadata={ "source": id_ } )
+                                for doc, id_ in zip(results['documents'][0], results['ids'][0])]
