@@ -14,9 +14,10 @@ from log_configs import log
 def get_context(results):
     '''Constructs a context string based on the provided results.'''
     context = '['
-    # *** This will need to be adjusted, based on what the returned results look like ***
+    # ** This will need to be adjusted, based on what the returned results look like **
     for i in range(len(results['documents'][0])):
-        context += "{source:" + results['metadatas'][0][i]['citation'] + ', text: ' + results['documents'][0][i] + '}' + ','
+        context += '{source:' + results['metadatas'][0][i]['citation']
+        context += ', text: ' + results['documents'][0][i] + '}' + ','
     context += ']' + '\n'
     
     return context
@@ -24,17 +25,22 @@ def get_context(results):
 
 def get_pre_prompt(context):
     '''Constructs a pre-prompt for the conversation, including the context'''
-    chat_prefix = "The following is a conversation with an AI assistant for Bible translators. The assistant is"
-    chat_prefix += f" helpful, creative, clever, and very friendly.\n"
+    chat_prefix = "The following is a conversation with an AI assistant for "
+    chat_prefix += "Bible translators. The assistant is"
+    chat_prefix += " helpful, creative, clever, and very friendly.\n"
     prompt = (
         chat_prefix +
-        f'Read the paragraph below and answer the question, using only the information in the context delimited by triple backticks.'
-        f'At the end of your answer, include the source of each context text that you used. You may use more than one, and include the sources of all those you used. '
-        f'If the question cannot be answered based on the context alone, write "Sorry, I had trouble answering this question based on the information i found\n'
-        f"\n"
-        f"Context:\n"
+        'Read the paragraph below and answer the question, using only the information'
+        ' in the context delimited by triple backticks. '
+        'At the end of your answer, include the source of each context text that '
+        'you used. You may use more than one, and include the sources of all those'
+        ' you used. If the question cannot be answered based on the context alone, '
+        'write "Sorry, I had trouble answering this question based on the '
+        'information i found\n'
+        "\n"
+        "Context:\n"
         f"```{ context }```\n"
-        f"\n"
+        "\n"
     )
 
     return prompt
@@ -76,12 +82,15 @@ class VanillaOpenAI(LLMFrameworkInterface):
         query:str,
         chat_history:List[Tuple[str,str]],
         **kwargs) -> dict:
-        '''Prompt completion for QA or Chat reponse, based on specific documents, if provided'''
+        '''Prompt completion for QA or Chat reponse, based on specific documents,
+            if provided'''
         if len(kwargs) > 0:
             log.warning("Unused arguments in VanillaOpenAI.generate_text(): ",**kwargs)
 
-        # Vectordb results are currently returned based on the whole chat history. We'll need to figure out if this is optimal or not.
-        query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history]) + '\n' + query
+        # Vectordb results are currently returned based on the whole chat history. 
+        # We'll need to figure out if this is optimal or not.
+        query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history]) 
+        query_text += '\n' + query
         results = self.vectordb.get_relevant_documents(query_text)
         context = get_context(results)
         pre_prompt = get_pre_prompt(context)
