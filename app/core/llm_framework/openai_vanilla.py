@@ -6,13 +6,13 @@ import openai
 
 from core.llm_framework import LLMFrameworkInterface
 from core.vectordb import VectordbInterface
-from core.vectordb.chroma4langchain import Chroma
 
 from custom_exceptions import AccessException, OpenAIException
 from log_configs import log
 
 
 def get_context(results):
+    '''Constructs a context string based on the provided results.'''
     context = '['
     # *** This will need to be adjusted, based on what the returned results look like ***
     for i in range(len(results['documents'][0])):
@@ -23,6 +23,7 @@ def get_context(results):
 
 
 def get_pre_prompt(context):
+    '''Constructs a pre-prompt for the conversation, including the context'''
     chat_prefix = "The following is a conversation with an AI assistant for Bible translators. The assistant is"
     chat_prefix += f" helpful, creative, clever, and very friendly.\n"
     prompt = (
@@ -40,6 +41,7 @@ def get_pre_prompt(context):
 
 
 def append_query_to_prompt(prompt, query, chat_history):
+    '''Appends the provided query and chat history to the given prompt.'''
     if len(chat_history) > 0:
         if len(chat_history) > 3:
             chat_history = chat_history[-3:]
@@ -50,7 +52,7 @@ def append_query_to_prompt(prompt, query, chat_history):
     return prompt
 
 
-class LangchainOpenAI(LLMFrameworkInterface):
+class VanillaOpenAI(LLMFrameworkInterface):
     '''Uses OpenAI APIs to create vectors for text'''
     api_key: str = None
     model_name: str = None
@@ -58,7 +60,8 @@ class LangchainOpenAI(LLMFrameworkInterface):
     def __init__(self, #pylint: disable=super-init-not-called
                 key:str=os.getenv("OPENAI_API_KEY"),
                 model_name:str = 'gpt-3.5-turbo',
-                vectordb:VectordbInterface = Chroma()) -> None:
+                vectordb:VectordbInterface = None  # What should this be by default?
+                ) -> None:
         '''Sets the API key and initializes library objects if any'''
         if key is None:
             raise AccessException("OPENAI_API_KEY needs to be provided."+\
@@ -75,7 +78,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
         **kwargs) -> dict:
         '''Prompt completion for QA or Chat reponse, based on specific documents, if provided'''
         if len(kwargs) > 0:
-            log.warning("Unused arguments in LangchainOpenAI.generate_text(): ",**kwargs)
+            log.warning("Unused arguments in VanillaOpenAI.generate_text(): ",**kwargs)
 
         # Vectordb results are currently returned based on the whole chat history. We'll need to figure out if this is optimal or not.
         query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history]) + '\n' + query
