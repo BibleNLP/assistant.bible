@@ -19,7 +19,7 @@ def get_context(results):
         context += '{source:' + results['metadatas'][0][i]['citation']
         context += ', text: ' + results['documents'][0][i] + '}' + ','
     context += ']' + '\n'
-    
+
     return context
 
 
@@ -87,9 +87,9 @@ class VanillaOpenAI(LLMFrameworkInterface):
         if len(kwargs) > 0:
             log.warning("Unused arguments in VanillaOpenAI.generate_text(): ",**kwargs)
 
-        # Vectordb results are currently returned based on the whole chat history. 
+        # Vectordb results are currently returned based on the whole chat history.
         # We'll need to figure out if this is optimal or not.
-        query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history]) 
+        query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history])
         query_text += '\n' + query
         results = self.vectordb.get_relevant_documents(query_text)
         context = get_context(results)
@@ -103,6 +103,6 @@ class VanillaOpenAI(LLMFrameworkInterface):
                     messages=[{"role": "user", "content": prompt}]
                 )
             return response['choices'][0]["message"]["content"]
-        
+
         except Exception as exe:
             raise OpenAIException("While generating answer: "+str(exe)) from exe
