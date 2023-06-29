@@ -161,3 +161,4 @@ cython_debug/
 
 chromadb/
 **/chromadb_store/
+**/uploaded-files/

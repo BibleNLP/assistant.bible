@@ -1,4 +1,6 @@
 '''API endpoint definitions'''
+import os
+import shutil
 from typing import List
 from pydantic import Field
 from fastapi import (
@@ -6,20 +8,22 @@ from fastapi import (
                     Request,
                     Body, Path, Query,
                     WebSocket, WebSocketDisconnect,
-                    Depends)
+                    Depends,
+                    File, UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 import schema
 from log_configs import log
 from core.auth import auth_check_decorator
-from core.pipeline import ConversationPipeline
+from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from custom_exceptions import GenericException
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+UPLOAD_PATH = "./uploaded-files/"
 
 @router.get("/",
     response_class=HTMLResponse,
@@ -70,6 +74,10 @@ async def websocket_chat_endpoint(websocket: WebSocket,
 
     vectordb_args = {}
     if settings.vectordbConfig is not None:
+        if settings.vectordbConfig.dbHostnPort:
+            parts = settings.vectordbConfig.dbHostnPort.split(":")
+            vectordb_args['host'] = "".join(parts[:-1])
+            vectordb_args['port'] = parts[-1]
         vectordb_args['path'] = settings.vectordbConfig.dbPath
         vectordb_args['collection_name']=settings.vectordbConfig.collectionName
     # else:
@@ -122,7 +130,7 @@ async def websocket_chat_endpoint(websocket: WebSocket,
             await websocket.send_json(resp.dict())
 
 @router.post("/upload/sentences",
-    response_model=schema.Job,
+    response_model=schema.APIInfoResponse,
     responses={
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
@@ -130,30 +138,121 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def upload_sentences(
-    document_objs:List[schema.Document]=Body(..., desc="List of pre-processed sentences"),
-    db_config:schema.DBSelector = Body(None, desc="If not provided, local db of server is used")):
+    document_objs:List[schema.Document]=Body(...,
+        desc="List of pre-processed sentences"),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Body(None,
+        desc="If not provided, the default, local db of server is used")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
-    print(document_objs, db_config)
-    # Get openAI embeddings
-    # documents = [item['text'] for item in document_objs]
-    # embeddings = OpenAIEmbeddings()
-    # Add the data to vetcorstore (ChromaDB)
-    # DB_COLLECTION.add(
-    #     embeddings=embeddings,
-    #     documents=documents,
-    #     metadatas=[{
-    #                "sourceTag":item['sourceTag']
-    #                "link": item['link'],
-    #                "media": item['media'],
-    #                } for item in documents],
-    #     ids=[item["senId"] for item in raw_documents]
-    # )
+    data_stack = DataUploadPipeline()
+    if vectordb_config is not None:
+        vectordb_args = {}
+        if vectordb_config.dbHostnPort:
+            parts = vectordb_config.dbHostnPort.split(":")
+            vectordb_args['host'] = "".join(parts[:-1])
+            vectordb_args['port'] = parts[-1]
+        vectordb_args['path'] = vectordb_config.dbPath
+        vectordb_args['collection_name']=vectordb_config.collectionName
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     # This may have to be a background job!!!
+    data_stack.vectordb.add_to_collection(docs=document_objs)
+    return {"message": "Documents added to DB"}
 
-    return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
+@router.post("/upload/text-file",
+    response_model=schema.APIInfoResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=200, tags=["Data Management"])
+@auth_check_decorator
+async def upload_text_file(
+    file_obj: UploadFile,
+    label:str=Query(..., desc="The label for the set of documents for access based filtering"),
+    file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Body(None,
+        desc="If not provided, the default, local db of server is used")):
+    '''* Upload of any kind text files like .md, .txt etc.
+    * Splits the whole document into smaller chunks using the selected file_processor
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    data_stack = DataUploadPipeline()
+    data_stack.set_file_processor(file_processor_type)
+    if vectordb_config is not None:
+        vectordb_args = {}
+        if vectordb_config.dbHostnPort:
+            parts = vectordb_config.dbHostnPort.split(":")
+            vectordb_args['host'] = "".join(parts[:-1])
+            vectordb_args['port'] = parts[-1]
+        vectordb_args['path'] = vectordb_config.dbPath
+        vectordb_args['collection_name']=vectordb_config.collectionName
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
+    if not os.path.exists(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+    with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
+        tfp.write(file_obj.file.read().decode("utf-8"))
+    
+    # This may have to be a background job!!!
+    docs = data_stack.file_processor.process_file(
+        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.TEXT,
+        label=label,
+        name="".join(file_obj.filename.split(".")[:-1])
+        )
+    data_stack.vectordb.add_to_collection(docs=docs)
+    return {"message": "Documents added to DB"}
+
+@router.post("/upload/csv-file",
+    response_model=schema.APIInfoResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=200, tags=["Data Management"])
+@auth_check_decorator
+async def upload_csv_file(
+    file_obj: UploadFile,
+    col_delimiter:schema.CsvColDelimiter=Query(schema.CsvColDelimiter.COMMA,
+        desc="Seperator used in input file"),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Body(None,
+        desc="If not provided, the default, local db of server is used")):
+    '''* Upload CSV with fields (id, text, label, links, medialinks).
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    data_stack = DataUploadPipeline()
+    if vectordb_config is not None:
+        vectordb_args = {}
+        if vectordb_config.dbHostnPort:
+            parts = vectordb_config.dbHostnPort.split(":")
+            vectordb_args['host'] = "".join(parts[:-1])
+            vectordb_args['port'] = parts[-1]
+        vectordb_args['path'] = vectordb_config.dbPath
+        vectordb_args['collection_name']=vectordb_config.collectionName
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
+    if not os.path.exists(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+    with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
+        tfp.write(file_obj.file.read().decode("utf-8"))
+    
+    # This may have to be a background job!!!
+    if col_delimiter==schema.CsvColDelimiter.COMMA:
+        col_delimiter=","
+    elif col_delimiter==schema.CsvColDelimiter.TAB:
+        col_delimiter="\t"
+    docs = data_stack.file_processor.process_file(
+        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.CSV,
+        col_delimiter=col_delimiter
+        )
+    data_stack.vectordb.add_to_collection(docs=docs)
+    return {"message": "Documents added to DB"}
 
 @router.get("/job/{job_id}",
     response_model=schema.Job,
@@ -182,7 +281,7 @@ async def get_source_tags(
     settings=Depends(schema.DBSelector)
     ):
     '''Returns the distinct set of source tags available in chorma DB'''
-    log.debug("host:%s, port:%s, path:%s, collection:%s", 
+    log.debug("host:port:%s, path:%s, collection:%s", 
         settings.dbHostnPort, settings.dbPath, settings.collectionName)
     if db_type == schema.DatabaseType.CHROMA:
         args = {}

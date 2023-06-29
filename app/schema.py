@@ -38,6 +38,11 @@ class FileType(str, Enum):
     # USFM = "Bible book in USFM format"
     # USX = "Bible book in USFM format"
 
+class CsvColDelimiter(str, Enum):
+    '''Delimiter for the uploaded CSV file'''
+    COMMA = "comma"
+    TAB = "tab"
+
 HostnPortPattern = constr(regex=r"^.*:\d+$")
 
 class DBSelector(BaseModel):
