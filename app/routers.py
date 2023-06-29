@@ -135,7 +135,7 @@ async def websocket_chat_endpoint(websocket: WebSocket,
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["Data Management"])
+    status_code=201, tags=["Data Management"])
 @auth_check_decorator
 async def upload_sentences(
     document_objs:List[schema.Document]=Body(...,
@@ -167,30 +167,29 @@ async def upload_sentences(
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["Data Management"])
+    status_code=201, tags=["Data Management"])
 @auth_check_decorator
 async def upload_text_file(
     file_obj: UploadFile,
     label:str=Query(..., desc="The label for the set of documents for access based filtering"),
     file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
-    vectordb_config:schema.DBSelector = Body(None,
-        desc="If not provided, the default, local db of server is used")):
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    ):
     '''* Upload of any kind text files like .md, .txt etc.
     * Splits the whole document into smaller chunks using the selected file_processor
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
     data_stack = DataUploadPipeline()
     data_stack.set_file_processor(file_processor_type)
-    if vectordb_config is not None:
-        vectordb_args = {}
-        if vectordb_config.dbHostnPort:
-            parts = vectordb_config.dbHostnPort.split(":")
-            vectordb_args['host'] = "".join(parts[:-1])
-            vectordb_args['port'] = parts[-1]
-        vectordb_args['path'] = vectordb_config.dbPath
-        vectordb_args['collection_name']=vectordb_config.collectionName
-        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    vectordb_args = {}
+    if vectordb_config.dbHostnPort:
+        parts = vectordb_config.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = vectordb_config.dbPath
+    vectordb_args['collection_name']=vectordb_config.collectionName
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -213,28 +212,27 @@ async def upload_text_file(
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["Data Management"])
+    status_code=201, tags=["Data Management"])
 @auth_check_decorator
 async def upload_csv_file(
     file_obj: UploadFile,
     col_delimiter:schema.CsvColDelimiter=Query(schema.CsvColDelimiter.COMMA,
         desc="Seperator used in input file"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
-    vectordb_config:schema.DBSelector = Body(None,
-        desc="If not provided, the default, local db of server is used")):
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    ):
     '''* Upload CSV with fields (id, text, label, links, medialinks).
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
     data_stack = DataUploadPipeline()
-    if vectordb_config is not None:
-        vectordb_args = {}
-        if vectordb_config.dbHostnPort:
-            parts = vectordb_config.dbHostnPort.split(":")
-            vectordb_args['host'] = "".join(parts[:-1])
-            vectordb_args['port'] = parts[-1]
-        vectordb_args['path'] = vectordb_config.dbPath
-        vectordb_args['collection_name']=vectordb_config.collectionName
-        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    vectordb_args = {}
+    if vectordb_config.dbHostnPort:
+        parts = vectordb_config.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = vectordb_config.dbPath
+    vectordb_args['collection_name']=vectordb_config.collectionName
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -287,8 +285,8 @@ async def get_source_tags(
         args = {}
         if settings.dbHostnPort is not None:
             parts = settings.dbHostnPort.split(":")
-            args['path'] = parts[0]
-            args['host'] = parts[0]
+            args['host'] = "".join(parts[:-1])
+            args['port'] = parts[-1]
         if settings.dbPath is not None:
             args['path'] = settings.dbPath
         if settings.collectionName is not None:
