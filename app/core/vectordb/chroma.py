@@ -99,3 +99,11 @@ class Chroma(VectordbInterface):
             # where_document={"$contains":"search_string"}
         )
         return results
+
+    def get_available_labels(self) -> List[str]:
+        '''Query DB and find out the list of labels available in metadata,
+        to be used for later filtering'''
+        rows = self.db_conn.get( include=["metadatas"])
+        labels = [meta['label'] for meta in rows['metadatas']]
+        labels = list(set(labels))
+        return labels
