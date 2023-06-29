@@ -73,16 +73,24 @@ class ChatPipelineSelector(BaseModel):
     '''Construct the Conversation Pipeline at the start of a connection from UI app'''
     llmFrameworkType: LLMFrameworkType = Field(LLMFrameworkType.LANGCHAIN,
                     desc="The framework through which LLM access is handled")
-    llmConfig: LLMFrameworkSelector = Field(None,
-                    desc="The LLM service and model to use")
+    llmApiKey: str = Field(None, desc="If using a cloud service, like OpenAI, the key from them")
+    llmModelName: str = Field(None, desc="The model to be used for chat completion")
     vectordbType: DatabaseType = Field(DatabaseType.CHROMA,
                     desc="The Database to be connected to. Same one used for dataupload")
-    vectordbConfig: DBSelector = Field(None,
-                    desc="Collection name and DB name to connect to. One that have data uploaded")
+    dbHostnPort: HostnPortPattern = Field(None,
+                            example="api.vachanengine.org:6000",
+                            desc="Host and port name to connect to a remote DB deployment")
+    dbPath: str= Field("chromadb_store",
+                            desc="Local DB's folder path. Dont use path with slash!!!")
+    collectionName:str = Field("aDotBCollection",
+                            desc="Collection to connect to in a local/remote DB."+\
+                            "One collection should use single embedding type for all docs")
     embeddingType:EmbeddingType = Field(None,
                     desc="EmbeddingType used for storing and searching documents in vectordb")
-    embeddingConfigs: EmbeddingSelector = Field(None,
-                    desc="To be provided if using an embedding other than the default")
+    embeddingApiKey: str = Field(None,
+                    desc="If using a cloud service, like OpenAI, the key obtained from them")
+    embeddingModelName: str = Field(None,
+                    desc="If there is a model we can choose to use from the available")
 
 # class UserPrompt(BaseModel): # not using this as we recieve string from websocket
 #     '''Input chat text from the user'''

@@ -65,7 +65,7 @@ async def get_ui(request: Request):
 async def websocket_chat_endpoint(websocket: WebSocket,
     settings=Depends(schema.ChatPipelineSelector),
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
-    labels:List[str]=Query(["open-access"],
+    labels:List[str]=Query(["open-access"], # filtering with labels not implemented yet
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
     await websocket.accept()
@@ -73,24 +73,23 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     chat_stack = ConversationPipeline(user=user, labels=labels)
 
     vectordb_args = {}
-    if settings.vectordbConfig is not None:
-        if settings.vectordbConfig.dbHostnPort:
-            parts = settings.vectordbConfig.dbHostnPort.split(":")
-            vectordb_args['host'] = "".join(parts[:-1])
-            vectordb_args['port'] = parts[-1]
-        vectordb_args['path'] = settings.vectordbConfig.dbPath
-        vectordb_args['collection_name']=settings.vectordbConfig.collectionName
-    # else:
-    #     vectordb_args['path'] = "chromadb_store"
-    #     vectordb_args['collection_name']='aDotBCollection_chromaDefaultEmbeddings'
+    if settings.dbHostnPort:
+        parts = settings.vectordbConfig.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = settings.dbPath
+    vectordb_args['collection_name']=settings.collectionName
     chat_stack.set_vectordb(settings.vectordbType,**vectordb_args)
     llm_args = {}
-    if settings.llmConfig is not None:
-        llm_args['api_key']=settings.llmConfig.llmApiKey
-        llm_args['model']=settings.llmConfig.lllModelName
-
+    if settings.llmApiKey:
+        llm_args['api_key']=settings.llmApiKey
+    if settings.llmModelName:
+        llm_args['model']=settings.llmModelName
     chat_stack.set_llm_framework(settings.llmFrameworkType,
         vectordb=chat_stack.vectordb, **llm_args)
+
+    ### Not implemented using custom embeddings
+
     while True:
         try:
             # Receive and send back the client message
