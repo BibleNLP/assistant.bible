@@ -1,15 +1,13 @@
 '''API endpoint definitions'''
 import os
-import shutil
 from typing import List
-from pydantic import Field
 from fastapi import (
                     APIRouter,
                     Request,
                     Body, Path, Query,
                     WebSocket, WebSocketDisconnect,
                     Depends,
-                    File, UploadFile)
+                    UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -194,7 +192,7 @@ async def upload_text_file(
         os.mkdir(UPLOAD_PATH)
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
         tfp.write(file_obj.file.read().decode("utf-8"))
-    
+
     # This may have to be a background job!!!
     docs = data_stack.file_processor.process_file(
         file=f"{UPLOAD_PATH}{file_obj.filename}",
@@ -237,7 +235,7 @@ async def upload_csv_file(
         os.mkdir(UPLOAD_PATH)
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
         tfp.write(file_obj.file.read().decode("utf-8"))
-    
+
     # This may have to be a background job!!!
     if col_delimiter==schema.CsvColDelimiter.COMMA:
         col_delimiter=","
@@ -278,7 +276,7 @@ async def get_source_tags(
     settings=Depends(schema.DBSelector)
     ):
     '''Returns the distinct set of source tags available in chorma DB'''
-    log.debug("host:port:%s, path:%s, collection:%s", 
+    log.debug("host:port:%s, path:%s, collection:%s",
         settings.dbHostnPort, settings.dbPath, settings.collectionName)
     if db_type == schema.DatabaseType.CHROMA:
         args = {}

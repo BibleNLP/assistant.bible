@@ -1,6 +1,6 @@
 '''Defines all input and output classes for API endpoints'''
 #pylint: disable=too-many-lines
-from typing import Optional, List
+from typing import List
 from enum import Enum
 from pydantic import BaseModel, Field, AnyUrl, constr#, validator
 

@@ -10,7 +10,8 @@ SENT_DATA =  [
     },
     {
       "docId": "NIV GEN 1:2",
-      "text": "Now the earth was formless and empty, darkness was over the surface of the deep, and the Spirit of God was hovering over the waters.",
+      "text": "Now the earth was formless and empty, darkness was over the "+\
+      "surface of the deep, and the Spirit of God was hovering over the waters.",
       "label": "NIV bible"
     },
     {
@@ -25,7 +26,8 @@ SENT_DATA =  [
     },
     {
       "docId": "NIV GEN 1:5",
-      "text": "God called the light “day,” and the darkness he called “night.” And there was evening, and there was morning —the first day.",
+      "text": "God called the light “day,” and the darkness he called “night.” "+\
+      "And there was evening, and there was morning —the first day.",
       "label": "NIV bible"
     }
   ]

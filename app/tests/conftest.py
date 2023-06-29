@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.fixture
-def fresh_db(scope="function"):
+def fresh_db():
     '''Deletes the chroma db folder if one existed and 
     returns the DB_config to be used in all APIs'''
     chroma_db_path = "chromadb_store_test"
