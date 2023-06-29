@@ -22,7 +22,7 @@
         <script src="//code.jquery.com/jquery-1.11.1.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
         <script>
-          var endpoint = 'ws://localhost:8000/chat?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db'
+          var endpoint = 'ws://localhost:8000/chat?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&dbPath=chromadb_store&collectionName=aDotBCollection'
           var ws = new WebSocket(endpoint)
 
           ws.onmessage = function (event) {
