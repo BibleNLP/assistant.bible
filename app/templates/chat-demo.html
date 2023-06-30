@@ -21,17 +21,29 @@
         </div>
         <script src="//code.jquery.com/jquery-1.11.1.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-<!--         <script>
-          var socket = io.connect('http://' + document.domain + ':' + location.port);
-          socket.on('message', function(data) {
-            $('#messages').append('<div>' + data + '</div>');
-          });
+        <script>
+          var endpoint = 'ws://localhost:8000/chat?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&dbPath=chromadb_store&collectionName=aDotBCollection'
+          var ws = new WebSocket(endpoint)
+
+          ws.onmessage = function (event) {
+            data = JSON.parse(event.data)
+            if(data.type == "error"){
+              alert(data.message);
+            } else {
+              $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
+                '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
+                '</div>'
+                );
+            }
+          };
+
           $('form').submit(function(event) {
-            socket.emit('message', $('#message').val());
-            $('#message').val('').focus();
             event.preventDefault();
+            ws.send($('#message').val());
+            $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
+            $('#message').val('').focus();
           });
-        </script> -->
+        </script>
       </body>
       
 </html>

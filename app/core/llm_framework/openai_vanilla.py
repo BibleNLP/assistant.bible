@@ -58,7 +58,7 @@ def append_query_to_prompt(prompt, query, chat_history):
     return prompt
 
 
-class VanillaOpenAI(LLMFrameworkInterface):
+class VanillaOpenAI(LLMFrameworkInterface): #pylint: disable=too-few-public-methods
     '''Uses OpenAI APIs to create vectors for text'''
     api_key: str = None
     model_name: str = None
