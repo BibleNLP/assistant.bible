@@ -25,6 +25,7 @@ services:
     #   - 9000:9000
     volumes:
      - logs-vol:/app/logs
+     - chroma-db:/app/app/chromadb_store
 
     networks:
      - chatbot-network
@@ -63,4 +64,5 @@ networks:
    chatbot-network:
 volumes:
   logs-vol:
+  chroma-db:
   
