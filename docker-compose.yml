@@ -12,6 +12,7 @@ services:
      - OPENAI_API_KEY=${OPENAI_API_KEY}
      - WEBSOCKET_URL=${WEBSOCKET_URL:-"ws://localhost/chat"}
      - CHATBOT_ACCESS_TOKEN=${CHATBOT_ACCESS_TOKEN}
+     - DOMAIN={$DOMAIN:-"localhost"}
     command: uvicorn main:app --host 0.0.0.0 --port 9000 --workers 1
     logging:
      options:
