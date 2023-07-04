@@ -55,7 +55,7 @@ async def get_root():
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-@auth_check_decorator
+# @auth_check_decorator
 async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
@@ -67,9 +67,13 @@ async def get_ui(request: Request):
 async def websocket_chat_endpoint(websocket: WebSocket,
     settings=Depends(schema.ChatPipelineSelector),
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
     labels:List[str]=Query(["open-access"], # filtering with labels not implemented yet
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
+    if token:
+        log.info("User, %s, connecting with token, %s", user, token )
     await websocket.accept()
 
     chat_stack = ConversationPipeline(user=user, labels=labels)
@@ -143,10 +147,13 @@ async def upload_sentences(
         desc="List of pre-processed sentences"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Body(None,
-        desc="If not provided, the default, local db of server is used")):
+        desc="If not provided, the default, local db of server is used"),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    log.info("Access token used:%s", token)
     data_stack = DataUploadPipeline()
     if vectordb_config is not None:
         vectordb_args = {}
@@ -176,11 +183,13 @@ async def upload_text_file(
     file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
-    ):
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind text files like .md, .txt etc.
     * Splits the whole document into smaller chunks using the selected file_processor
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
     data_stack.set_file_processor(file_processor_type)
     vectordb_args = {}
@@ -221,10 +230,13 @@ async def upload_csv_file(
         desc="Seperator used in input file"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
     ):
     '''* Upload CSV with fields (id, text, label, links, medialinks).
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
     vectordb_args = {}
     if vectordb_config.dbHostnPort:
@@ -262,8 +274,11 @@ async def upload_csv_file(
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
-async def check_job_status(job_id:int = Path(...)):
+async def check_job_status(job_id:int = Path(...),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
     '''Returns the status of background jobs like upload-documemts'''
+    log.info("Access token used:", token)
     print(job_id)
     return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
 
@@ -277,11 +292,14 @@ async def check_job_status(job_id:int = Path(...)):
 @auth_check_decorator
 async def get_source_tags(
     db_type:schema.DatabaseType=schema.DatabaseType.CHROMA,
-    settings=Depends(schema.DBSelector)
+    settings=Depends(schema.DBSelector),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
     ):
     '''Returns the distinct set of source tags available in chorma DB'''
     log.debug("host:port:%s, path:%s, collection:%s",
         settings.dbHostnPort, settings.dbPath, settings.collectionName)
+    log.info("Access token used: %s", token)
     if db_type == schema.DatabaseType.CHROMA:
         args = {}
         if settings.dbHostnPort is not None:
