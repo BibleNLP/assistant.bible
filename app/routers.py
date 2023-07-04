@@ -20,6 +20,7 @@ from custom_exceptions import GenericException
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+WebSocket_URL = os.getenv('WEBSOCKET_URL', "ws://localhost:8000/chat")
 
 UPLOAD_PATH = "./uploaded-files/"
 
@@ -56,7 +57,8 @@ async def get_root():
 async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
-    return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
+    return templates.TemplateResponse("chat-demo.html",
+        {"request": request, "ws_url": WebSocket_URL})
 
 @router.websocket("/chat")
 @auth_check_decorator

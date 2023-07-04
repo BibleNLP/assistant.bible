@@ -1,0 +1,65 @@
+version: '3.9'
+services:
+  chatbot:
+    build:
+     context: .
+     dockerfile: ./Dockerfile
+    healthcheck:
+     timeout: 45s
+     interval: 10s
+     retries: 10
+    environment:
+     - OPENAI_API_KEY=${OPENAI_API_KEY}
+     - WEBSOCKET_URL=${WEBSOCKET_URL:-"ws://localhost/chat"}
+     - CHATBOT_ACCESS_TOKEN=${CHATBOT_ACCESS_TOKEN}
+    command: uvicorn main:app --host 0.0.0.0 --port 9000 --workers 1
+    logging:
+     options:
+      max-size: 10m
+      max-file: "3"
+    restart: always
+    expose:
+     - 9000
+    # ports:
+    #   - 9000:9000
+    volumes:
+     - logs-vol:/app/logs
+
+    networks:
+     - chatbot-network
+
+  webserver:
+    image: nginx:latest
+    ports:
+     - 80:80
+     - 443:443
+    restart: always
+    expose:
+     - 80
+     - 443
+    depends_on:
+     - chatbot
+    environment:
+      - CHAT_DOMAIN=${DOMAIN:-"localhost"}
+    volumes:
+     - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+     # - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+     -  logs-vol:/var/log/nginx/
+     - ./certbot/www:/var/www/certbot/:ro
+     - ./certbot/conf/:/etc/nginx/ssl/:ro
+    networks:
+     - chatbot-network
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+     - ./certbot/www/:/var/www/certbot/:rw
+     - ./certbot/conf/:/etc/letsencrypt/:rw
+    networks:
+     - chatbot-network
+
+networks:
+   chatbot-network:
+volumes:
+  logs-vol:
+  
