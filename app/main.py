@@ -6,6 +6,7 @@ import time
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from log_configs import log
 import routers
@@ -52,5 +53,28 @@ async def log_requests(request: Request, call_next):
         idem, formatted_time, response.status_code)
 
     return response
+
+@app.exception_handler(Exception)
+async def any_exception_handler(request, exc: Exception):
+    '''logs and returns error details'''
+    log.error("Request URL:%s %s,  from : %s",
+        request.method ,request.url.path, request.client.host)
+    log.exception("%s: %s",'Error', str(exc))
+    if hasattr(exc, "status_code"):
+        status_code=exc.status_code
+    else:
+        status_code = 500
+    if hasattr(exc, "name"):
+        error_title = exc.name
+    else:
+        error_title = "Error"
+    if hasattr(exc, "detail"):
+        details = exc.detail
+    else:
+        details = str(exc)
+    return JSONResponse(
+        status_code =status_code,
+        content={"error": error_title, "details" : details},
+    )
 
 app.include_router(routers.router)

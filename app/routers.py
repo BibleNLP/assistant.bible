@@ -1,16 +1,29 @@
 '''API endpoint definitions'''
+import os
 from typing import List
-from fastapi import APIRouter, Request, Body, Path, Query#, WebSocket, WebSocketDisconnect
+from fastapi import (
+                    APIRouter,
+                    Request,
+                    Body, Path, Query,
+                    WebSocket, WebSocketDisconnect,
+                    Depends,
+                    UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
 import schema
 from log_configs import log
 from core.auth import auth_check_decorator
+from core.pipeline import ConversationPipeline, DataUploadPipeline
+from core.vectordb.chroma import Chroma
+from custom_exceptions import GenericException
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+WS_URL = os.getenv('WEBSOCKET_URL', "ws://localhost:8000/chat")
+DOMAIN = os.getenv('DOMAIN', "localhost:8000")
 
+UPLOAD_PATH = "./uploaded-files/"
 
 @router.get("/",
     response_class=HTMLResponse,
@@ -21,7 +34,8 @@ templates = Jinja2Templates(directory="templates")
 async def index(request:Request):
     '''Landing page'''
     log.info("In index router")
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html",
+        {"request": request, "demo_url":f"http://{DOMAIN}/ui"})
 
 @router.get("/test",
     response_model=schema.APIInfoResponse,
@@ -41,69 +55,215 @@ async def get_root():
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-@auth_check_decorator
+# @auth_check_decorator
 async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
-    return templates.TemplateResponse("chat-demo.html", {"request": request, "http_url": ""})
+    return templates.TemplateResponse("chat-demo.html",
+        {"request": request, "ws_url": WS_URL})
 
-@router.post("/chat",
-    response_model=schema.BotResponse,
-    responses={
-        422: {"model": schema.APIErrorResponse},
-        403: {"model": schema.APIErrorResponse},
-        500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["ChatBot"])
+@router.websocket("/chat")
 @auth_check_decorator
-async def http_chat_endpoint(input_obj: schema.UserPrompt):
+async def websocket_chat_endpoint(websocket: WebSocket,
+    settings=Depends(schema.ChatPipelineSelector),
+    user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
+    labels:List[str]=Query(["open-access"], # filtering with labels not implemented yet
+        desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
-    new_response = ""
-    sources_list = []
-    chat_id = 000
-    if input_obj.chatId is not None:
-        chat_id = input_obj.chatId
-    # get chat history+question embedding
-    # get matched documents from vector store, using filters for permissible sources
-    # get new response from LLM
-    # post process the response(
-        # filter out of context answers,
-        # add links, images, etc
-        # translate )
-    return {"text": new_response, "chatId": chat_id, "sources": sources_list}
+    if token:
+        log.info("User, %s, connecting with token, %s", user, token )
+    await websocket.accept()
 
-@router.post("/documents/sentences",
-    response_model=schema.Job,
+    chat_stack = ConversationPipeline(user=user, labels=labels)
+
+    vectordb_args = {}
+    if settings.dbHostnPort:
+        parts = settings.vectordbConfig.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = settings.dbPath
+    vectordb_args['collection_name']=settings.collectionName
+    chat_stack.set_vectordb(settings.vectordbType,**vectordb_args)
+    llm_args = {}
+    if settings.llmApiKey:
+        llm_args['api_key']=settings.llmApiKey
+    if settings.llmModelName:
+        llm_args['model']=settings.llmModelName
+    chat_stack.set_llm_framework(settings.llmFrameworkType,
+        vectordb=chat_stack.vectordb, **llm_args)
+
+    ### Not implemented using custom embeddings
+
+    while True:
+        try:
+            # Receive and send back the client message
+            question = await websocket.receive_text()
+
+            # # send back the response
+            # resp = schema.BotResponse(sender=schema.SenderType.USER,
+            #     message=question, type=schema.ChatResponseType.QUESTION)
+            # await websocket.send_json(resp.dict())
+
+
+            bot_response = chat_stack.llm_framework.generate_text(
+                            query=question, chat_history=chat_stack.chat_history)
+            log.debug(f"Human: {question}\nBot:{bot_response['answer']}\n"+\
+                "Sources:"+\
+                f"{[item.metadata['source'] for item in bot_response['source_documents']]}\n\n")
+            chat_stack.chat_history.append((bot_response['question'], bot_response['answer']))
+
+            # Construct a response
+            start_resp = schema.BotResponse(sender=schema.SenderType.BOT,
+                    message=bot_response['answer'], type=schema.ChatResponseType.ANSWER,
+                    sources=[item.metadata['source'] for item in bot_response['source_documents']],
+                    media=[])
+            await websocket.send_json(start_resp.dict())
+
+        except WebSocketDisconnect:
+            chat_stack.vectordb.db_client.persist()
+            log.info("websocket disconnect")
+            break
+        except Exception as exe: #pylint: disable=broad-exception-caught
+            log.exception(exe)
+            resp = schema.BotResponse(
+                sender=schema.SenderType.BOT,
+                message="Sorry, something went wrong. Try again.",
+                type=schema.ChatResponseType.ERROR,
+            )
+            await websocket.send_json(resp.dict())
+
+@router.post("/upload/sentences",
+    response_model=schema.APIInfoResponse,
     responses={
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["Data Management"])
+    status_code=201, tags=["Data Management"])
 @auth_check_decorator
-async def upload_documents(
-    document_objs:List[schema.Document]=Body(..., desc="List of pre-processed sentences"),
-    db_config:schema.DBSelector = Body(None, desc="If not provided, local db of server is used")):
+async def upload_sentences(
+    document_objs:List[schema.Document]=Body(...,
+        desc="List of pre-processed sentences"),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Body(None,
+        desc="If not provided, the default, local db of server is used"),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
-    print(document_objs, db_config)
-    # Get openAI embeddings
-    # documents = [item['text'] for item in document_objs]
-    # embeddings = OpenAIEmbeddings()
-    # Add the data to vetcorstore (ChromaDB)
-    # DB_COLLECTION.add(
-    #     embeddings=embeddings,
-    #     documents=documents,
-    #     metadatas=[{
-    #                "sourceTag":item['sourceTag']
-    #                "link": item['link'],
-    #                "media": item['media'],
-    #                } for item in documents],
-    #     ids=[item["senId"] for item in raw_documents]
-    # )
+    log.info("Access token used:%s", token)
+    data_stack = DataUploadPipeline()
+    if vectordb_config is not None:
+        vectordb_args = {}
+        if vectordb_config.dbHostnPort:
+            parts = vectordb_config.dbHostnPort.split(":")
+            vectordb_args['host'] = "".join(parts[:-1])
+            vectordb_args['port'] = parts[-1]
+        vectordb_args['path'] = vectordb_config.dbPath
+        vectordb_args['collection_name']=vectordb_config.collectionName
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     # This may have to be a background job!!!
+    data_stack.vectordb.add_to_collection(docs=document_objs)
+    return {"message": "Documents added to DB"}
 
-    return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
+@router.post("/upload/text-file",
+    response_model=schema.APIInfoResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=201, tags=["Data Management"])
+@auth_check_decorator
+async def upload_text_file(
+    file_obj: UploadFile,
+    label:str=Query(..., desc="The label for the set of documents for access based filtering"),
+    file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
+    '''* Upload of any kind text files like .md, .txt etc.
+    * Splits the whole document into smaller chunks using the selected file_processor
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    log.info("Access token used: %s", token)
+    data_stack = DataUploadPipeline()
+    data_stack.set_file_processor(file_processor_type)
+    vectordb_args = {}
+    if vectordb_config.dbHostnPort:
+        parts = vectordb_config.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = vectordb_config.dbPath
+    vectordb_args['collection_name']=vectordb_config.collectionName
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
+    if not os.path.exists(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+    with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
+        tfp.write(file_obj.file.read().decode("utf-8"))
+
+    # This may have to be a background job!!!
+    docs = data_stack.file_processor.process_file(
+        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.TEXT,
+        label=label,
+        name="".join(file_obj.filename.split(".")[:-1])
+        )
+    data_stack.vectordb.add_to_collection(docs=docs)
+    return {"message": "Documents added to DB"}
+
+@router.post("/upload/csv-file",
+    response_model=schema.APIInfoResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=201, tags=["Data Management"])
+@auth_check_decorator
+async def upload_csv_file(
+    file_obj: UploadFile,
+    col_delimiter:schema.CsvColDelimiter=Query(schema.CsvColDelimiter.COMMA,
+        desc="Seperator used in input file"),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
+    ):
+    '''* Upload CSV with fields (id, text, label, links, medialinks).
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    log.info("Access token used: %s", token)
+    data_stack = DataUploadPipeline()
+    vectordb_args = {}
+    if vectordb_config.dbHostnPort:
+        parts = vectordb_config.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    vectordb_args['path'] = vectordb_config.dbPath
+    vectordb_args['collection_name']=vectordb_config.collectionName
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
+    if not os.path.exists(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+    with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
+        tfp.write(file_obj.file.read().decode("utf-8"))
+
+    # This may have to be a background job!!!
+    if col_delimiter==schema.CsvColDelimiter.COMMA:
+        col_delimiter=","
+    elif col_delimiter==schema.CsvColDelimiter.TAB:
+        col_delimiter="\t"
+    docs = data_stack.file_processor.process_file(
+        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.CSV,
+        col_delimiter=col_delimiter
+        )
+    data_stack.vectordb.add_to_collection(docs=docs)
+    return {"message": "Documents added to DB"}
 
 @router.get("/job/{job_id}",
     response_model=schema.Job,
@@ -114,12 +274,15 @@ async def upload_documents(
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
-async def check_job_status(job_id:int = Path(...)):
+async def check_job_status(job_id:int = Path(...),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
     '''Returns the status of background jobs like upload-documemts'''
+    log.info("Access token used:", token)
     print(job_id)
     return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
 
-@router.get("/source-tags",
+@router.get("/source-labels",
     response_model=List[str],
     responses={
         422: {"model": schema.APIErrorResponse},
@@ -128,17 +291,27 @@ async def check_job_status(job_id:int = Path(...)):
     status_code=200, tags=["Data Management"])
 @auth_check_decorator
 async def get_source_tags(
-    db_host: str = Query(None, desc="Host name to connect to a remote chroma DB deployment"),
-    db_port: str = Query(None, desc="Port to connect to a remote chroma DB deployment"),
-    collection_name:str = Query(None, desc="Collection to connect to a remote chroma DB deployment")
-):
+    db_type:schema.DatabaseType=schema.DatabaseType.CHROMA,
+    settings=Depends(schema.DBSelector),
+    token:str=Query(None,
+        desc="Optional access token to be used if user accounts not present"),
+    ):
     '''Returns the distinct set of source tags available in chorma DB'''
-    print(db_host, db_port, collection_name)
-    source_tags = []
-    # metas = DB_COLLECTION.get(
-    #         include=["metadatas"]
-    #     )
-    # source_tags = [item['sourceTag'] for item in metas]
+    log.debug("host:port:%s, path:%s, collection:%s",
+        settings.dbHostnPort, settings.dbPath, settings.collectionName)
+    log.info("Access token used: %s", token)
+    if db_type == schema.DatabaseType.CHROMA:
+        args = {}
+        if settings.dbHostnPort is not None:
+            parts = settings.dbHostnPort.split(":")
+            args['host'] = "".join(parts[:-1])
+            args['port'] = parts[-1]
+        if settings.dbPath is not None:
+            args['path'] = settings.dbPath
+        if settings.collectionName is not None:
+            args['collection_name'] = settings.collectionName
+        vectordb = Chroma(**args)
+    else:
+        raise GenericException("This database type is not supported (yet)!")
 
-    # Then filter these tags based on requesting users access rights
-    return source_tags
+    return vectordb.get_available_labels()

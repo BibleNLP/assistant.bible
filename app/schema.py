@@ -1,6 +1,6 @@
 '''Defines all input and output classes for API endpoints'''
 #pylint: disable=too-many-lines
-from typing import Optional, List
+from typing import List
 from enum import Enum
 from pydantic import BaseModel, Field, AnyUrl, constr#, validator
 
@@ -15,8 +15,8 @@ class APIErrorResponse(BaseModel):
 
 class FileProcessorType(str, Enum):
     '''Available file processor technology choices'''
-    LANGCHAIN = "Langchain's loaders"
-    VANILLA = "Vanilla Python loaders"
+    LANGCHAIN = "Langchain-loaders"
+    VANILLA = "Vanilla-Python-loaders"
 
 class EmbeddingType(str, Enum):
     '''Available text embedding technology choices'''
@@ -24,11 +24,11 @@ class EmbeddingType(str, Enum):
 
 class DatabaseType(str, Enum):
     '''Available Database type choices'''
-    CHROMA = "chroma_db"
+    CHROMA = "chroma-db"
 
 class LLMFrameworkType(str, Enum):
     '''Available framework types'''
-    LANGCHAIN = "openai langchain"
+    LANGCHAIN = "openai-langchain"
 
 class FileType(str, Enum):
     '''Supported file/content types for populating DB'''
@@ -38,34 +38,86 @@ class FileType(str, Enum):
     # USFM = "Bible book in USFM format"
     # USX = "Bible book in USFM format"
 
+class CsvColDelimiter(str, Enum):
+    '''Delimiter for the uploaded CSV file'''
+    COMMA = "comma"
+    TAB = "tab"
+
 HostnPortPattern = constr(regex=r"^.*:\d+$")
 
 class DBSelector(BaseModel):
     '''The credentials to connect to a remotely hosted chorma DB'''
     # dbTech: str = Field(DatabaseTech.CHROMA, desc="Technology choice like chroma, pinecone etc")
-    dbHost: str = Field(None, desc="Host name to connect to a remote DB deployment")
-    dbPort: str = Field(None, desc="Port to connect to a remote DB deployment")
-    collectionName:str = Field(None, desc="Collection to connect to a remote DB deployment")
+    dbHostnPort: HostnPortPattern = Field(None,
+                            example="api.vachanengine.org:6000",
+                            desc="Host and port name to connect to a remote DB deployment")
+    dbPath: str= Field("chromadb_store",
+                            desc="Local DB's folder path. Dont use path with slash!!!")
+    collectionName:str = Field("aDotBCollection",
+                            desc="Collection to connect to in a local/remote DB."+\
+                            "One collection should use single embedding type for all docs")
 
-class UserPrompt(BaseModel):
-    '''Input chat text from the user'''
-    text: str = Field(...,example="Who is Jesus?")
-    chatId: Optional[str] = Field(None, example=10001)
-    sources: List[str] = Field(None,
-        desc = "The list of documents to be used for answering",
-        example=["tyndale", "Open Bible Stories", "Paratext User Manual", "The Bible"])
-    db: DBSelector = Field(None)
+class EmbeddingSelector(BaseModel):
+    '''The credentials to connect to an Embedding creation service'''
+    embeddingApiKey: str = Field(None,
+                    desc="If using a cloud service, like OpenAI, the key obtained from them")
+    embeddingModelName: str = Field(None,
+                    desc="If there is a model we can choose to use from the available")
+
+class LLMFrameworkSelector(BaseModel):
+    '''The credentials and configs to be used in the LLM and its framework'''
+    llmApiKey: str = Field(None, desc="If using a cloud service, like OpenAI, the key from them")
+    llmModelName: str = Field(None, desc="The model to be used for chat completion")
+
+class ChatPipelineSelector(BaseModel):
+    '''Construct the Conversation Pipeline at the start of a connection from UI app'''
+    llmFrameworkType: LLMFrameworkType = Field(LLMFrameworkType.LANGCHAIN,
+                    desc="The framework through which LLM access is handled")
+    llmApiKey: str = Field(None, desc="If using a cloud service, like OpenAI, the key from them")
+    llmModelName: str = Field(None, desc="The model to be used for chat completion")
+    vectordbType: DatabaseType = Field(DatabaseType.CHROMA,
+                    desc="The Database to be connected to. Same one used for dataupload")
+    dbHostnPort: HostnPortPattern = Field(None,
+                            example="api.vachanengine.org:6000",
+                            desc="Host and port name to connect to a remote DB deployment")
+    dbPath: str= Field("chromadb_store",
+                            desc="Local DB's folder path. Dont use path with slash!!!")
+    collectionName:str = Field("aDotBCollection",
+                            desc="Collection to connect to in a local/remote DB."+\
+                            "One collection should use single embedding type for all docs")
+    embeddingType:EmbeddingType = Field(None,
+                    desc="EmbeddingType used for storing and searching documents in vectordb")
+    embeddingApiKey: str = Field(None,
+                    desc="If using a cloud service, like OpenAI, the key obtained from them")
+    embeddingModelName: str = Field(None,
+                    desc="If there is a model we can choose to use from the available")
+
+# class UserPrompt(BaseModel): # not using this as we recieve string from websocket
+#     '''Input chat text from the user'''
+#     text: str = Field(...,example="Who is Jesus?")
+
+class SenderType(str, Enum):
+    '''Supported file/content types for populating DB'''
+    USER = "You"
+    BOT = "Bot"
+
+class ChatResponseType(str, Enum):
+    '''The type field values for a botResponse'''
+    QUESTION = "question"
+    ANSWER = "answer"
+    ERROR = "error"
 
 class BotResponse(BaseModel):
-    '''Chat response from bot to user'''
-    text: str = Field(...,example="Good Morning to you too!")
-    chatId: str = Field(...,example=10001)
-    sources: List[AnyUrl] = Field(None,
+    '''Chat response from server to UI or user app'''
+    message: str = Field(...,example="Good Morning to you too!")
+    sender: SenderType = Field(...,example="You or BOT")
+    sources: List[str] = Field(None,
         example=["https://www.biblegateway.com/passage/?search=Genesis+1%3A1&version=NIV",
                  "https://git.door43.org/Door43-Catalog/en_tw/src/branch/master/"+\
                  "bible/other/creation.md"])
     media: List[AnyUrl] = Field(None,
         example=["https://www.youtube.com/watch?v=teu7BCZTgDs"])
+    type: ChatResponseType = Field(..., example="answer or error")
 
 class JobStatus(str, Enum):
     '''Valid values for Background Job Status'''
