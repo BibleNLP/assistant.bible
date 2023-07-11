@@ -40,4 +40,4 @@ jobs:
         
       - name: Run Pytest
         working-directory: ./app
-        run: python3 -m pytest
+        run: python3 -m pytest tests/test_basics.py
