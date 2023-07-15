@@ -1,7 +1,7 @@
 '''Functions for Authentication for the Apps'''
+import os
 from functools import wraps
 from custom_exceptions import PermissionException
-import os
 
 from supabase import create_client, Client
 
