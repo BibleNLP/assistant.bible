@@ -3,16 +3,13 @@ from core.audio.whisper import Whisper
 from custom_exceptions import GenericException
 
 
-async def handle_audio_data(
-    audio_data, 
-    transcription_type:schema.AudioTranscriptionType=schema.AudioTranscriptionType.WHISPER) -> str:
-    '''Takes audio input and returns the transcribed text as a string'''
-
-    if transcription_type == schema.AudioTranscriptionType.WHISPER:
-        whisper = Whisper()
-        user_message = whisper.transcribe_audio(audio_data)
-    
-    else:
-        raise GenericException("This audio transcription type is not supported (yet)!")
-
-    return user_message
+class AudioTranscriptionInterface:
+    '''Interface for audio transcription technology and its use'''
+    api_key: str
+    api_object = None
+    def __init__(self, key:str, **kwargs) -> None:
+        '''Sets the API key and initializes library objects if any'''
+        self.api_key = key
+    def transcribe_audio(self, audio_data) -> str:
+        '''Generate transcription for the audio data'''
+        return

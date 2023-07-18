@@ -15,6 +15,7 @@ from core.embedding.openai import OpenAIEmbedding
 from core.vectordb.chroma import Chroma
 from core.vectordb.chroma4langchain import Chroma as ChromaLC
 from core.llm_framework.openai_langchain import LangchainOpenAI
+from core.audio.whisper import Whisper
 
 #pylint: disable=unused-argument
 
@@ -118,3 +119,17 @@ class ConversationPipeline(DataUploadPipeline):
                 vectordb = ChromaLC(host=vectordb.db_host, port=vectordb.db_port,
                     path=vectordb.db_path, collection_name=vectordb.collection_name)
             self.llm_framework = LangchainOpenAI(vectordb=vectordb)
+
+    async def handle_audio_data(
+        audio_data, 
+        transcription_type:schema.AudioTranscriptionType=schema.AudioTranscriptionType.WHISPER) -> str:
+        '''Takes audio input and returns the transcribed text as a string'''
+
+        if transcription_type == schema.AudioTranscriptionType.WHISPER:
+            whisper = Whisper()
+            user_message = whisper.transcribe_audio(audio_data)
+        
+        else:
+            raise GenericException("This audio transcription type is not supported (yet)!")
+
+        return user_message
