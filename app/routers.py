@@ -17,6 +17,7 @@ from core.auth import auth_check_decorator
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from custom_exceptions import GenericException
+from core.audio import handle_audio_data
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -99,7 +100,16 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     while True:
         try:
             # Receive and send back the client message
-            question = await websocket.receive_text()
+            question_json = await websocket.receive_text()
+            question_dict = json.loads(question_json)
+            if "audio" in question_dict:
+                log.info("Audio file received")
+                question = handle_audio_data(question_dict["audio"])
+            elif "text" in question_dict:
+                question = question_dict["text"]
+            else:
+                raise GenericException("No text or audio data received")
+                
 
             # # send back the response
             # resp = schema.BotResponse(sender=schema.SenderType.USER,

@@ -107,6 +107,11 @@ class ChatResponseType(str, Enum):
     ANSWER = "answer"
     ERROR = "error"
 
+
+class AudioTranscriptionType(str, Enum):
+    '''The type fo text-to-speech audio transcription'''
+    WHISPER = "whisper"
+
 class BotResponse(BaseModel):
     '''Chat response from server to UI or user app'''
     message: str = Field(...,example="Good Morning to you too!")
