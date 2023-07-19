@@ -10,6 +10,7 @@ from fastapi import (
                     UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import json
 
 import schema
 from log_configs import log
@@ -17,7 +18,6 @@ from core.auth import auth_check_decorator
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from custom_exceptions import GenericException
-from core.audio import handle_audio_data
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -94,6 +94,7 @@ async def websocket_chat_endpoint(websocket: WebSocket,
         llm_args['model']=settings.llmModelName
     chat_stack.set_llm_framework(settings.llmFrameworkType,
         vectordb=chat_stack.vectordb, **llm_args)
+    chat_stack.set_transcription_framework(settings.transcriptionFrameworkType)
 
     ### Not implemented using custom embeddings
 
@@ -104,7 +105,7 @@ async def websocket_chat_endpoint(websocket: WebSocket,
             question_dict = json.loads(question_json)
             if "audio" in question_dict:
                 log.info("Audio file received")
-                question = handle_audio_data(question_dict["audio"])
+                question = chat_stack.transcription_framework.transcribe_audio(question_dict["audio"])
             elif "text" in question_dict:
                 question = question_dict["text"]
             else:
