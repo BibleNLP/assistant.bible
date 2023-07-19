@@ -107,3 +107,7 @@ class Chroma(VectordbInterface):
         labels = [meta['label'] for meta in rows['metadatas']]
         labels = list(set(labels))
         return labels
+
+    def __del__(self):
+        '''To persist DB upon app close'''
+        self.db_client.persist()
