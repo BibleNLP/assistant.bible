@@ -1,8 +1,3 @@
-import schema
-from core.audio.whisper import Whisper
-from custom_exceptions import GenericException
-
-
 class AudioTranscriptionInterface:
     '''Interface for audio transcription technology and its use'''
     api_key: str
