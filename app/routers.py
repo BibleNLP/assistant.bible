@@ -101,15 +101,14 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     while True:
         try:
             # Receive and send back the client message
-            question_json = await websocket.receive_text()
-            question_dict = json.loads(question_json)
-            if "audio" in question_dict:
+            try:
+                received_question = await websocket.receive_text()
+                log.info("Text received")
+                question = received_question
+            except KeyError:
+                received_question = await websocket.receive_bytes()
                 log.info("Audio file received")
-                question = chat_stack.transcription_framework.transcribe_audio(question_dict["audio"])
-            elif "text" in question_dict:
-                question = question_dict["text"]
-            else:
-                raise GenericException("No text or audio data received")
+                question = chat_stack.transcription_framework.transcribe_audio(received_question)
                 
 
             # # send back the response

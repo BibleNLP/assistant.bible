@@ -53,8 +53,7 @@
                 alert("Chat not connected. Did you give the correct token???");
                 location.reload()
             }
-            var message = { "text": $('#message').val() }; 
-            ws.send(JSON.stringify(message)); 
+            ws.send($('#message').val()); 
             $('#messages').append('<div><b>You</b>: ' + $('#message').val() + '</div>');
             $('#message').val('').focus();
         });
@@ -110,8 +109,7 @@
             const reader = new FileReader();
             reader.onload = function (event) {
                 const arrayBuffer = event.target.result;
-                var message = { "audio": arrayBuffer };
-                ws.send(JSON.stringify(message));
+                ws.send(arrayBuffer);
             };
             reader.readAsArrayBuffer(audioFile);
         }
