@@ -52,6 +52,18 @@ If using default values, once started the app should be running at [http://local
 	CHROMA_DB_COLLECTION=chromadb
 	```
 	These values need to be set and saved in current terminal or in `.bashrc` file in home directory
+1. Postgres DB
+	Have postgres db running with pgvector extension enabled ([refer](https://github.com/pgvector/pgvector)). And provide the connection details as environment variables.
+	```
+	POSTGRES_DB_HOST=localhost
+	POSTGRES_DB_PORT=5432
+	POSTGRES_DB_NAME=adotbcollection
+	POSTGRES_DB_USER=postgres
+	POSTGRES_DB_PASSWORD=secret
+	```
+	If you dont want to mess with the locally running postgres version, running it as a docker container is an alternative: 
+	`docker run -e POSTGRES_PASSWORD=password -e POSTGRES_DB=adotbcollection -p 5435:5432 ankane/pgvector`
+
 1. Start the app
 	```
 	cd app
