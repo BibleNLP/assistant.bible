@@ -8,6 +8,7 @@ from core.file_processor import FileProcessorInterface
 from core.embedding import EmbeddingInterface
 from core.vectordb import VectordbInterface
 from core.llm_framework import LLMFrameworkInterface
+from core.audio import AudioTranscriptionInterface
 
 from core.file_processor.langchain_loader import LangchainLoader
 from core.file_processor.vanilla_loader import VanillaLoader
@@ -15,7 +16,7 @@ from core.embedding.openai import OpenAIEmbedding
 from core.vectordb.chroma import Chroma
 from core.vectordb.chroma4langchain import Chroma as ChromaLC
 from core.llm_framework.openai_langchain import LangchainOpenAI
-from core.audio.whisper import Whisper
+from core.audio.whisper import WhisperAudioTranscription
 
 #pylint: disable=unused-argument
 
@@ -90,13 +91,15 @@ class ConversationPipeline(DataUploadPipeline):
     embedding: EmbeddingInterface = None
     vectordb: VectordbInterface = None
     llm_framework: LLMFrameworkInterface = None
+    transcription_framework: AudioTranscriptionInterface = None
     def __init__(self, #pylint: disable=too-many-arguments
         user,
         labels:List[str] = None,
         file_processor: FileProcessorInterface=LangchainLoader,
         embedding: EmbeddingInterface=OpenAIEmbedding,
         vectordb: VectordbInterface=Chroma,
-        llm_framework: LLMFrameworkInterface=LangchainOpenAI):
+        llm_framework: LLMFrameworkInterface=LangchainOpenAI,
+        transcription_framework: AudioTranscriptionInterface=WhisperAudioTranscription) -> None:
         '''Instantiate with default tech stack'''
         super().__init__(file_processor, embedding, vectordb)
         self.user = user
@@ -104,6 +107,7 @@ class ConversationPipeline(DataUploadPipeline):
             self.allowed_labels.append(labels)
         self.chat_history = []
         self.llm_framework = llm_framework()
+        self.transcription_framework = transcription_framework()
 
     def set_llm_framework(self,
         choice:schema.LLMFrameworkType,
@@ -123,10 +127,10 @@ class ConversationPipeline(DataUploadPipeline):
     def set_transcription_framework(self,
         choice:schema.AudioTranscriptionType,
         api_key:str=None,
-        model_name:str='whisper-1',
+        model_name:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         self.transcription_framework.api_key = api_key
         self.transcription_framework.model_name = model_name
         if choice == schema.AudioTranscriptionType.WHISPER:
-            self.transcription_framework = Whisper()
+            self.transcription_framework = WhisperAudioTranscription()
