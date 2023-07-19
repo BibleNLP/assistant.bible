@@ -5,6 +5,12 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       </head>
       <body>
+        <p>
+        Search Domain: <input type="radio" id="html" name="label" value="ESV-Bible" onchange="changeLabel(this)" checked>
+        <label for="ESV-Bible">ESV Bible</label>
+        <input type="radio" id="css" name="label" value="translation-words" onchange="changeLabel(this)">
+        <label for="translation-words">Translation Words</label>
+        </p>
         <div class="container">
           <div class="row">
             <div class="col-md-8 col-md-offset-2">
@@ -23,22 +29,27 @@
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
         <script>
           let key = prompt("Please enter your access key", "key");
+          let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&dbPath=chromadb_store&collectionName=aDotBCollection&token='+key;
+          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&dbHostnPort=localhost:5435&embeddingType=OpenAI&token='+key+'&label='+label;
           var ws = null;
-          ws = new WebSocket(endpoint);
+          setupWebscoket(endpoint);
 
-          ws.onmessage = function (event) {
-            data = JSON.parse(event.data)
-            if(data.type == "error"){
-              alert(data.message);
-            } else {
-              $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
-                '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
-                '</div>'
-                );
-            }
-          };
+          function setupWebscoket(endpoint) {
+            ws = new WebSocket(endpoint);
+
+            ws.onmessage = function (event) {
+              data = JSON.parse(event.data)
+              if(data.type == "error"){
+                alert(data.message);
+              } else {
+                $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
+                  '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
+                  '</div>'
+                  );
+              }
+            };
+          }
 
           $('form').submit(function(event) {
             event.preventDefault();
@@ -50,11 +61,21 @@
             $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
             $('#message').val('').focus();
           });
+
+
+          function changeLabel(src) {
+            let label = src.value;
+            var endpoint = {{ ws_url|tojson }};
+            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&dbHostnPort=localhost:5435&embeddingType=OpenAI&token='+key+'&label='+label;
+            ws.close();
+            $('#messages').append('<div>---<b>Domain:'+label+'</b>---</div');
+            setupWebscoket(endpoint);
+          }
         </script>
       <br><br>
       <footer class="bg-light text-center text-lg-start">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-          Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Chroma, Framework=LangChain, Embeddings=Chroma's Native
+          Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
         </div>
       </footer>
       </body>
