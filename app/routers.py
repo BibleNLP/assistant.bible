@@ -16,12 +16,23 @@ from log_configs import log
 from core.auth import auth_check_decorator
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
+from core.vectordb.postgres4langchain import Postgres
+from core.embedding.openai import OpenAIEmbedding
 from custom_exceptions import GenericException
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+
 WS_URL = os.getenv('WEBSOCKET_URL', "ws://localhost:8000/chat")
 DOMAIN = os.getenv('DOMAIN', "localhost:8000")
+POSTGRES_DB_USER = os.getenv('POSTGRES_DB_USER', 'admin')
+POSTGRES_DB_PASSWORD = os.getenv('POSTGRES_DB_PASSWORD', 'secret')
+POSTGRES_DB_HOST = os.getenv('POSTGRES_DB_HOST', 'localhost')
+POSTGRES_DB_PORT = os.getenv('POSTGRES_DB_USER', '5432')
+POSTGRES_DB_NAME = os.getenv('POSTGRES_DB_NAME', 'adotbcollection')
+CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "../chromadb")
+CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "a_dot_b_collection")
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 UPLOAD_PATH = "./uploaded-files/"
 
@@ -35,7 +46,8 @@ async def index(request:Request):
     '''Landing page'''
     log.info("In index router")
     return templates.TemplateResponse("index.html",
-        {"request": request, "demo_url":f"http://{DOMAIN}/ui"})
+        {"request": request, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2"})
 
 @router.get("/test",
     response_model=schema.APIInfoResponse,
@@ -62,6 +74,52 @@ async def get_ui(request: Request):
     return templates.TemplateResponse("chat-demo.html",
         {"request": request, "ws_url": WS_URL})
 
+@router.get("/ui2",
+    response_class=HTMLResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=200, tags=["UI"])
+# @auth_check_decorator
+async def get_ui2(request: Request):
+    '''The development UI using http for chat'''
+    log.info("In ui endpoint!!!")
+    return templates.TemplateResponse("chat-demo-postgres.html",
+        {"request": request, "ws_url": WS_URL})
+
+def compose_vector_db_args(db_type, settings):
+    '''Convert the API params or default values, to args to initializing the DB'''
+    vectordb_args = {}
+    if settings.dbHostnPort:
+        vectordb_args['host_n_port'] = settings.dbHostnPort
+        parts = settings.dbHostnPort.split(":")
+        vectordb_args['host'] = "".join(parts[:-1])
+        vectordb_args['port'] = parts[-1]
+    else:
+        vectordb_args['host_n_port'] = f"{POSTGRES_DB_HOST}:{POSTGRES_DB_PORT}"
+        vectordb_args['host']=POSTGRES_DB_HOST
+        vectordb_args['port']=POSTGRES_DB_PORT
+    if settings.dbUser:
+        vectordb_args['user'] = settings.dbUser
+    else:
+        vectordb_args['user'] = POSTGRES_DB_USER
+    if settings.dbPassword:
+        vectordb_args['password'] = settings.dbPassword.get_secret_value()
+    else:
+        vectordb_args['password'] = POSTGRES_DB_PASSWORD
+    if settings.dbPath:
+        vectordb_args['path'] = settings.dbPath
+    elif db_type==schema.DatabaseType.CHROMA:
+        vectordb_args['path'] = CHROMA_DB_PATH
+    if settings.collectionName:
+        vectordb_args['collection_name']=settings.collectionName
+    elif db_type==schema.DatabaseType.CHROMA:
+        vectordb_args['collection_name']=CHROMA_DB_COLLECTION
+    elif db_type==schema.DatabaseType.POSTGRES:
+        vectordb_args['collection_name']=POSTGRES_DB_NAME
+    return vectordb_args
+
 @router.websocket("/chat")
 @auth_check_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
@@ -69,22 +127,20 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present"),
-    labels:List[str]=Query(["open-access"], # filtering with labels not implemented yet
+    label:str=Query("ESV-Bible", # filtering with labels not implemented yet
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
     if token:
         log.info("User, %s, connecting with token, %s", user, token )
     await websocket.accept()
 
-    chat_stack = ConversationPipeline(user=user, labels=labels)
+    chat_stack = ConversationPipeline(user=user, label=label)
 
-    vectordb_args = {}
-    if settings.dbHostnPort:
-        parts = settings.vectordbConfig.dbHostnPort.split(":")
-        vectordb_args['host'] = "".join(parts[:-1])
-        vectordb_args['port'] = parts[-1]
-    vectordb_args['path'] = settings.dbPath
-    vectordb_args['collection_name']=settings.collectionName
+    vectordb_args = compose_vector_db_args(settings.vectordbType, settings)
+    vectordb_args['label'] = label
+    if settings.embeddingType:
+        if settings.embeddingType == schema.EmbeddingType.OPENAI:
+            vectordb_args['embedding'] = OpenAIEmbedding()
     chat_stack.set_vectordb(settings.vectordbType,**vectordb_args)
     llm_args = {}
     if settings.llmApiKey:
@@ -122,7 +178,8 @@ async def websocket_chat_endpoint(websocket: WebSocket,
             await websocket.send_json(start_resp.dict())
 
         except WebSocketDisconnect:
-            chat_stack.vectordb.db_client.persist()
+            if isinstance(chat_stack.vectordb, Chroma):
+                chat_stack.vectordb.db_client.persist()
             log.info("websocket disconnect")
             break
         except Exception as exe: #pylint: disable=broad-exception-caught
@@ -146,8 +203,7 @@ async def upload_sentences(
     document_objs:List[schema.Document]=Body(...,
         desc="List of pre-processed sentences"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
-    vectordb_config:schema.DBSelector = Body(None,
-        desc="If not provided, the default, local db of server is used"),
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
@@ -155,15 +211,8 @@ async def upload_sentences(
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
     log.info("Access token used:%s", token)
     data_stack = DataUploadPipeline()
-    if vectordb_config is not None:
-        vectordb_args = {}
-        if vectordb_config.dbHostnPort:
-            parts = vectordb_config.dbHostnPort.split(":")
-            vectordb_args['host'] = "".join(parts[:-1])
-            vectordb_args['port'] = parts[-1]
-        vectordb_args['path'] = vectordb_config.dbPath
-        vectordb_args['collection_name']=vectordb_config.collectionName
-        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     # This may have to be a background job!!!
     data_stack.vectordb.add_to_collection(docs=document_objs)
@@ -192,13 +241,7 @@ async def upload_text_file(
     log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
     data_stack.set_file_processor(file_processor_type)
-    vectordb_args = {}
-    if vectordb_config.dbHostnPort:
-        parts = vectordb_config.dbHostnPort.split(":")
-        vectordb_args['host'] = "".join(parts[:-1])
-        vectordb_args['port'] = parts[-1]
-    vectordb_args['path'] = vectordb_config.dbPath
-    vectordb_args['collection_name']=vectordb_config.collectionName
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     if not os.path.exists(UPLOAD_PATH):
@@ -238,13 +281,7 @@ async def upload_csv_file(
     * Keeps other details, sourceTag, link, and media as metadata in vector store'''
     log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
-    vectordb_args = {}
-    if vectordb_config.dbHostnPort:
-        parts = vectordb_config.dbHostnPort.split(":")
-        vectordb_args['host'] = "".join(parts[:-1])
-        vectordb_args['port'] = parts[-1]
-    vectordb_args['path'] = vectordb_config.dbPath
-    vectordb_args['collection_name']=vectordb_config.collectionName
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
 
     if not os.path.exists(UPLOAD_PATH):
@@ -300,17 +337,12 @@ async def get_source_tags(
     log.debug("host:port:%s, path:%s, collection:%s",
         settings.dbHostnPort, settings.dbPath, settings.collectionName)
     log.info("Access token used: %s", token)
+    args = compose_vector_db_args(db_type, settings)
+
     if db_type == schema.DatabaseType.CHROMA:
-        args = {}
-        if settings.dbHostnPort is not None:
-            parts = settings.dbHostnPort.split(":")
-            args['host'] = "".join(parts[:-1])
-            args['port'] = parts[-1]
-        if settings.dbPath is not None:
-            args['path'] = settings.dbPath
-        if settings.collectionName is not None:
-            args['collection_name'] = settings.collectionName
         vectordb = Chroma(**args)
+    elif db_type == schema.DatabaseType.POSTGRES:
+        vectordb = Postgres(**args)
     else:
         raise GenericException("This database type is not supported (yet)!")
 

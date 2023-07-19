@@ -14,24 +14,22 @@ from core.file_processor.vanilla_loader import VanillaLoader
 from core.embedding.openai import OpenAIEmbedding
 from core.vectordb.chroma import Chroma
 from core.vectordb.chroma4langchain import Chroma as ChromaLC
+from core.vectordb.postgres4langchain import Postgres
 from core.llm_framework.openai_langchain import LangchainOpenAI
 
 #pylint: disable=unused-argument
 
 class DataUploadPipeline:
     '''Interface for implementing dataupload tech stack'''
-    file_processor: FileProcessorInterface = None
-    embedding: EmbeddingInterface = None
-    vectordb: VectordbInterface = None
 
     def __init__(self,
         file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=OpenAIEmbedding,
-        vectordb: VectordbInterface=Chroma) -> None:
+        embedding: EmbeddingInterface=OpenAIEmbedding(),
+        vectordb: VectordbInterface=Chroma()) -> None:
         '''Define the stack with defaults, in the constructor'''
         self.file_processor = file_processor()
-        self.embedding = embedding()
-        self.vectordb = vectordb()
+        self.embedding = embedding
+        self.vectordb = vectordb
 
     def set_file_processor(self,
         choice: schema.FileProcessorType,
@@ -67,42 +65,45 @@ class DataUploadPipeline:
         collection_name:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
+        user = kwargs.get("user")
+        args = {}
+        if not host_n_port is None:
+            parts = host_n_port.split(":")
+            args['host'] = "".join(parts[:-1])
+            args['port'] = parts[-1]
+        if not path is None:
+            args['path'] = path
+        if not collection_name is None:
+            args['collection_name'] = collection_name
         if choice == schema.DatabaseType.CHROMA:
-            args = {}
-            if not host_n_port is None:
-                parts = host_n_port.split(":")
-                args['host'] = "".join(parts[:-1])
-                args['port'] = parts[-1]
-            if not path is None:
-                args['path'] = path
-            if not collection_name is None:
-                args['collection_name'] = collection_name
             self.vectordb = Chroma(**args)
+        elif choice == schema.DatabaseType.POSTGRES:
+            args['user'] = kwargs.get("user")
+            args['password'] = kwargs.get('password')
+            args['embedding'] = kwargs.get('embedding')
+            args['label'] = kwargs.get('label')
+            self.vectordb = Postgres(**args)
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
 class ConversationPipeline(DataUploadPipeline):
     '''The tech stack for implementing chat bot'''
-    user = None
-    allowed_labels: List[str] = ['open-access']
-    chat_history: List[Tuple[str,str]] = []
-    embedding: EmbeddingInterface = None
-    vectordb: VectordbInterface = None
-    llm_framework: LLMFrameworkInterface = None
     def __init__(self, #pylint: disable=too-many-arguments
         user,
-        labels:List[str] = None,
+        label:str = "ESV-Bible",
         file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=OpenAIEmbedding,
-        vectordb: VectordbInterface=Chroma,
+        embedding: EmbeddingInterface=OpenAIEmbedding(),
+        vectordb: VectordbInterface=Chroma(),
         llm_framework: LLMFrameworkInterface=LangchainOpenAI):
         '''Instantiate with default tech stack'''
         super().__init__(file_processor, embedding, vectordb)
         self.user = user
-        if labels is not None:
-            self.allowed_labels.append(labels)
+        if label is not None:
+            self.label = label
         self.chat_history = []
-        self.llm_framework = llm_framework()
+        self.embedding = embedding
+        self.vectordb = vectordb
+        self.llm_framework = llm_framework
 
     def set_llm_framework(self,
         choice:schema.LLMFrameworkType,

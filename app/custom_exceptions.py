@@ -40,6 +40,14 @@ class ChromaException(Exception):
         self.detail = detail
         self.status_code = 502
 
+class PostgresException(Exception):
+    '''Format for errors from ChromaDB's APIs'''
+    def __init__(self, detail):
+        super().__init__()
+        self.name = "Error from Postgres Databse"
+        self.detail = detail
+        self.status_code = 502
+
 class GenericException(Exception):
     '''Format for Database error'''
     def __init__(self, detail: str):

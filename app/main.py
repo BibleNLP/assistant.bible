@@ -11,11 +11,6 @@ from fastapi.responses import JSONResponse
 from log_configs import log
 import routers
 
-
-CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "../chromadb")
-CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "a_dot_b_collection")
-OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
 app = FastAPI(title="Assistant.Bible  APIs", version="0.0.1-alpha.1",
     description="The server application that provides APIs to interact \
 with the Assistant.Bible Chatbot App")
