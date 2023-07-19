@@ -120,16 +120,13 @@ class ConversationPipeline(DataUploadPipeline):
                     path=vectordb.db_path, collection_name=vectordb.collection_name)
             self.llm_framework = LangchainOpenAI(vectordb=vectordb)
 
-    async def handle_audio_data(
-        audio_data, 
-        transcription_type:schema.AudioTranscriptionType=schema.AudioTranscriptionType.WHISPER) -> str:
-        '''Takes audio input and returns the transcribed text as a string'''
-
-        if transcription_type == schema.AudioTranscriptionType.WHISPER:
-            whisper = Whisper()
-            user_message = whisper.transcribe_audio(audio_data)
-        
-        else:
-            raise GenericException("This audio transcription type is not supported (yet)!")
-
-        return user_message
+    def set_transcription_framework(self,
+        choice:schema.AudioTranscriptionType,
+        api_key:str=None,
+        model_name:str='whisper-1',
+        **kwargs) -> None:
+        '''Change the default tech with one of our choice'''
+        self.transcription_framework.api_key = api_key
+        self.transcription_framework.model_name = model_name
+        if choice == schema.AudioTranscriptionType.WHISPER:
+            self.transcription_framework = Whisper()
