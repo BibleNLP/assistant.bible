@@ -12,7 +12,12 @@ services:
      - OPENAI_API_KEY=${OPENAI_API_KEY}
      - WEBSOCKET_URL=${WEBSOCKET_URL:-"ws://localhost/chat"}
      - CHATBOT_ACCESS_TOKEN=${CHATBOT_ACCESS_TOKEN}
-     - DOMAIN=${DOMAIN:-"localhost"}
+     - DOMAIN=${DOMAIN:-"localhost:9000"}
+     - POSTGRES_DB_USER=${POSTGRES_DB_USER:-admin}
+     - POSTGRES_DB_PASSWORD=${POSTGRES_DB_PASSWORD:-secret}
+     - POSTGRES_DB_NAME=${POSTGRES_DB_NAME:-adotbcollection}
+     - POSTGRES_DB_HOST=postgresvectordb
+     - POSTGRES_DB_PORT=5432
     command: uvicorn main:app --host 0.0.0.0 --port 9000 --workers 1
     logging:
      options:
@@ -21,14 +26,32 @@ services:
     restart: always
     expose:
      - 9000
-    # ports:
-    #   - 9000:9000
+    ports:
+      - 9000:9000
+    depends_on:
+      - postgresvectordb
     volumes:
      - logs-vol:/app/logs
      - chroma-db:/app/app/chromadb_store
-
     networks:
      - chatbot-network
+
+  postgresvectordb:
+    image: ankane/pgvector
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_DB_PASSWORD:-secret}
+      - POSTGRES_USER=${POSTGRES_DB_USER:-admin}
+      - POSTGRES_DB=${POSTGRES_DB_NAME:-adotbcollection}
+      - POSTGRES_HOST_AUTH_METHOD=md5
+    restart: always
+    expose:
+      - 5432
+    networks:
+     - chatbot-network
+    volumes:
+     - postgres-db-vol:/var/lib/postgresql/data
 
   webserver:
     image: nginx:latest
@@ -65,4 +88,4 @@ networks:
 volumes:
   logs-vol:
   chroma-db:
-  
+  postgres-db-vol:
