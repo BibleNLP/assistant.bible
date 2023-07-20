@@ -96,17 +96,17 @@ def compose_vector_db_args(db_type, settings):
         parts = settings.dbHostnPort.split(":")
         vectordb_args['host'] = "".join(parts[:-1])
         vectordb_args['port'] = parts[-1]
-    else:
+    elif db_type==schema.DatabaseType.POSTGRES:
         vectordb_args['host_n_port'] = f"{POSTGRES_DB_HOST}:{POSTGRES_DB_PORT}"
         vectordb_args['host']=POSTGRES_DB_HOST
         vectordb_args['port']=POSTGRES_DB_PORT
     if settings.dbUser:
         vectordb_args['user'] = settings.dbUser
-    else:
+    elif db_type==schema.DatabaseType.POSTGRES:
         vectordb_args['user'] = POSTGRES_DB_USER
     if settings.dbPassword:
         vectordb_args['password'] = settings.dbPassword.get_secret_value()
-    else:
+    elif db_type==schema.DatabaseType.POSTGRES:
         vectordb_args['password'] = POSTGRES_DB_PASSWORD
     if settings.dbPath:
         vectordb_args['path'] = settings.dbPath
