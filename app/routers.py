@@ -109,6 +109,10 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                 received_question = await websocket.receive_bytes()
                 log.info("Audio file received")
                 question = chat_stack.transcription_framework.transcribe_audio(received_question)
+                start_human_q = schema.BotResponse(sender=schema.SenderType.USER,
+                    message=question, type=schema.ChatResponseType.QUESTION,
+                    media=[])
+                await websocket.send_json(start_human_q.dict())
                 
 
             # # send back the response
