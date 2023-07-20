@@ -31,7 +31,7 @@
           let key = prompt("Please enter your access key", "key");
           let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&dbHostnPort=localhost:5435&embeddingType=OpenAI&token='+key+'&label='+label;
+          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
           var ws = null;
           setupWebscoket(endpoint);
 
@@ -66,7 +66,7 @@
           function changeLabel(src) {
             let label = src.value;
             var endpoint = {{ ws_url|tojson }};
-            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&dbHostnPort=localhost:5435&embeddingType=OpenAI&token='+key+'&label='+label;
+            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
             ws.close();
             $('#messages').append('<div>---<b>Domain:'+label+'</b>---</div');
             setupWebscoket(endpoint);
