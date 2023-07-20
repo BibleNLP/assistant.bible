@@ -65,7 +65,6 @@ class DataUploadPipeline:
         collection_name:str=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
-        user = kwargs.get("user")
         args = {}
         if not host_n_port is None:
             parts = host_n_port.split(":")

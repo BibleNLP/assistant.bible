@@ -1,7 +1,6 @@
 '''Implemetations for vectordb interface for postgres with vector store'''
 import math
 import os
-import urllib
 from typing import List
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
@@ -10,13 +9,12 @@ import schema
 from custom_exceptions import PostgresException, GenericException
 
 import psycopg2
-import pgvector
 from psycopg2.extras import execute_values
 from pgvector.psycopg2 import register_vector
 
 #pylint: disable=too-few-public-methods, unused-argument
 
-class Postgres(VectordbInterface, BaseRetriever):
+class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-instance-attributes
     '''Interface for vector database technology, its connection, configs and operations'''
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
     db_port: str = os.environ.get("POSTGRES_DB_PORT", 5432)
@@ -25,7 +23,7 @@ class Postgres(VectordbInterface, BaseRetriever):
     db_user=os.environ.get("POSTGRES_DB_USER", "postgres")
     db_password =os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     db_client=None
-    def __init__(self, host=None, port=None, path=None, collection_name=None,
+    def __init__(self, host=None, port=None, path=None, collection_name=None, #pylint: disable=super-init-not-called
     **kwargs) -> None: #pylint: disable=super-init-not-called
         '''Instanciate a chroma client'''
         self.embedding = kwargs.get("embedding")
@@ -49,7 +47,7 @@ class Postgres(VectordbInterface, BaseRetriever):
                 host=self.db_host, port=self.db_port, dbname=self.collection_name)
             cur = self.db_conn.cursor()
 
-            #install pgvector 
+            #install pgvector
             cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
             self.db_conn.commit()
 
@@ -59,7 +57,7 @@ class Postgres(VectordbInterface, BaseRetriever):
             # Create table to store embeddings and metadata
             table_create_command = """
             CREATE TABLE IF NOT EXISTS embeddings (
-                        id bigserial primary key, 
+                        id bigserial primary key,
                         source_id text unique,
                         document text,
                         label text,
@@ -97,8 +95,8 @@ class Postgres(VectordbInterface, BaseRetriever):
             #use the cosine distance measure, which is what we'll later use for querying
             cur.execute("CREATE INDEX ON embeddings USING ivfflat (embedding vector_cosine_ops) "+\
                 f"WITH (lists = {num_lists});")
-            self.db_conn.commit() 
-            
+            self.db_conn.commit()
+
             cur.close()
         except Exception as exe:
             raise PostgresException("While adding data: "+str(exe)) from exe

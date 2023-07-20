@@ -90,7 +90,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         except Exception as exe:
             raise ChromaException("While adding data: "+str(exe)) from exe
 
-    def get_relevant_documents(self, query: str) -> List[LangchainDocument]:
+    def get_relevant_documents(self, query: str, **kwargs) -> List[LangchainDocument]:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
@@ -101,7 +101,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         return [ LangchainDocument(page_content= doc, metadata={ "source": id_ } )
                                 for doc, id_ in zip(results['documents'][0], results['ids'][0])]
 
-    async def aget_relevant_documents(self, query: str) -> List[LangchainDocument]:
+    async def aget_relevant_documents(self, query: str, **kwargs) -> List[LangchainDocument]:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],

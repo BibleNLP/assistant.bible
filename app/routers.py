@@ -226,7 +226,7 @@ async def upload_sentences(
         500: {"model": schema.APIErrorResponse}},
     status_code=201, tags=["Data Management"])
 @auth_check_decorator
-async def upload_text_file(
+async def upload_text_file( #pylint: disable=too-many-arguments
     file_obj: UploadFile,
     label:str=Query(..., desc="The label for the set of documents for access based filtering"),
     file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
@@ -315,7 +315,7 @@ async def check_job_status(job_id:int = Path(...),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''Returns the status of background jobs like upload-documemts'''
-    log.info("Access token used:", token)
+    log.info("Access token used:%s", token)
     print(job_id)
     return {"jobId":"10001", "status":schema.JobStatus.QUEUED}
 
