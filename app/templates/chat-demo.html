@@ -40,10 +40,14 @@
             if (data.type == "error") {
                 alert(data.message);
             } else {
-                $('#messages').append('<div><b>' + data.sender + '</b>: ' + data.message +
-                    '<button class="btn btn-link" onclick="alert(\'' + data.sources + '\');">(sources)</button>' +
-                    '</div>'
-                );
+                if (data.type == "question") {
+                    $('#messages').append('<div><b>' + data.sender + '</b>: ' + data.message + '</div>');
+                } else {
+                    $('#messages').append('<div><b>' + data.sender + '</b>: ' + data.message +
+                        '<button class="btn btn-link" onclick="alert(\'' + data.sources + '\');">(sources)</button>' +
+                        '</div>'
+                    );
+                }
             }
         };
 
@@ -53,7 +57,9 @@
                 alert("Chat not connected. Did you give the correct token???");
                 location.reload()
             }
-            ws.send($('#message').val()); 
+            const encoder = new TextEncoder();
+            const encodedText = encoder.encode($('#message').val());
+            ws.send(encodedText);
             $('#messages').append('<div><b>You</b>: ' + $('#message').val() + '</div>');
             $('#message').val('').focus();
         });
@@ -64,18 +70,24 @@
 
         // Check if the browser supports the required APIs
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (stream) {
                     const recordButton = document.getElementById("recordButton");
                     let isRecording = false;
 
+
                     recordButton.addEventListener("click", function () {
-                        if (mediaRecorder && mediaRecorder.state === "recording") {
+
+                        if (isRecording) {
+                            // If already recording, stop the recording
                             mediaRecorder.stop();
                         } else {
+                            // If not recording, start recording
+
                             startRecording(stream);
                         }
-                        // Toggle the button label
+                        // Toggle the recording state
                         isRecording = !isRecording;
                         recordButton.textContent = isRecording ? "Stop" : "Record";
                     });
@@ -92,13 +104,16 @@
             chunks = [];
 
             mediaRecorder.addEventListener("dataavailable", function (event) {
+
                 chunks.push(event.data);
             });
 
             mediaRecorder.addEventListener("stop", function () {
+
                 const audioBlob = new Blob(chunks, { type: "audio/wav" });
                 const audioFile = new File([audioBlob], "recorded_audio.wav");
                 sendToSocket(audioFile);
+
             });
 
             mediaRecorder.start();

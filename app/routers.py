@@ -101,16 +101,17 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     while True:
         try:
             # Receive and send back the client message
-            try:
-                received_question = await websocket.receive_text()
+            received_bytes = await websocket.receive_bytes()
+            try:  # Try treating the bytes as text
+                received_question = received_bytes.decode('utf-8')
                 log.info("Text received")
                 question = received_question
-            except KeyError:
-                received_question = await websocket.receive_bytes()
+            except UnicodeDecodeError:  # If that fails, treat it as audio
                 log.info("Audio file received")
-                question = chat_stack.transcription_framework.transcribe_audio(received_question)
+                question = chat_stack.transcription_framework.transcribe_audio(received_bytes)
                 start_human_q = schema.BotResponse(sender=schema.SenderType.USER,
                     message=question, type=schema.ChatResponseType.QUESTION,
+                    sources=[],
                     media=[])
                 await websocket.send_json(start_human_q.dict())
                 
