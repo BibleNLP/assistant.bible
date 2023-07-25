@@ -216,7 +216,7 @@ async def upload_sentences(
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OpenAIEmbedding
+        embedding_type=schema.EmbeddingType.OPENAI
     if embedding_type:
         data_stack.set_embedding(embedding_type)
         # This may have to be a background job!!!
@@ -254,7 +254,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OpenAIEmbedding
+        embedding_type=schema.EmbeddingType.OPENAI
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -283,7 +283,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         500: {"model": schema.APIErrorResponse}},
     status_code=201, tags=["Data Management"])
 @auth_check_decorator
-async def upload_csv_file(
+async def upload_csv_file( #pylint: disable=too-many-arguments
     file_obj: UploadFile,
     col_delimiter:schema.CsvColDelimiter=Query(schema.CsvColDelimiter.COMMA,
         desc="Seperator used in input file"),
@@ -302,7 +302,7 @@ async def upload_csv_file(
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OpenAIEmbedding
+        embedding_type=schema.EmbeddingType.OPENAI
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
