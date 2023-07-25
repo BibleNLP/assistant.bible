@@ -33,7 +33,12 @@ An intelligent search engine for domain specific data, that not only provides re
 Environment variables and their default values, 
 * `OPENAI_API_KEY`
 * `CHROMA_DB_PATH` default '../chormadb', if changing this should be changed in the volume also.
-* `CHROMA_DB_COLLECTION` default 'a_dot_b_collection'.
+* `CHROMA_DB_COLLECTION` default 'adotbcollection'.
+* `POSTGRES_DB_HOST=localhost`
+* `POSTGRES_DB_PORT=5432`
+* `POSTGRES_DB_NAME=adotbcollection`
+* `POSTGRES_DB_USER=admin`
+* `POSTGRES_DB_PASSWORD=secret`
 
 If using default values, once started the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
 
@@ -49,7 +54,7 @@ If using default values, once started the app should be running at [http://local
 	```
 	OPENAI_API_KEY=sk-...
 	CHROMA_DB_PATH=../chromadb
-	CHROMA_DB_COLLECTION=chromadb
+	CHROMA_DB_COLLECTION=adotbcollection
 	```
 	These values need to be set and saved in current terminal or in `.bashrc` file in home directory
 1. Postgres DB
@@ -61,8 +66,8 @@ If using default values, once started the app should be running at [http://local
 	POSTGRES_DB_USER=postgres
 	POSTGRES_DB_PASSWORD=secret
 	```
-	If you dont want to mess with the locally running postgres version, running it as a docker container is an alternative: 
-	`docker run -e POSTGRES_PASSWORD=password -e POSTGRES_DB=adotbcollection -p 5435:5432 ankane/pgvector`
+	If you dont want to mess with the locally running postgres version, running it as a docker container is a safer alternative: 
+	`docker run -e POSTGRES_PASSWORD=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=adotbcollection -p 5432:5432 ankane/pgvector`
 
 1. Start the app
 	```
