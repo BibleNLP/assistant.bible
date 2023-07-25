@@ -204,15 +204,23 @@ async def upload_sentences(
         desc="List of pre-processed sentences"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    embedding_type:schema.EmbeddingType=Query(None),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
-    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    * Keeps other details, sourceTag, link, and media as metadata in vector store
+    * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used:%s", token)
     data_stack = DataUploadPipeline()
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
+        embedding_type=schema.EmbeddingType.OpenAIEmbedding
+    if embedding_type:
+        data_stack.set_embedding(embedding_type)
+        # This may have to be a background job!!!
+        data_stack.embedding.get_embeddings(doc_list=document_objs)
 
     # This may have to be a background job!!!
     data_stack.vectordb.add_to_collection(docs=document_objs)
@@ -232,17 +240,21 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    embedding_type:schema.EmbeddingType=Query(None),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind text files like .md, .txt etc.
     * Splits the whole document into smaller chunks using the selected file_processor
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
-    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    * Keeps other details, sourceTag, link, and media as metadata in vector store
+    * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
     data_stack.set_file_processor(file_processor_type)
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
+        embedding_type=schema.EmbeddingType.OpenAIEmbedding
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -256,6 +268,10 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         label=label,
         name="".join(file_obj.filename.split(".")[:-1])
         )
+    if embedding_type:
+        data_stack.set_embedding(embedding_type)
+        # This may have to be a background job!!!
+        data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
 
@@ -273,16 +289,20 @@ async def upload_csv_file(
         desc="Seperator used in input file"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    embedding_type:schema.EmbeddingType=Query(None),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     ):
     '''* Upload CSV with fields (id, text, label, links, medialinks).
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
-    * Keeps other details, sourceTag, link, and media as metadata in vector store'''
+    * Keeps other details, sourceTag, link, and media as metadata in vector store
+    * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
     data_stack = DataUploadPipeline()
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
+        embedding_type=schema.EmbeddingType.OpenAIEmbedding
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -299,6 +319,10 @@ async def upload_csv_file(
         file_type=schema.FileType.CSV,
         col_delimiter=col_delimiter
         )
+    if embedding_type:
+        data_stack.set_embedding(embedding_type)
+        # This may have to be a background job!!!
+        data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
 

@@ -7,10 +7,12 @@ from langchain.schema import BaseRetriever
 from core.vectordb import VectordbInterface
 import schema
 from custom_exceptions import PostgresException, GenericException
+import numpy as np
 
 import psycopg2
 from psycopg2.extras import execute_values
 from pgvector.psycopg2 import register_vector
+from log_configs import log
 
 #pylint: disable=too-few-public-methods, unused-argument
 
@@ -114,10 +116,11 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
                 "where label=%s ORDER BY embedding <=> %s LIMIT %s;",
-                (self.label, str(query_vector), self.query_limit))
+                (self.label, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
+            log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
@@ -135,10 +138,11 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
                 "where label=%s ORDER BY embedding <=> %s LIMIT %s;",
-                (self.label, str(query_vector), self.query_limit))
+                (self.label, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
+            log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
