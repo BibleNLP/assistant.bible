@@ -31,7 +31,7 @@
     <script>
         let key = prompt("Please enter your access key", "key");
         var endpoint = {{ ws_url| tojson }};
-        endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&dbPath=chromadb_store&collectionName=aDotBCollection&token=' + key;
+        endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&token=' + key;
         var ws = null;
         ws = new WebSocket(endpoint);
 

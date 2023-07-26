@@ -31,8 +31,8 @@ POSTGRES_DB_PASSWORD = os.getenv('POSTGRES_DB_PASSWORD', 'secret')
 POSTGRES_DB_HOST = os.getenv('POSTGRES_DB_HOST', 'localhost')
 POSTGRES_DB_PORT = os.getenv('POSTGRES_DB_PORT', '5432')
 POSTGRES_DB_NAME = os.getenv('POSTGRES_DB_NAME', 'adotbcollection')
-CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "../chromadb")
-CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "a_dot_b_collection")
+CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "chromadb_store")
+CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "adotbcollection")
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 UPLOAD_PATH = "./uploaded-files/"

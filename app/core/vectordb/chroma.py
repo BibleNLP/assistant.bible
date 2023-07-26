@@ -15,7 +15,7 @@ class Chroma(VectordbInterface):
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None # Port to connect to a remote DB deployment
     db_path: str = "chromadb_store" # Path for a local DB, if that is being used
-    collection_name:str = "aDotBCollection"  # Collection to connect to a remote/local DB
+    collection_name:str = "adotbcollection"  # Collection to connect to a remote/local DB
     db_conn=None
     db_client=None
     def __init__(self, host=None, port=None, path="chromadb_store", collection_name=None) -> None: #pylint: disable=super-init-not-called
