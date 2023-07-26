@@ -10,11 +10,13 @@ from fastapi import (
                     UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from pydantic import SecretStr
 import json
 
 import schema
 from log_configs import log
-from core.auth import auth_check_decorator
+from core.auth import (admin_auth_check_decorator,
+    chatbot_auth_check_decorator)
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
@@ -122,11 +124,11 @@ def compose_vector_db_args(db_type, settings):
     return vectordb_args
 
 @router.websocket("/chat")
-@auth_check_decorator
+@chatbot_auth_check_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
     settings=Depends(schema.ChatPipelineSelector),
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     label:str=Query("ESV-Bible", # filtering with labels not implemented yet
         desc="The document sets to be used for answering questions")):
@@ -213,7 +215,7 @@ async def websocket_chat_endpoint(websocket: WebSocket,
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=201, tags=["Data Management"])
-@auth_check_decorator
+@admin_auth_check_decorator
 async def upload_sentences(
     document_objs:List[schema.Document]=Body(...,
         desc="List of pre-processed sentences"),
@@ -248,7 +250,7 @@ async def upload_sentences(
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=201, tags=["Data Management"])
-@auth_check_decorator
+@admin_auth_check_decorator
 async def upload_text_file( #pylint: disable=too-many-arguments
     file_obj: UploadFile,
     label:str=Query(..., desc="The label for the set of documents for access based filtering"),
@@ -297,7 +299,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=201, tags=["Data Management"])
-@auth_check_decorator
+@admin_auth_check_decorator
 async def upload_csv_file( #pylint: disable=too-many-arguments
     file_obj: UploadFile,
     col_delimiter:schema.CsvColDelimiter=Query(schema.CsvColDelimiter.COMMA,
@@ -349,7 +351,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
-@auth_check_decorator
+@admin_auth_check_decorator
 async def check_job_status(job_id:int = Path(...),
     token:str=Query(None,
         desc="Optional access token to be used if user accounts not present")):
@@ -365,7 +367,7 @@ async def check_job_status(job_id:int = Path(...),
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["Data Management"])
-@auth_check_decorator
+@admin_auth_check_decorator
 async def get_source_tags(
     db_type:schema.DatabaseType=schema.DatabaseType.CHROMA,
     settings=Depends(schema.DBSelector),
