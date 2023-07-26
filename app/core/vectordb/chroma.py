@@ -1,4 +1,5 @@
 '''Implemetations for vectordb interface for chroma'''
+import os
 from typing import List
 
 from core.vectordb import VectordbInterface

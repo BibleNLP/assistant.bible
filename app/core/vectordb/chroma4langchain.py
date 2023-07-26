@@ -1,4 +1,5 @@
 '''Implemetations for vectordb interface for chroma'''
+import os
 from typing import List
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever

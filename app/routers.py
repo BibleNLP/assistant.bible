@@ -222,7 +222,7 @@ async def upload_sentences(
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
     embedding_type:schema.EmbeddingType=Query(None),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
     * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
@@ -258,7 +258,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
     embedding_type:schema.EmbeddingType=Query(None),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind text files like .md, .txt etc.
     * Splits the whole document into smaller chunks using the selected file_processor
@@ -307,7 +307,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
     embedding_type:schema.EmbeddingType=Query(None),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     ):
     '''* Upload CSV with fields (id, text, label, links, medialinks).
@@ -353,7 +353,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     status_code=200, tags=["Data Management"])
 @admin_auth_check_decorator
 async def check_job_status(job_id:int = Path(...),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''Returns the status of background jobs like upload-documemts'''
     log.info("Access token used:%s", token)
@@ -371,7 +371,7 @@ async def check_job_status(job_id:int = Path(...),
 async def get_source_tags(
     db_type:schema.DatabaseType=schema.DatabaseType.CHROMA,
     settings=Depends(schema.DBSelector),
-    token:str=Query(None,
+    token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     ):
     '''Returns the distinct set of source tags available in chorma DB'''
