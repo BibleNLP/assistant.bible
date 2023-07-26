@@ -57,7 +57,10 @@
               alert("Chat not connected. Did you give the correct token???");
               location.reload()
             }
-            ws.send($('#message').val());
+            const encoder = new TextEncoder();
+            const encodedText = encoder.encode($('#message').val());
+
+            ws.send(encodedText);
             $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
             $('#message').val('').focus();
           });
