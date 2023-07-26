@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Assistant.Bible</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+      </head>
+      <body>
+        <p>
+        Search Domain: <input type="radio" id="html" name="label" value="ESV-Bible" onchange="changeLabel(this)" checked>
+        <label for="ESV-Bible">ESV Bible</label>
+        <input type="radio" id="css" name="label" value="translation-words" onchange="changeLabel(this)">
+        <label for="translation-words">Translation Words</label>
+        </p>
+        <div class="container">
+          <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+              <h1 class="text-center">Chat Demo</h1>
+              <div class="well" id="messages"></div>
+              <form class="form-inline" action="" method="post">
+                <div class="form-group">
+                  <input type="text" class="form-control" id="message" name="message" autofocus>
+                </div>
+                <button type="submit" class="btn btn-primary">Send</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+        <script>
+          let key = prompt("Please enter your access key", "key");
+          let label = "ESV-Bible"
+          var endpoint = {{ ws_url|tojson }};
+          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
+          var ws = null;
+          setupWebscoket(endpoint);
+
+          function setupWebscoket(endpoint) {
+            ws = new WebSocket(endpoint);
+
+            ws.onmessage = function (event) {
+              data = JSON.parse(event.data)
+              if(data.type == "error"){
+                alert(data.message);
+              } else {
+                $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
+                  '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
+                  '</div>'
+                  );
+              }
+            };
+          }
+
+          $('form').submit(function(event) {
+            event.preventDefault();
+            if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
+              alert("Chat not connected. Did you give the correct token???");
+              location.reload()
+            }
+            const encoder = new TextEncoder();
+            const encodedText = encoder.encode($('#message').val());
+
+            ws.send(encodedText);
+            $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
+            $('#message').val('').focus();
+          });
+
+
+          function changeLabel(src) {
+            let label = src.value;
+            var endpoint = {{ ws_url|tojson }};
+            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
+            ws.close();
+            $('#messages').append('<div>---<b>Domain:'+label+'</b>---</div');
+            setupWebscoket(endpoint);
+          }
+        </script>
+      <br><br>
+      <footer class="bg-light text-center text-lg-start">
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+          Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
+        </div>
+      </footer>
+      </body>
+      
+</html>

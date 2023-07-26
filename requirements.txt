@@ -1,13 +1,15 @@
 fastapi==0.95.1
 uvicorn==0.22.0
 pydantic==1.10.7
-websockets==11.0.3
+websockets
 openai==0.27.6
 Jinja2==3.1.2
 chromadb==0.3.22
 pytest==7.3.1
-httpx==0.23.0
+httpx
 pylint==2.17.4
 langchain==0.0.165
 python-multipart==0.0.6
+psycopg2==2.9.6
+pgvector==0.1.8
 supabase==1.0.3
