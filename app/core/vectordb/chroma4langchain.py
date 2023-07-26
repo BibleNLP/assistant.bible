@@ -9,6 +9,7 @@ from custom_exceptions import ChromaException
 import chromadb
 from chromadb.config import Settings
 #pylint: disable=too-few-public-methods, unused-argument
+QUERY_LIMIT = os.getenv('CHROMA_DB_QUERY_LIMIT', 10)
 
 class Chroma(VectordbInterface, BaseRetriever):
     '''Interface for vector database technology, its connection, configs and operations'''
@@ -105,7 +106,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
-            n_results=10,
+            n_results=QUERY_LIMIT,
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )

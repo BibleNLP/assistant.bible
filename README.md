@@ -32,13 +32,15 @@ An intelligent search engine for domain specific data, that not only provides re
 
 Environment variables and their default values, 
 * `OPENAI_API_KEY`
-* `CHROMA_DB_PATH` default '../chormadb', if changing this should be changed in the volume also.
+* `CHROMA_DB_PATH` default 'chormadb_store', if changing this should be changed in the volume also.
 * `CHROMA_DB_COLLECTION` default 'adotbcollection'.
+* `CHROMA_DB_QUERY_LIMIT=10`
 * `POSTGRES_DB_HOST=localhost`
 * `POSTGRES_DB_PORT=5432`
 * `POSTGRES_DB_NAME=adotbcollection`
 * `POSTGRES_DB_USER=admin`
 * `POSTGRES_DB_PASSWORD=secret`
+* `POSTGRES_DB_QUERY_LIMIT=10`
 
 If using default values, once started the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
 

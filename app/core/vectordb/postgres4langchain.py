@@ -15,6 +15,7 @@ from pgvector.psycopg2 import register_vector
 from log_configs import log
 
 #pylint: disable=too-few-public-methods, unused-argument
+QUERY_LIMIT = os.getenv('POSTGRES_DB_QUERY_LIMIT', 10)
 
 class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-instance-attributes
     '''Interface for vector database technology, its connection, configs and operations'''
@@ -30,7 +31,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
         '''Instanciate a chroma client'''
         self.embedding = kwargs.get("embedding")
         self.label = kwargs.get("label","ESV-Bible")
-        self.query_limit = kwargs.get("query_limit", 3)
+        self.query_limit = kwargs.get("query_limit", QUERY_LIMIT)
         if host:
             self.db_host = host
         if port:
