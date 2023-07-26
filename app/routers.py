@@ -10,6 +10,7 @@ from fastapi import (
                     UploadFile)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+import json
 
 import schema
 from log_configs import log
@@ -149,13 +150,27 @@ async def websocket_chat_endpoint(websocket: WebSocket,
         llm_args['model']=settings.llmModelName
     chat_stack.set_llm_framework(settings.llmFrameworkType,
         vectordb=chat_stack.vectordb, **llm_args)
+    chat_stack.set_transcription_framework(settings.transcriptionFrameworkType)
 
     ### Not implemented using custom embeddings
 
     while True:
         try:
             # Receive and send back the client message
-            question = await websocket.receive_text()
+            received_bytes = await websocket.receive_bytes()
+            try:  # Try treating the bytes as text
+                received_question = received_bytes.decode('utf-8')
+                log.info("Text received")
+                question = received_question
+            except UnicodeDecodeError:  # If that fails, treat it as audio
+                log.info("Audio file received")
+                question = chat_stack.transcription_framework.transcribe_audio(received_bytes)
+                start_human_q = schema.BotResponse(sender=schema.SenderType.USER,
+                    message=question, type=schema.ChatResponseType.QUESTION,
+                    sources=[],
+                    media=[])
+                await websocket.send_json(start_human_q.dict())
+                
 
             # # send back the response
             # resp = schema.BotResponse(sender=schema.SenderType.USER,

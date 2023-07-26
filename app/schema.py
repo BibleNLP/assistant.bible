@@ -31,6 +31,10 @@ class LLMFrameworkType(str, Enum):
     '''Available framework types'''
     LANGCHAIN = "openai-langchain"
 
+class AudioTranscriptionType(str, Enum):
+    '''The type fo text-to-speech audio transcription'''
+    WHISPER = "whisper"
+
 class FileType(str, Enum):
     '''Supported file/content types for populating DB'''
     TEXT = "Continuous text"
@@ -96,6 +100,8 @@ class ChatPipelineSelector(BaseModel):
                     desc="If using a cloud service, like OpenAI, the key obtained from them")
     embeddingModelName: str = Field(None,
                     desc="If there is a model we can choose to use from the available")
+    transcriptionFrameworkType: AudioTranscriptionType = Field(AudioTranscriptionType.WHISPER,
+                    desc="The framework through which audio transcription is handled")
 
 # class UserPrompt(BaseModel): # not using this as we recieve string from websocket
 #     '''Input chat text from the user'''
@@ -111,6 +117,7 @@ class ChatResponseType(str, Enum):
     QUESTION = "question"
     ANSWER = "answer"
     ERROR = "error"
+
 
 class BotResponse(BaseModel):
     '''Chat response from server to UI or user app'''
