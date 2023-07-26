@@ -96,7 +96,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
-            n_results=3,
+            n_results=QUERY_LIMIT,
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )
