@@ -62,6 +62,20 @@ async def get_ui(request: Request):
     return templates.TemplateResponse("chat-demo.html",
         {"request": request, "ws_url": WS_URL})
 
+@router.get("/login",
+    response_class=HTMLResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=200, tags=["UI"])
+# @auth_check_decorator
+async def get_login(request: Request):
+    '''The development login UI'''
+    log.info("In login endpoint!!!")
+    return templates.TemplateResponse("login.html",
+        {"request": request, "ws_url": WS_URL})
+
 @router.websocket("/chat")
 @auth_check_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
@@ -315,3 +329,13 @@ async def get_source_tags(
         raise GenericException("This database type is not supported (yet)!")
 
     return vectordb.get_available_labels()
+
+@router.get('/api/get-supabase-keys', response_model=schema.SupabaseKeys)
+def get_supabase_keys():
+    supabase_url = os.environ.get('SUPABASE_URL')
+    supabase_key = os.environ.get('SUPABASE_KEY')
+
+    if not supabase_url or not supabase_key:
+        return {"supabaseUrl": "", "supabaseKey": ""}
+
+    return {"supabaseUrl": supabase_url, "supabaseKey": supabase_key}
