@@ -1,4 +1,5 @@
 '''Implemetations for vectordb interface for chroma'''
+import os
 from typing import List
 
 from core.vectordb import VectordbInterface
@@ -9,13 +10,14 @@ import chromadb
 from chromadb.config import Settings
 
 #pylint: disable=too-few-public-methods, unused-argument
+QUERY_LIMIT = os.getenv('CHROMA_DB_QUERY_LIMIT', 10)
 
 class Chroma(VectordbInterface):
     '''Interface for vector database technology, its connection, configs and operations'''
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None # Port to connect to a remote DB deployment
     db_path: str = "chromadb_store" # Path for a local DB, if that is being used
-    collection_name:str = "aDotBCollection"  # Collection to connect to a remote/local DB
+    collection_name:str = "adotbcollection"  # Collection to connect to a remote/local DB
     db_conn=None
     db_client=None
     def __init__(self, host=None, port=None, path="chromadb_store", collection_name=None) -> None: #pylint: disable=super-init-not-called
@@ -90,11 +92,11 @@ class Chroma(VectordbInterface):
         except Exception as exe:
             raise ChromaException("While adding data: "+str(exe)) from exe
 
-    def get_relevant_documents(self, query: str) -> List:
+    def get_relevant_documents(self, query: str, **kwargs) -> List:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
-            n_results=10,
+            n_results=QUERY_LIMIT,
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )
@@ -107,3 +109,7 @@ class Chroma(VectordbInterface):
         labels = [meta['label'] for meta in rows['metadatas']]
         labels = list(set(labels))
         return labels
+
+    def __del__(self):
+        '''To persist DB upon app close'''
+        self.db_client.persist()

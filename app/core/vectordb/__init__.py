@@ -24,7 +24,7 @@ class VectordbInterface(ABC):
         return
 
     @abstractmethod
-    def get_relevant_documents(self, query: str) -> List:
+    def get_relevant_documents(self, query: str, **kwargs) -> List:
         '''Similarity search on the vector store'''
 
     @abstractmethod

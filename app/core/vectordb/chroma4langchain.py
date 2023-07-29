@@ -1,4 +1,5 @@
 '''Implemetations for vectordb interface for chroma'''
+import os
 from typing import List
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
@@ -9,6 +10,7 @@ from custom_exceptions import ChromaException
 import chromadb
 from chromadb.config import Settings
 #pylint: disable=too-few-public-methods, unused-argument
+QUERY_LIMIT = os.getenv('CHROMA_DB_QUERY_LIMIT', 10)
 
 class Chroma(VectordbInterface, BaseRetriever):
     '''Interface for vector database technology, its connection, configs and operations'''
@@ -90,22 +92,22 @@ class Chroma(VectordbInterface, BaseRetriever):
         except Exception as exe:
             raise ChromaException("While adding data: "+str(exe)) from exe
 
-    def get_relevant_documents(self, query: str) -> List[LangchainDocument]:
+    def get_relevant_documents(self, query: str, **kwargs) -> List[LangchainDocument]:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
-            n_results=3,
+            n_results=QUERY_LIMIT,
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )
         return [ LangchainDocument(page_content= doc, metadata={ "source": id_ } )
                                 for doc, id_ in zip(results['documents'][0], results['ids'][0])]
 
-    async def aget_relevant_documents(self, query: str) -> List[LangchainDocument]:
+    async def aget_relevant_documents(self, query: str, **kwargs) -> List[LangchainDocument]:
         '''Similarity search on the vector store'''
         results = self.db_conn.query(
             query_texts=[query],
-            n_results=10,
+            n_results=QUERY_LIMIT,
             # where={"metadata_field": "is_equal_to_this"},
             # where_document={"$contains":"search_string"}
         )
@@ -119,3 +121,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         labels = [meta['label'] for meta in rows['metadatas']]
         labels = list(set(labels))
         return labels
+
+    def __del__(self):
+        '''To persist DB upon app close'''
+        self.db_client.persist()

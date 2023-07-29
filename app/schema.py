@@ -2,7 +2,7 @@
 #pylint: disable=too-many-lines
 from typing import List
 from enum import Enum
-from pydantic import BaseModel, Field, AnyUrl, constr#, validator
+from pydantic import BaseModel, Field, AnyUrl, constr, SecretStr#, validator
 
 class APIInfoResponse(BaseModel):
     '''Response with only a message'''
@@ -25,10 +25,15 @@ class EmbeddingType(str, Enum):
 class DatabaseType(str, Enum):
     '''Available Database type choices'''
     CHROMA = "chroma-db"
+    POSTGRES = "postgres-with-pgvector"
 
 class LLMFrameworkType(str, Enum):
     '''Available framework types'''
     LANGCHAIN = "openai-langchain"
+
+class AudioTranscriptionType(str, Enum):
+    '''The type fo text-to-speech audio transcription'''
+    WHISPER = "whisper"
 
 class FileType(str, Enum):
     '''Supported file/content types for populating DB'''
@@ -53,9 +58,11 @@ class DBSelector(BaseModel):
                             desc="Host and port name to connect to a remote DB deployment")
     dbPath: str= Field("chromadb_store",
                             desc="Local DB's folder path. Dont use path with slash!!!")
-    collectionName:str = Field("aDotBCollection",
+    collectionName:str = Field("adotbcollection",
                             desc="Collection to connect to in a local/remote DB."+\
                             "One collection should use single embedding type for all docs")
+    dbUser:str = Field(None, desc="Creds to connect to the server or remote db")
+    dbPassword:SecretStr = Field(None, desc="Creds to connect to the server or remote db")
 
 class EmbeddingSelector(BaseModel):
     '''The credentials to connect to an Embedding creation service'''
@@ -75,22 +82,26 @@ class ChatPipelineSelector(BaseModel):
                     desc="The framework through which LLM access is handled")
     llmApiKey: str = Field(None, desc="If using a cloud service, like OpenAI, the key from them")
     llmModelName: str = Field(None, desc="The model to be used for chat completion")
-    vectordbType: DatabaseType = Field(DatabaseType.CHROMA,
+    vectordbType: DatabaseType = Field(DatabaseType.POSTGRES,
                     desc="The Database to be connected to. Same one used for dataupload")
     dbHostnPort: HostnPortPattern = Field(None,
                             example="api.vachanengine.org:6000",
                             desc="Host and port name to connect to a remote DB deployment")
     dbPath: str= Field("chromadb_store",
                             desc="Local DB's folder path. Dont use path with slash!!!")
-    collectionName:str = Field("aDotBCollection",
+    collectionName:str = Field("adotbcollection",
                             desc="Collection to connect to in a local/remote DB."+\
                             "One collection should use single embedding type for all docs")
+    dbUser:str = Field(None, desc="Creds to connect to the server or remote db")
+    dbPassword:SecretStr = Field(None, desc="Creds to connect to the server or remote db")
     embeddingType:EmbeddingType = Field(None,
                     desc="EmbeddingType used for storing and searching documents in vectordb")
     embeddingApiKey: str = Field(None,
                     desc="If using a cloud service, like OpenAI, the key obtained from them")
     embeddingModelName: str = Field(None,
                     desc="If there is a model we can choose to use from the available")
+    transcriptionFrameworkType: AudioTranscriptionType = Field(AudioTranscriptionType.WHISPER,
+                    desc="The framework through which audio transcription is handled")
 
 # class UserPrompt(BaseModel): # not using this as we recieve string from websocket
 #     '''Input chat text from the user'''
@@ -106,6 +117,7 @@ class ChatResponseType(str, Enum):
     QUESTION = "question"
     ANSWER = "answer"
     ERROR = "error"
+
 
 class BotResponse(BaseModel):
     '''Chat response from server to UI or user app'''
