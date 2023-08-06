@@ -5,12 +5,26 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       </head>
       <body>
-        <p>
-        Search Domain: <input type="radio" id="html" name="label" value="ESV-Bible" onchange="changeLabel(this)" checked>
-        <label for="ESV-Bible">ESV Bible</label>
-        <input type="radio" id="css" name="label" value="translation-words" onchange="changeLabel(this)">
-        <label for="translation-words">Translation Words</label>
-        </p>
+        <div class="container">
+            <div class="row">
+              <div class="col-md-1">
+              <p>Search Domain:</p>
+                </div>
+              <div class="col-md-1">
+                <input type="radio" id="html" name="label" value="ESV-Bible" onchange="changeLabel(this)" checked>
+                <label for="ESV-Bible">ESV Bible</label>
+              </div>
+              <div class="col-md-1">
+                <input type="radio" id="css" name="label" value="translation-words" onchange="changeLabel(this)">
+                <label for="translation-words">Translation Words</label>
+              </div>
+
+              <div class="col-md-1">
+              <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
+                <button type="submit" class="btn btn-primary" id="logout" style="display: none;" onclick="signOut()">Log Out</button>
+              </div>
+            </div>
+          </div>
         <div class="container">
           <div class="row">
             <div class="col-md-8 col-md-offset-2">
@@ -27,15 +41,29 @@
         </div>
         <script src="//code.jquery.com/jquery-1.11.1.js"></script>
         <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+        <script type="module">
+    
+        </script>
         <script>
-          let key = prompt("Please enter your access key", "key");
+            // Fetch Supabase keys when the page loads
+            const accessToken = localStorage.getItem('accessToken');
+            if (accessToken === null) {
+                // The user is not logged in, so render the Log In button.
+                document.querySelector('#login').style.display = 'block';
+            } else {
+                // The user is logged in, so render the Log Out button.
+                document.querySelector('#logout').style.display = 'block';
+            }
+        </script>
+        <script>
           let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
+          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&label='+label;
           var ws = null;
-          setupWebscoket(endpoint);
+          setupWebsocket(endpoint);
 
-          function setupWebscoket(endpoint) {
+          function setupWebsocket(endpoint) {
             ws = new WebSocket(endpoint);
 
             ws.onmessage = function (event) {
@@ -54,8 +82,7 @@
           $('form').submit(function(event) {
             event.preventDefault();
             if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
-              alert("Chat not connected. Did you give the correct token???");
-              location.reload()
+              window.location.replace({{ site_url }}+'/login');
             }
             const encoder = new TextEncoder();
             const encodedText = encoder.encode($('#message').val());
@@ -65,15 +92,24 @@
             $('#message').val('').focus();
           });
 
-
           function changeLabel(src) {
             let label = src.value;
             var endpoint = {{ ws_url|tojson }};
-            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&label='+label;
+            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&label='+label;
             ws.close();
             $('#messages').append('<div>---<b>Domain:'+label+'</b>---</div');
             setupWebscoket(endpoint);
           }
+          </script>
+          <script type="module">
+          import { signOut } from '/modules/supabase.js';
+
+            const button = document.getElementById('logout');
+            button.addEventListener('click', async () => {
+            const url = {{ login_url |tojson }};
+            await signOut(url); 
+            });
+          
         </script>
       <br><br>
       <footer class="bg-light text-center text-lg-start">

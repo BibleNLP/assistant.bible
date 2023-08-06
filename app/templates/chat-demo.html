@@ -9,6 +9,14 @@
 <body>
     <div class="container">
         <div class="row">
+        <div class="col-md-1">
+            <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
+            <button type="submit" class="btn btn-primary" id="logout" style="display: none;" onclick="signOut()">Log Out</button>
+        </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
             <div class="col-md-8 col-md-offset-2">
                 <h1 class="text-center">Chat Demo</h1>
                 <div class="well" id="messages"></div>
@@ -29,9 +37,19 @@
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
     <script>
-        let key = prompt("Please enter your access key", "key");
+        // Fetch Supabase keys when the page loads
+        const accessToken = localStorage.getItem('accessToken');
+        if (accessToken === null) {
+            // The user is not logged in, so render the Log In button.
+            document.querySelector('#login').style.display = 'block';
+        } else {
+            // The user is logged in, so render the Log Out button.
+            document.querySelector('#logout').style.display = 'block';
+        }
+    </script>
+    <script>
         var endpoint = {{ ws_url| tojson }};
-        endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&token=' + key;
+        endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=chroma-db&token=' + accessToken;
         var ws = null;
         ws = new WebSocket(endpoint);
 
@@ -54,8 +72,7 @@
         $('form').submit(function (event) {
             event.preventDefault();
             if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING) {
-                alert("Chat not connected. Did you give the correct token???");
-                location.reload()
+                  window.location.replace({{ site_url }}+'/login');
             }
             const encoder = new TextEncoder();
             const encodedText = encoder.encode($('#message').val());
@@ -129,6 +146,16 @@
             reader.readAsArrayBuffer(audioFile);
         }
     </script>
+    <script type="module">
+        import { signOut } from '/modules/supabase.js';
+
+          const button = document.getElementById('logout');
+          button.addEventListener('click', async () => {
+          const url = {{ login_url |tojson }};
+          await signOut(url); 
+          });
+        
+      </script>
       <br><br>
       <footer class="bg-light text-center text-lg-start">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Assistant.Bible</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<!-- Form-->
+
+<body>
+    <div class="container">
+        <!-- Form-->
+        <div class="row justify-content-center">
+            <div class="col-sm-6">
+                <div class="form-panel">
+                    <div class="form-header">
+                        <h1 id="form-title">Account Login</h1>
+                    </div>
+                    <div class="form-content">
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <label for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" name="loginEmail" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="loginPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Log In</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-remember">
+                                    <input type="checkbox" />Remember Me
+                                </label>
+                                <p class="form-remember">Don't have an account? <a id="signUpLink" href="#">Sign Up</a>
+                                </p>
+                                <a class="form-recovery" href="#">Forgot Password?</a>
+                            </div>
+                        </form>
+                        <form id="signupForm" style="display: none;">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="signupEmail" name="email" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="signupPassword">Password</label>
+                                <input type="password" id="signupPassword" name="signupPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Sign Up</button>
+                            </div>
+                            <div class="form-group">
+                                <p class="form-remember">Already have an account? <a id="signInLink" href="#">Sign
+                                        in</a></p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to toggle between Sign In and Sign Up forms
+        document.getElementById("signInLink").addEventListener("click", function () {
+            var signInForm = document.getElementById("loginForm");
+            var signUpForm = document.getElementById("signupForm");
+            var formTitle = document.getElementById("form-title");
+            signInForm.style.display = "block";
+            signUpForm.style.display = "none";
+            formTitle.textContent = "Account Login";
+        });
+        document.getElementById("signUpLink").addEventListener("click", function () {
+            var signInForm = document.getElementById("loginForm");
+            var signUpForm = document.getElementById("signupForm");
+            var formTitle = document.getElementById("form-title");
+
+            signInForm.style.display = "none";
+            signUpForm.style.display = "block";
+            formTitle.textContent = "Create an Account";
+        });
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module">
+        import { getSupabaseClient } from '/modules/supabase.js';
+
+        window.supabaseClient = await getSupabaseClient();
+
+    </script>
+    <script type="module">
+          import { signIn } from '/modules/supabase.js';
+        // Add the event listener to handle form submission using the initialized Supabase client
+        const loginForm = document.getElementById('loginForm')
+        loginForm.addEventListener('submit', async (event) => {
+            const loginEmail = document.getElementById('loginEmail').value;
+            const loginPassword = document.getElementById('loginPassword').value;
+            const url = {{ demo_url2 | tojson }}
+            await signIn(event, loginEmail, loginPassword, url);
+        });
+
+        import { signUp } from '/modules/supabase.js';
+        // Add the event listener to handle form submission using the initialized Supabase client
+        const signupForm = document.getElementById('signupForm')
+        signupForm.addEventListener('submit', async (event) => {
+            const signupEmail = document.getElementById('signupEmail').value;
+            const signupPassword = document.getElementById('signupPassword').value;
+            const url = {{ demo_url2 | tojson }}
+            await signUp(event, signupEmail, signupPassword, url);
+        });
+        
+    </script>
+</body>
+
+
+</html>
