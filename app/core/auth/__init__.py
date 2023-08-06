@@ -22,20 +22,21 @@ def admin_auth_check_decorator(func):
         supabase: Client = create_client(supabase_url, supabase_key)
         try:
             user_data = supabase.auth.get_user(access_token_str)
-        except gotrue.errors.AuthApiError:
-            raise PermissionException("Unauthorized access. Invalid token.")        
+        except gotrue.errors.AuthApiError as e:
+            raise PermissionException("Unauthorized access. Invalid token.") from e
 
         if user_data.user_metadata.get('user_type') != 'admin':
             raise PermissionException("Unauthorized access. User is not admin.")
-        
+
         return await func(*args, **kwargs)
-    
+
     return wrapper
 
 
 def chatbot_auth_check_decorator(func):
     '''checks a predefined token in request header, and returns available sources.
-    Note: We will probably want to split this into two functions: one for auth check and one to look up the sources.
+    Note: We will probably want to split this into two functions: one for auth check 
+    and one to look up the sources.
     '''
     @wraps(func)
     async def wrapper(*args, **kwargs):
@@ -51,8 +52,8 @@ def chatbot_auth_check_decorator(func):
         supabase: Client = create_client(supabase_url, supabase_key)
         try:
             user_data = supabase.auth.get_user(access_token_str)
-        except gotrue.errors.AuthApiError:
-            raise PermissionException("Unauthorized access. Invalid token.")
+        except gotrue.errors.AuthApiError as e:
+            raise PermissionException("Unauthorized access. Invalid token.") from e
         result = supabase.table('userTypes').select('''
                 sources
                 '''
@@ -62,7 +63,9 @@ def chatbot_auth_check_decorator(func):
         label = result.data.get('sources')
 
         if not label:
-            raise PermissionException("Unauthorized access. User does not have access to any sources.")
+            raise PermissionException(
+            "Unauthorized access. User does not have access to any sources."
+            )
 
         kwargs['label'] = label
         # Proceed with the original function call and pass the sources to it

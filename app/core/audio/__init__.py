@@ -1,3 +1,7 @@
+"""
+Audio transcription interface for the application.
+"""
+
 class AudioTranscriptionInterface:
     '''Interface for audio transcription technology and its use'''
     api_key: str

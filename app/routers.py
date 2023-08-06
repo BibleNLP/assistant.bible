@@ -11,7 +11,6 @@ from fastapi import (
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
-import json
 
 import schema
 from log_configs import log
@@ -189,7 +188,6 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     sources=[],
                     media=[])
                 await websocket.send_json(start_human_q.dict())
-                
 
             bot_response = chat_stack.llm_framework.generate_text(
                             query=question, chat_history=chat_stack.chat_history)
@@ -402,6 +400,7 @@ async def get_source_tags(
 
 @router.get('/api/get-supabase-keys', response_model=schema.SupabaseKeys)
 def get_supabase_keys():
+    """Returns the supabase keys if set in environment variables"""
     supabase_url = os.environ.get('SUPABASE_URL')
     supabase_key = os.environ.get('SUPABASE_KEY')
 
@@ -412,4 +411,5 @@ def get_supabase_keys():
 
 @router.get("/modules/{module_name}")
 async def get_module(module_name: str):
+    """Returns the module file"""
     return FileResponse(f"modules/{module_name}")

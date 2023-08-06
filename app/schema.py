@@ -168,5 +168,6 @@ class Document(BaseModel):
                         example={"displayimages": True})
 
 class SupabaseKeys(BaseModel):
+    """The credentials to connect to a Supabase DB"""
     supabaseUrl: str
     supabaseKey: str
