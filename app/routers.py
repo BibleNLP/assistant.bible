@@ -8,7 +8,7 @@ from fastapi import (
                     WebSocket, WebSocketDisconnect,
                     Depends,
                     UploadFile)
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
 import json
@@ -63,6 +63,7 @@ async def get_root():
     log.info("In root endpoint")
     return {"message": "App is up and running"}
 
+@chatbot_auth_check_decorator
 @router.get("/ui",
     response_class=HTMLResponse,
     responses={
@@ -70,14 +71,14 @@ async def get_root():
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-# @auth_check_decorator
 async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
     return templates.TemplateResponse("chat-demo.html",
-        {"request": request, "ws_url": WS_URL})
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-
+@chatbot_auth_check_decorator
 @router.get("/ui2",
     response_class=HTMLResponse,
     responses={
@@ -85,9 +86,14 @@ async def get_ui(request: Request):
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
+async def get_ui2(request: Request):
+    '''The development UI using http for chat'''
+    log.info("In ui endpoint!!!")
+    return templates.TemplateResponse("chat-demo-postgres.html",
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-
-# @auth_check_decorator
+@chatbot_auth_check_decorator
 @router.get("/login",
     response_class=HTMLResponse,
     responses={
@@ -99,13 +105,8 @@ async def get_login(request: Request):
     '''The development login UI'''
     log.info("In login endpoint!!!")
     return templates.TemplateResponse("login.html",
-        {"request": request, "ws_url": WS_URL})
-
-async def get_ui2(request: Request):
-    '''The development UI using http for chat'''
-    log.info("In ui endpoint!!!")
-    return templates.TemplateResponse("chat-demo-postgres.html",
-        {"request": request, "ws_url": WS_URL})
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2"})
 
 def compose_vector_db_args(db_type, settings):
     '''Convert the API params or default values, to args to initializing the DB'''
@@ -189,12 +190,6 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     media=[])
                 await websocket.send_json(start_human_q.dict())
                 
-
-            # # send back the response
-            # resp = schema.BotResponse(sender=schema.SenderType.USER,
-            #     message=question, type=schema.ChatResponseType.QUESTION)
-            # await websocket.send_json(resp.dict())
-
 
             bot_response = chat_stack.llm_framework.generate_text(
                             query=question, chat_history=chat_stack.chat_history)
@@ -414,3 +409,7 @@ def get_supabase_keys():
         return {"supabaseUrl": "", "supabaseKey": ""}
 
     return {"supabaseUrl": supabase_url, "supabaseKey": supabase_key}
+
+@router.get("/modules/{module_name}")
+async def get_module(module_name: str):
+    return FileResponse(f"modules/{module_name}")
