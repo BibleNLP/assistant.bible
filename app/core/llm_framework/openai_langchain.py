@@ -1,7 +1,8 @@
 '''Implemetations for lmm_framework interface using langchain'''
 import os
 from typing import List, Tuple
-from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
+# from langchain.llms import OpenAI
 from langchain.chains import ConversationalRetrievalChain
 # from langchain.memory import ConversationBufferMemory
 
@@ -34,7 +35,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
         self.api_key = key
         self.model_name = model_name
         self.vectordb = vectordb
-        self.api_object = OpenAI
+        self.api_object = ChatOpenAI
         self.api_object.api_key = self.api_key
         self.llm = self.api_object(temperature=0, model_name=self.model_name)
         # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
