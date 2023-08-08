@@ -8,7 +8,7 @@ from fastapi import (
                     WebSocket, WebSocketDisconnect,
                     Depends,
                     UploadFile, Form)
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
 from supabase import create_client, Client
@@ -420,7 +420,7 @@ async def login(
         data = supabase.auth.sign_in_with_password({"email": email, "password": password})
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
-    
+
     return {"access_token": data.session.access_token}
 
 
@@ -431,11 +431,8 @@ async def logout(
     supabase_url: str = os.environ.get("SUPABASE_URL")
     supabase_key: str = os.environ.get("SUPABASE_KEY")
     supabase: Client = create_client(supabase_url, supabase_key)
-    
     supabase.auth.sign_out()
 
-    print("Logged out")
-    
     return {"next_url": f"http://{DOMAIN}/login"}
 
 
@@ -448,10 +445,9 @@ async def signup(
     supabase_url: str = os.environ.get("SUPABASE_URL")
     supabase_key: str = os.environ.get("SUPABASE_KEY")
     supabase: Client = create_client(supabase_url, supabase_key)
-    print(email, password)
     try:
         access_token = supabase.auth.sign_up({"email": email, "password": password})
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
-    
+
     return {"access_token": access_token}
