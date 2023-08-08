@@ -76,21 +76,18 @@ def chatbot_get_labels_decorator(func):
         supabase: Client = create_client(supabase_url, supabase_key)
         try:
             user_data = supabase.auth.get_user(access_token_str)
-        except gotrue.errors.AuthApiError as e:
-            raise PermissionException("Unauthorized access. Invalid token.") from e
-        result = supabase.table('userTypes').select('''
-                sources
-                '''
-            ).eq(
-            'user_type', user_data.user.user_metadata.get('user_type')
-            ).limit(1).single().execute()
-        labels = result.data.get('sources')
 
-        if not labels:
-            raise PermissionException(
-            "Unauthorized access. User does not have access to any sources." 
-            # Or we could just give open access sources?
-            )
+        except gotrue.errors.AuthApiError as e: # The user is not logged in
+            labels = ['public']
+
+        else:
+            result = supabase.table('userTypes').select('''
+                    sources
+                    '''
+                ).eq(
+                'user_type', user_data.user.user_metadata.get('user_type')
+                ).limit(1).single().execute()
+            labels = result.data.get('sources')
 
         kwargs['label'] = labels
         # Proceed with the original function call and pass the sources to it
