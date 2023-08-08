@@ -421,7 +421,10 @@ async def login(
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
-    return {"access_token": data.session.access_token}
+    return {
+        "message": "User logged in successfully",
+        "access_token": data.session.access_token
+        }
 
 
 @router.post("/logout")
@@ -433,7 +436,10 @@ async def logout(
     supabase: Client = create_client(supabase_url, supabase_key)
     supabase.auth.sign_out()
 
-    return {"next_url": f"http://{DOMAIN}/login"}
+    return {
+        "message": "User logged out successfully",
+        "next_url": f"http://{DOMAIN}/login"
+        }
 
 
 @router.post("/signup")
@@ -450,4 +456,7 @@ async def signup(
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
-    return {"access_token": access_token}
+    return {
+        "message": "User signed up successfully",
+        "access_token": access_token
+        }
