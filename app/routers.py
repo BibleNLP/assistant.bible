@@ -192,6 +192,11 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     media=[])
                 await websocket.send_json(start_human_q.dict())
 
+            # # send back the response
+            # resp = schema.BotResponse(sender=schema.SenderType.USER,
+            #     message=question, type=schema.ChatResponseType.QUESTION)
+            # await websocket.send_json(resp.dict())
+
             bot_response = chat_stack.llm_framework.generate_text(
                             query=question, chat_history=chat_stack.chat_history)
             log.debug(f"Human: {question}\nBot:{bot_response['answer']}\n"+\
