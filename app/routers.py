@@ -407,12 +407,6 @@ async def get_source_tags(
     return vectordb.get_available_labels()
 
 
-@router.get("/modules/{module_name}")
-async def get_module(module_name: str):
-    """Returns the module file"""
-    return FileResponse(f"modules/{module_name}")
-
-
 @router.post("/login")
 async def login(
     email=Form(..., desc="Email of the user"),
