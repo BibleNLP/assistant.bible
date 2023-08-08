@@ -427,7 +427,7 @@ async def login(
 @router.post("/logout")
 async def logout(
     ):
-    """Signs in a user"""
+    """Signs out a user"""
     supabase_url: str = os.environ.get("SUPABASE_URL")
     supabase_key: str = os.environ.get("SUPABASE_KEY")
     supabase: Client = create_client(supabase_url, supabase_key)
