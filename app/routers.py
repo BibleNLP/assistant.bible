@@ -7,10 +7,12 @@ from fastapi import (
                     Body, Path, Query,
                     WebSocket, WebSocketDisconnect,
                     Depends,
-                    UploadFile)
+                    UploadFile, Form)
 from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
+from supabase import create_client, Client
+import gotrue.errors
 
 import schema
 from log_configs import log
@@ -20,7 +22,8 @@ from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
-from custom_exceptions import GenericException
+from custom_exceptions import PermissionException, GenericException
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -398,18 +401,58 @@ async def get_source_tags(
 
     return vectordb.get_available_labels()
 
-@router.get('/api/get-supabase-keys', response_model=schema.SupabaseKeys)
-def get_supabase_keys():
-    """Returns the supabase keys if set in environment variables"""
-    supabase_url = os.environ.get('SUPABASE_URL')
-    supabase_key = os.environ.get('SUPABASE_KEY')
-
-    if not supabase_url or not supabase_key:
-        return {"supabaseUrl": "", "supabaseKey": ""}
-
-    return {"supabaseUrl": supabase_url, "supabaseKey": supabase_key}
 
 @router.get("/modules/{module_name}")
 async def get_module(module_name: str):
     """Returns the module file"""
     return FileResponse(f"modules/{module_name}")
+
+
+@router.post("/login")
+async def login(
+    email=Form(..., desc="Email of the user"),
+    password=Form(..., desc="Password of the user"),
+    ):
+    """Signs in a user"""
+    supabase_url: str = os.environ.get("SUPABASE_URL")
+    supabase_key: str = os.environ.get("SUPABASE_KEY")
+    supabase: Client = create_client(supabase_url, supabase_key)
+    try:
+        data = supabase.auth.sign_in_with_password({"email": email, "password": password})
+    except gotrue.errors.AuthApiError as e:
+        raise PermissionException("Unauthorized access. Invalid token.") from e
+    
+    return {"access_token": data.session.access_token}
+
+
+@router.post("/logout")
+async def logout(
+    ):
+    """Signs in a user"""
+    supabase_url: str = os.environ.get("SUPABASE_URL")
+    supabase_key: str = os.environ.get("SUPABASE_KEY")
+    supabase: Client = create_client(supabase_url, supabase_key)
+    
+    supabase.auth.sign_out()
+
+    print("Logged out")
+    
+    return {"next_url": f"http://{DOMAIN}/login"}
+
+
+@router.post("/signup")
+async def signup(
+    email=Form(..., desc="Email of the user"),
+    password=Form(..., desc="Password of the user"),
+    ):
+    """Signs up a new user"""
+    supabase_url: str = os.environ.get("SUPABASE_URL")
+    supabase_key: str = os.environ.get("SUPABASE_KEY")
+    supabase: Client = create_client(supabase_url, supabase_key)
+    print(email, password)
+    try:
+        access_token = supabase.auth.sign_up({"email": email, "password": password})
+    except gotrue.errors.AuthApiError as e:
+        raise PermissionException("Unauthorized access. Invalid token.") from e
+    
+    return {"access_token": access_token}

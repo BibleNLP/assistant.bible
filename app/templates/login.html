@@ -44,7 +44,7 @@
                         <form id="signupForm" style="display: none;">
                             <div class="form-group">
                                 <label for="email">Email</label>
-                                <input type="email" id="signupEmail" name="email" required="required"
+                                <input type="email" id="signupEmail" name="signupEmail" required="required"
                                     class="form-control" />
                             </div>
                             <div class="form-group">
@@ -61,6 +61,8 @@
                                         in</a></p>
                             </div>
                         </form>
+                        <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
+
                     </div>
                 </div>
             </div>
@@ -88,33 +90,84 @@
         });
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script type="module">
-        import { getSupabaseClient } from '/modules/supabase.js';
+    <script>
+        // Add the event listener to handle form submission 
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
 
-        window.supabaseClient = await getSupabaseClient();
+        const form = event.target;
+        const formData = new FormData(form);
 
-    </script>
-    <script type="module">
-          import { signIn } from '/modules/supabase.js';
-        // Add the event listener to handle form submission using the initialized Supabase client
-        const loginForm = document.getElementById('loginForm')
-        loginForm.addEventListener('submit', async (event) => {
-            const loginEmail = document.getElementById('loginEmail').value;
-            const loginPassword = document.getElementById('loginPassword').value;
-            const url = {{ demo_url2 | tojson }}
-            await signIn(event, loginEmail, loginPassword, url);
+        const email = formData.get("loginEmail");
+        const password = formData.get("loginPassword");
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({ email, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const access_token = data.access_token;
+
+                // Save the access token to localStorage
+                localStorage.setItem("accessToken", access_token);
+                // Redirect the user to the chat page
+                window.location.href = "/ui2";
+            } else {
+                const errorMessage = "Sign up failed. Please try again.";
+                const errorDiv = document.getElementById("error-message");
+                errorDiv.textContent = errorMessage;
+                errorDiv.style.display = "block";
+
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    });
+
+    document.getElementById("signupForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    const email = formData.get("signupEmail");
+    const password = formData.get("signupPassword");
+
+    try {
+        const response = await fetch("/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({ email, password }),
         });
 
-        import { signUp } from '/modules/supabase.js';
-        // Add the event listener to handle form submission using the initialized Supabase client
-        const signupForm = document.getElementById('signupForm')
-        signupForm.addEventListener('submit', async (event) => {
-            const signupEmail = document.getElementById('signupEmail').value;
-            const signupPassword = document.getElementById('signupPassword').value;
-            const url = {{ demo_url2 | tojson }}
-            await signUp(event, signupEmail, signupPassword, url);
-        });
+        if (response.ok) {
+            const data = await response.json();
+            const access_token = data.access_token;
+
+            // Save the access token to localStorage
+            localStorage.setItem("access_token", access_token);
+
+            // Optionally redirect the user to a different page
+            window.location.href = "/ui2";
+        } else {
+            const errorMessage = "Sign up failed. Please try again.";
+            const errorDiv = document.getElementById("error-message");
+            errorDiv.textContent = errorMessage;
+            errorDiv.style.display = "block";        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+});
+</script>
+
         
     </script>
 </body>

@@ -11,7 +11,7 @@
         <div class="row">
         <div class="col-md-1">
             <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
-            <button type="submit" class="btn btn-primary" id="logout" style="display: none;" onclick="signOut()">Log Out</button>
+            <button type="submit" class="btn btn-primary" id="logout" style="display: none;">Log Out</button>
         </div>
         </div>
     </div>
@@ -37,7 +37,6 @@
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
     <script>
-        // Fetch Supabase keys when the page loads
         const accessToken = localStorage.getItem('accessToken');
         if (accessToken === null) {
             // The user is not logged in, so render the Log In button.
@@ -146,16 +145,29 @@
             reader.readAsArrayBuffer(audioFile);
         }
     </script>
-    <script type="module">
-        import { signOut } from '/modules/supabase.js';
-
-          const button = document.getElementById('logout');
-          button.addEventListener('click', async () => {
-          const url = {{ login_url |tojson }};
-          await signOut(url); 
-          });
-        
-      </script>
+     <script>
+        document.getElementById('logout').addEventListener('click', async (event) => {
+        console.log("Logging out");
+        event.preventDefault();
+        try {
+            const response = await fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+            })
+        });
+        localStorage.removeItem('accessToken');
+        const data = await response.json();
+        next_url = data.next_url;
+        window.location.href = next_url;
+    }
+        catch (error) {
+            console.error('Error:', error);
+        }
+    });
+    </script>
       <br><br>
       <footer class="bg-light text-center text-lg-start">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
