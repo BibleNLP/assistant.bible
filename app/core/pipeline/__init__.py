@@ -89,7 +89,7 @@ class DataUploadPipeline:
 
 class ConversationPipeline(DataUploadPipeline):
     '''The tech stack for implementing chat bot'''
-    def __init__(self, #pylint: disable=too-many-arguments
+    def __init__(self, #pylint: disable=too-many-arguments,dangerous-default-value
         user,
         labels:List[str] = ["ESV-Bible"],
         file_processor: FileProcessorInterface=LangchainLoader,

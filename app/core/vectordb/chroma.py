@@ -10,7 +10,7 @@ import chromadb
 from chromadb.config import Settings
 
 #pylint: disable=too-few-public-methods, unused-argument
-QUERY_LIMIT = os.getenv('CHROMA_DB_QUERY_LIMIT', 10)
+QUERY_LIMIT = os.getenv('CHROMA_DB_QUERY_LIMIT', "10")
 
 class Chroma(VectordbInterface):
     '''Interface for vector database technology, its connection, configs and operations'''
