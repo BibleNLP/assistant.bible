@@ -130,17 +130,17 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
-    label:str=Query("ESV-Bible", # filtering with labels not implemented yet
+    labels:List[str]=Query(["ESV-Bible"],
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
     if token:
         log.info("User, %s, connecting with token, %s", user, token )
     await websocket.accept()
 
-    chat_stack = ConversationPipeline(user=user, label=label)
+    chat_stack = ConversationPipeline(user=user, labels=labels)
 
     vectordb_args = compose_vector_db_args(settings.vectordbType, settings)
-    vectordb_args['label'] = label
+    vectordb_args['labels'] = labels
     if settings.embeddingType:
         if settings.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args['embedding'] = OpenAIEmbedding()
