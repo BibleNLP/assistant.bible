@@ -31,7 +31,7 @@
           let key = prompt("Please enter your access key", "key");
           let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&labels='+label;
+          endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&labels='+label;
           var ws = null;
           setupWebscoket(endpoint);
 
@@ -71,7 +71,7 @@
             let esvElement = document.getElementById('esv')
             let twElement = document.getElementById('tw')
             var endpoint = {{ ws_url|tojson }};
-            endpoint += '?user=xxx&llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
+            endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
             if (esvElement.checked==true) { endpoint += '&labels='+esvElement.value }
             if (twElement.checked==true) { endpoint += '&labels='+twElement.value }
             ws.close();
