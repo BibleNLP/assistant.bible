@@ -1,8 +1,10 @@
 '''Test the chat websocket'''
-
+import os
 from . import client
 from .test_dataupload import test_data_upload_markdown
 from .test_dataupload import test_data_upload_processed_sentences
+
+admin_token = os.getenv('ADMIN_ACCESS_TOKEN', "chatchatchat")
 
 COMMON_CONNECTION_ARGS = {
                 "user": "xxx",
@@ -10,7 +12,8 @@ COMMON_CONNECTION_ARGS = {
                 "vectordbType": "chroma-db",
                 "dbPath":"chromadb_store_test",
                 "collectionName": "aDotBCollection_test",
-                "labels": ["NIV bible", "ESV-Bible", "translationwords"]
+                "labels": ["NIV bible", "ESV-Bible", "translationwords"],
+                "token":admin_token
                 }
 
 def assert_positive_bot_response(resp_json):

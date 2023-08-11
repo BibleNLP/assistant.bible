@@ -10,7 +10,7 @@ def fresh_db():
     '''Deletes the chroma db folder if one existed and 
     returns the DB_config to be used in all APIs'''
     chroma_db_path = "chromadb_store_test"
-    chroma_db_collection = "aDotBCollection_test"
+    chroma_db_collection = "adotdcollection_test"
     if os.path.exists(chroma_db_path):
         shutil.rmtree(chroma_db_path)
     try:
