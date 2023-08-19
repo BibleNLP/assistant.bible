@@ -15,7 +15,7 @@ from pgvector.psycopg2 import register_vector
 from log_configs import log
 
 #pylint: disable=too-few-public-methods, unused-argument
-QUERY_LIMIT = os.getenv('POSTGRES_DB_QUERY_LIMIT', 10)
+QUERY_LIMIT = os.getenv('POSTGRES_DB_QUERY_LIMIT', "10")
 
 class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-instance-attributes
     '''Interface for vector database technology, its connection, configs and operations'''
@@ -30,7 +30,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
     **kwargs) -> None: #pylint: disable=super-init-not-called
         '''Instanciate a chroma client'''
         self.embedding = kwargs.get("embedding")
-        self.label = kwargs.get("label","ESV-Bible")
+        self.labels = kwargs.get("labels",["ESV-Bible"])
         self.query_limit = kwargs.get("query_limit", QUERY_LIMIT)
         if host:
             self.db_host = host
@@ -116,8 +116,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label=%s ORDER BY embedding <=> %s LIMIT %s;",
-                (self.label, np.array(query_vector), self.query_limit))
+                "where label = ANY(%s) ORDER BY embedding <=> %s LIMIT %s;",
+                (self.labels, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
@@ -138,8 +138,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label=%s ORDER BY embedding <=> %s LIMIT %s;",
-                (self.label, np.array(query_vector), self.query_limit))
+                "where label = ANY(%s) ORDER BY embedding <=> %s LIMIT %s;",
+                (self.labels, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:

@@ -3,9 +3,12 @@ import os
 from functools import wraps
 from custom_exceptions import PermissionException
 import gotrue.errors
-
 from supabase import create_client, Client
+from fastapi import WebSocket
+
 from core.auth.supabase import supa
+import schema
+
 
 def admin_auth_check_decorator(func):
     '''For all data managment APIs'''
@@ -35,7 +38,7 @@ def chatbot_auth_check_decorator(func):
     valid, logged in, user.
     '''
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(websocket: WebSocket, *args, **kwargs):
         # Extract the access token from the request headers
         access_token = kwargs.get('token')
         if not access_token:
@@ -46,9 +49,14 @@ def chatbot_auth_check_decorator(func):
         try:
             supa.auth.get_user(access_token_str)
         except gotrue.errors.AuthApiError as e:
-            raise PermissionException("Unauthorized access. Invalid token.") from e
-
-        return await func(*args, **kwargs)
+            await websocket.accept()
+            json_response = schema.BotResponse(sender=schema.SenderType.BOT,
+                    message='Please sign in first, and then I will look forward to answering your question.', type=schema.ChatResponseType.ANSWER,
+                    sources=[],
+                    media=[])
+            await websocket.send_json(json_response.dict())
+            return
+        return await func(websocket, *args, **kwargs)
 
     return wrapper
 
@@ -61,26 +69,27 @@ def chatbot_get_labels_decorator(func):
         # Extract the access token from the request headers
         access_token = kwargs.get('token')
         if not access_token:
-            raise ValueError("Access token is missing")
-        access_token_str = access_token.get_secret_value()
-
-        # Verify the access token using Supabase secret
-        try:
-            user_data = supa.auth.get_user(access_token_str)
-
-        except gotrue.errors.AuthApiError as e: # The user is not logged in
-            raise PermissionException("Unauthorized access. Invalid token.") from e
-
+            labels = []
         else:
-            result = supa.table('userTypes').select('''
-                    sources
-                    '''
-                ).eq(
-                'user_type', user_data.user.user_metadata.get('user_type')
-                ).limit(1).single().execute()
-            labels = result.data.get('sources')
+            access_token_str = access_token.get_secret_value()
 
-        kwargs['label'] = labels
+            # Verify the access token using Supabase secret
+            try:
+                user_data = supa.auth.get_user(access_token_str)
+
+            except gotrue.errors.AuthApiError as e: # The user is not logged in
+                labels = []
+
+            else:
+                result = supa.table('userTypes').select('''
+                        sources
+                        '''
+                    ).eq(
+                    'user_type', user_data.user.user_metadata.get('user_type')
+                    ).limit(1).single().execute()
+                labels = result.data.get('sources')
+
+        kwargs['labels'] = labels
         # Proceed with the original function call and pass the sources to it
         return await func(*args, **kwargs)
 

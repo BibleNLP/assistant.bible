@@ -9,16 +9,15 @@ from fastapi import (
                     Depends,
                     UploadFile, Form)
 from fastapi.responses import HTMLResponse
-from fastapi.exceptions import HTTPException
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
-from supabase import create_client, Client
 import gotrue.errors
+
 
 import schema
 from log_configs import log
 from core.auth import (admin_auth_check_decorator,
-    chatbot_auth_check_decorator)
+    chatbot_auth_check_decorator, chatbot_get_labels_decorator)
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
@@ -80,7 +79,6 @@ async def get_ui(request: Request):
         {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
         "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-@chatbot_auth_check_decorator
 @router.get("/ui2",
     response_class=HTMLResponse,
     responses={
@@ -88,6 +86,7 @@ async def get_ui(request: Request):
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
+# @chatbot_auth_check_decorator
 async def get_ui2(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
@@ -95,7 +94,6 @@ async def get_ui2(request: Request):
         {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
         "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-@chatbot_auth_check_decorator
 @router.get("/login",
     response_class=HTMLResponse,
     responses={
@@ -142,28 +140,29 @@ def compose_vector_db_args(db_type, settings):
         vectordb_args['collection_name']=POSTGRES_DB_NAME
     return vectordb_args
 
-@chatbot_auth_check_decorator
 @router.websocket("/chat")
+@chatbot_auth_check_decorator
+@chatbot_get_labels_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
     # jwt_bearer: JWTBearer=Depends(JWTBearer()),
     settings=Depends(schema.ChatPipelineSelector),
-    user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
+    # user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
-    label:str=Query("ESV-Bible", # filtering with labels not implemented yet
+    labels:List[str]=Query(["ESV-Bible"],
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
 
     log.info("In chat endpoint!!!")
 
     if token:
-        log.info("User, %s, connecting with token, %s", user, token )
+        log.info("User, connecting with token, %s", token )
     await websocket.accept()
 
-    chat_stack = ConversationPipeline(user=user, label=label)
+    chat_stack = ConversationPipeline(user="XXX", labels=labels)
 
     vectordb_args = compose_vector_db_args(settings.vectordbType, settings)
-    vectordb_args['label'] = label
+    vectordb_args['labels'] = labels
     if settings.embeddingType:
         if settings.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args['embedding'] = OpenAIEmbedding()

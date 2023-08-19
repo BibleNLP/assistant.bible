@@ -73,7 +73,7 @@ If using default values, once started the app should be running at [http://local
 	POSTGRES_DB_PASSWORD=secret
 	```
 	If you dont want to mess with the locally running postgres version, running it as a docker container is a safer alternative: 
-	`docker run -e POSTGRES_PASSWORD=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=adotbcollection -p 5432:5432 ankane/pgvector`
+	`docker run -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=adotbcollection -p 5432:5432 ankane/pgvector`
 
 1. Start the app
 	```

@@ -1,6 +1,8 @@
 '''Test connecting to test DB and uploading different types of documents'''
+import os
 from . import client
 
+admin_token = os.getenv('ADMIN_ACCESS_TOKEN', "chatchatchat")
 
 SENT_DATA =  [
     {
@@ -42,7 +44,7 @@ CSV_FILE = "../recipes/data/dataupload.tsv"
 def test_data_upload_processed_sentences(fresh_db):
     '''Test uploading documents to the vector DB'''
     response = client.post("/upload/sentences",
-                    params={"vectordb_type": "chroma-db"},
+                    params={"vectordb_type": "chroma-db", "token":admin_token},
                     json={"document_objs":SENT_DATA, "vectordb_config": fresh_db}
                     )
     assert response.status_code == 201
@@ -62,6 +64,7 @@ def test_data_upload_markdown(fresh_db):
                             "vectordb_type": "chroma-db",
                             "dbPath":fresh_db["dbPath"],
                             "collectionName":fresh_db["collectionName"],
+                            "token":admin_token
                             }
                         # json={"vectordb_config": fresh_db}
                         )
@@ -79,6 +82,7 @@ def test_data_upload_csv(fresh_db):
                         "vectordb_type": "chroma-db",
                         "dbPath":fresh_db["dbPath"],
                         "collectionName":fresh_db["collectionName"],
+                        "token":admin_token
                         },
                     json={"vectordb_config": fresh_db}
                     )
@@ -90,7 +94,8 @@ def test_get_lables(fresh_db):
     param_args = {
                     "db_type": "chroma-db",
                     "dbPath": fresh_db["dbPath"],
-                    "collectionName": fresh_db["collectionName"]
+                    "collectionName": fresh_db["collectionName"],
+                    "token":admin_token
                 }
 
     # Before upload
