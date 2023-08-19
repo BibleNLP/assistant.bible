@@ -11,7 +11,6 @@ from fastapi import (
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
-import json
 
 import schema
 from log_configs import log
@@ -143,20 +142,20 @@ def compose_vector_db_args(db_type, settings):
 @chatbot_auth_check_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
     settings=Depends(schema.ChatPipelineSelector),
-    user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
+    # user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
-    label:str=Query("ESV-Bible", # filtering with labels not implemented yet
+    labels:List[str]=Query(["ESV-Bible"],
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
     if token:
-        log.info("User, %s, connecting with token, %s", user, token )
+        log.info("User, connecting with token, %s", token )
     await websocket.accept()
 
-    chat_stack = ConversationPipeline(user=user, label=label)
+    chat_stack = ConversationPipeline(user="XXX", labels=labels)
 
     vectordb_args = compose_vector_db_args(settings.vectordbType, settings)
-    vectordb_args['label'] = label
+    vectordb_args['labels'] = labels
     if settings.embeddingType:
         if settings.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args['embedding'] = OpenAIEmbedding()
@@ -188,7 +187,6 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     sources=[],
                     media=[])
                 await websocket.send_json(start_human_q.dict())
-                
 
             # # send back the response
             # resp = schema.BotResponse(sender=schema.SenderType.USER,

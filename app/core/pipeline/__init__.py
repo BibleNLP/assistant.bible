@@ -82,16 +82,16 @@ class DataUploadPipeline:
             args['user'] = kwargs.get("user")
             args['password'] = kwargs.get('password')
             args['embedding'] = kwargs.get('embedding')
-            args['label'] = kwargs.get('label')
+            args['labels'] = kwargs.get('labels')
             self.vectordb = Postgres(**args)
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
 class ConversationPipeline(DataUploadPipeline):
     '''The tech stack for implementing chat bot'''
-    def __init__(self, #pylint: disable=too-many-arguments
+    def __init__(self, #pylint: disable=too-many-arguments,dangerous-default-value
         user,
-        label:str = "ESV-Bible",
+        labels:List[str] = ["ESV-Bible"],
         file_processor: FileProcessorInterface=LangchainLoader,
         embedding: EmbeddingInterface=OpenAIEmbedding(),
         vectordb: VectordbInterface=Chroma(),
@@ -100,8 +100,8 @@ class ConversationPipeline(DataUploadPipeline):
         '''Instantiate with default tech stack'''
         super().__init__(file_processor, embedding, vectordb)
         self.user = user
-        if label is not None:
-            self.label = label
+        if labels is not None:
+            self.labels = labels
         self.chat_history = []
         self.embedding = embedding
         self.vectordb = vectordb
