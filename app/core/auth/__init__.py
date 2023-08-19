@@ -5,7 +5,7 @@ from custom_exceptions import PermissionException
 import gotrue.errors
 
 from supabase import create_client, Client
-
+from core.auth.supabase import supa
 
 def admin_auth_check_decorator(func):
     '''For all data managment APIs'''
@@ -17,11 +17,8 @@ def admin_auth_check_decorator(func):
             raise ValueError("Access token is missing")
         access_token_str = access_token.get_secret_value()
         # Verify the access token using Supabase secret
-        supabase_url: str = os.environ.get("SUPABASE_URL")
-        supabase_key: str = os.environ.get("SUPABASE_KEY")
-        supabase: Client = create_client(supabase_url, supabase_key)
         try:
-            user_data = supabase.auth.get_user(access_token_str)
+            user_data = supa.auth.get_user(access_token_str)
         except gotrue.errors.AuthApiError as e:
             raise PermissionException("Unauthorized access. Invalid token.") from e
 
@@ -46,11 +43,8 @@ def chatbot_auth_check_decorator(func):
         access_token_str = access_token.get_secret_value()
 
         # Verify the access token using Supabase secret
-        supabase_url: str = os.environ.get("SUPABASE_URL")
-        supabase_key: str = os.environ.get("SUPABASE_KEY")
-        supabase: Client = create_client(supabase_url, supabase_key)
         try:
-            supabase.auth.get_user(access_token_str)
+            supa.auth.get_user(access_token_str)
         except gotrue.errors.AuthApiError as e:
             raise PermissionException("Unauthorized access. Invalid token.") from e
 
@@ -71,17 +65,14 @@ def chatbot_get_labels_decorator(func):
         access_token_str = access_token.get_secret_value()
 
         # Verify the access token using Supabase secret
-        supabase_url: str = os.environ.get("SUPABASE_URL")
-        supabase_key: str = os.environ.get("SUPABASE_KEY")
-        supabase: Client = create_client(supabase_url, supabase_key)
         try:
-            user_data = supabase.auth.get_user(access_token_str)
+            user_data = supa.auth.get_user(access_token_str)
 
         except gotrue.errors.AuthApiError as e: # The user is not logged in
-            labels = ['public']
+            raise PermissionException("Unauthorized access. Invalid token.") from e
 
         else:
-            result = supabase.table('userTypes').select('''
+            result = supa.table('userTypes').select('''
                     sources
                     '''
                 ).eq(

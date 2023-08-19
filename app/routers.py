@@ -9,6 +9,7 @@ from fastapi import (
                     Depends,
                     UploadFile, Form)
 from fastapi.responses import HTMLResponse
+from fastapi.exceptions import HTTPException
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
 from supabase import create_client, Client
@@ -23,7 +24,7 @@ from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
 from custom_exceptions import PermissionException, GenericException
-
+from core.auth.supabase import supa
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -65,7 +66,6 @@ async def get_root():
     log.info("In root endpoint")
     return {"message": "App is up and running"}
 
-@chatbot_auth_check_decorator
 @router.get("/ui",
     response_class=HTMLResponse,
     responses={
@@ -142,9 +142,10 @@ def compose_vector_db_args(db_type, settings):
         vectordb_args['collection_name']=POSTGRES_DB_NAME
     return vectordb_args
 
-@router.websocket("/chat")
 @chatbot_auth_check_decorator
+@router.websocket("/chat")
 async def websocket_chat_endpoint(websocket: WebSocket,
+    # jwt_bearer: JWTBearer=Depends(JWTBearer()),
     settings=Depends(schema.ChatPipelineSelector),
     user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:SecretStr=Query(None,
@@ -152,6 +153,9 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     label:str=Query("ESV-Bible", # filtering with labels not implemented yet
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
+
+    log.info("In chat endpoint!!!")
+
     if token:
         log.info("User, %s, connecting with token, %s", user, token )
     await websocket.accept()
@@ -413,11 +417,8 @@ async def login(
     password=Form(..., desc="Password of the user"),
     ):
     """Signs in a user"""
-    supabase_url: str = os.environ.get("SUPABASE_URL")
-    supabase_key: str = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(supabase_url, supabase_key)
     try:
-        data = supabase.auth.sign_in_with_password({"email": email, "password": password})
+        data = supa.auth.sign_in_with_password({"email": email, "password": password})
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
@@ -431,10 +432,7 @@ async def login(
 async def logout(
     ):
     """Signs out a user"""
-    supabase_url: str = os.environ.get("SUPABASE_URL")
-    supabase_key: str = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(supabase_url, supabase_key)
-    supabase.auth.sign_out()
+    supa.auth.sign_out()
 
     return {
         "message": "User logged out successfully",
@@ -448,11 +446,8 @@ async def signup(
     password=Form(..., desc="Password of the user"),
     ):
     """Signs up a new user"""
-    supabase_url: str = os.environ.get("SUPABASE_URL")
-    supabase_key: str = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(supabase_url, supabase_key)
     try:
-        access_token = supabase.auth.sign_up({"email": email, "password": password})
+        access_token = supa.auth.sign_up({"email": email, "password": password})
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
