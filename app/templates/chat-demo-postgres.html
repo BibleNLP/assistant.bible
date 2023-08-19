@@ -61,8 +61,6 @@
         <script>
           let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          console.log(accessToken)
-          console.log('here')
           endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&labels='+label;
           var ws = null;
           setupWebsocket(endpoint);
