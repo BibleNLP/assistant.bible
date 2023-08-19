@@ -5,12 +5,28 @@
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
       </head>
       <body>
+        <div class="container">
+            <div class="row">
+              <div class="col-md-1">
         <p>
-        Search Domain: <input type="checkbox" id="esv" name="esv" value="ESV-Bible" onchange="changeLabel(this)" checked>
+        Search Domain: 
+    </p>
+    </div>
+    <div class="col-md-1">
+        <input type="checkbox" id="esv" name="esv" value="ESV-Bible" onchange="changeLabel(this)" checked>
         <label for="esv">ESV Bible</label>
+    </div>
+    <div class="col-md-1">
         <input type="checkbox" id="tw" name="tw" value="translation-words" onchange="changeLabel(this)">
         <label for="tw">Translation Words</label>
-        </p>
+        </div>
+
+        <div class="col-md-1">
+        <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
+          <button type="submit" class="btn btn-primary" id="logout" style="display: none;">Log Out</button>
+        </div>
+      </div>
+    </div>
         <div class="container">
           <div class="row">
             <div class="col-md-8 col-md-offset-2">
@@ -45,7 +61,9 @@
         <script>
           let label = "ESV-Bible"
           var endpoint = {{ ws_url|tojson }};
-          endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key+'&labels='+label;
+          console.log(accessToken)
+          console.log('here')
+          endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&labels='+label;
           var ws = null;
           setupWebsocket(endpoint);
 
@@ -88,7 +106,7 @@
             if (twElement.checked==true) { endpoint += '&labels='+twElement.value }
             ws.close();
             $('#messages').append('<div>---<b>Domain:ESV-Bible:'+esvElement.checked+', Translation Words:'+twElement.checked+'</b>---</div');
-            setupWebscoket(endpoint);
+            setupWebsocket(endpoint);
           }
           </script>
           <script>
