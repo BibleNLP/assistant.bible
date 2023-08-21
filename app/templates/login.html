@@ -119,12 +119,11 @@
                 // Redirect the user to the chat page
                 window.location.href = "/ui2";
             } else {
-                const errorMessage = `
-                Log in failed. Please try again, or use the site as
-                a guest by clicking the "Continue as Guest" button.
-                `;
+                console.log(response)
+                const data = await response.json();
+                console.log(data)
                 const errorDiv = document.getElementById("error-message");
-                errorDiv.textContent = errorMessage;
+                errorDiv.textContent = data.detail;
                 errorDiv.style.display = "block";
 
             }
