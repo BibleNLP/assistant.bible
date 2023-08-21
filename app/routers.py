@@ -7,7 +7,8 @@ from fastapi import (
                     Body, Path, Query,
                     WebSocket, WebSocketDisconnect,
                     Depends,
-                    UploadFile, Form)
+                    UploadFile, Form,
+                    HTTPException,)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
@@ -154,7 +155,6 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     '''The http chat endpoint'''
 
     log.info("In chat endpoint!!!")
-
     if token:
         log.info("User, connecting with token, %s", token )
     await websocket.accept()
@@ -419,6 +419,12 @@ async def login(
     try:
         data = supa.auth.sign_in_with_password({"email": email, "password": password})
     except gotrue.errors.AuthApiError as e:
+        log.info(f'We have an error: {e}')
+        print(e)
+        if str(e) == 'Email not confirmed':
+            print("It's an email not confirmed error")
+            raise HTTPException(status_code=401, detail="The user email hasn't been confirmed. Please confirm your email and then try to log in again.")
+        
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
     return {
@@ -446,7 +452,15 @@ async def signup(
     ):
     """Signs up a new user"""
     try:
-        access_token = supa.auth.sign_up({"email": email, "password": password})
+        access_token = supa.auth.sign_up({
+            "email": email, 
+            "password": password,
+            "options": {
+                "data": {
+                "user_types": ["public"],
+                },
+  },
+            })
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
 
