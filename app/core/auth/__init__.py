@@ -7,6 +7,7 @@ from supabase import create_client, Client
 from fastapi import WebSocket
 
 from core.auth.supabase import supa
+from log_configs import log
 import schema
 
 
@@ -25,7 +26,7 @@ def admin_auth_check_decorator(func):
         except gotrue.errors.AuthApiError as e:
             raise PermissionException("Unauthorized access. Invalid token.") from e
 
-        if user_data.user_metadata.get('user_type') != 'admin':
+        if 'admin' not in user_data.user_metadata.get('user_types'):
             raise PermissionException("Unauthorized access. User is not admin.")
 
         return await func(*args, **kwargs)
@@ -84,11 +85,13 @@ def chatbot_get_labels_decorator(func):
                 result = supa.table('userTypes').select('''
                         sources
                         '''
-                    ).eq(
-                    'user_type', user_data.user.user_metadata.get('user_type')
-                    ).limit(1).single().execute()
-                labels = result.data.get('sources')
-
+                    ).in_(
+                    'user_type', user_data.user.user_metadata.get('user_types')
+                    ).execute()
+                labels = []
+                for data in result.data:
+                    labels.extend(data.get('sources'))
+        labels = list(set(labels))
         kwargs['labels'] = labels
         # Proceed with the original function call and pass the sources to it
         return await func(*args, **kwargs)
