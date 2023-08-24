@@ -95,23 +95,26 @@ services:
     command: daemon --docker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - postgres-db-backup:/var/backups:r
+      - postgres-db-backup:/var/backups:ro
       - ./backup:/var/backup-copies/:rw
+      - logs-vol:/app/logs
+    environment:
+      - TZ=${TIMEZONE:-Asia/Calcutta}
     labels:
-      ofelia.job-local.copy-backup-daily.schedule: "0 30 0 * * *" # Copies latest dump from DB contaier every day at 00:30 am
-      ofelia.job-local.copy-backup-daily.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_daily_`TZ=\":Asia/Calcutta\" date +%Y-%m-%d_%H_%M_%S`.sql"
-      ofelia.job-local.prune-daily-backup.schedule: "0 45 0 * * *" # Retains only latest 7 of the daily backups 
-      ofelia.job-local.prune-daily-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_daily* | head -n -7 |  xargs rm -f --"
-      ofelia.job-local.copy-backup-weekly.schedule: "0 30 0 ? * SUN" # Copies latest dump on every sunday 00:30 am
-      ofelia.job-local.copy-backup-weekly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_weekly_` TZ=\":Asia/Calcutta\" date +%Y-%m-%d_%H_%M_%S`.sql"
-      ofelia.job-local.prune-weekly-backup.schedule: "0 45 0 ? * SUN" # Retains only latest 4 of the weekly backups
-      ofelia.job-local.prune-weekly-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_weekly* | head -n -4 |  xargs rm -f --"
-      ofelia.job-local.copy-backup-monthly.schedule: "0 30 0 1 * *" # Copies latest dump on first day of every month
-      ofelia.job-local.copy-backup-monthly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_monthly_` TZ=\":Asia/Calcutta\" date +%Y-%m-%d_%H_%M_%S`.sql"
-      ofelia.job-local.prune-monthly-backup.schedule: "0 45 0 1 * *" # Retains only latest 12 of the montly dumps
-      ofelia.job-local.prune-monthly-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_monthly* | head -n -12 |  xargs rm -f --"
-      ofelia.job-local.copy-backup-yearly.schedule: "0 30 0 * JAN *" # Copies latest dump on first day of every year
-      ofelia.job-local.copy-backup-yearly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_yearly_` TZ=\":Asia/Calcutta\" date +%Y-%m-%d_%H_%M_%S`.sql"
+      ofelia.job-local.copy-backup-daily.schedule: "0 0 3 * * *" # Copies latest dump from DB container every day at 03:00 am
+      ofelia.job-local.copy-backup-daily.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_daily_`date +%Y-%m-%d_%H_%M_%S`.sql && echo `date`':Daily backup successful' >> /app/logs/backup.log || echo `date`':Daily backup failed' >> /app/logs/backup.log"
+      ofelia.job-local.prune-daily-backup.schedule: "0 45 2 * * *" # Retains only latest 7 of the daily backups 
+      ofelia.job-local.prune-daily-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_daily* | head -n -7 |  xargs rm -f -- && echo `date`':Daily Prune successful' >> /app/logs/backup.log || echo `date`':Daily Prune failed' >> /app/logs/backup.log"
+      ofelia.job-local.copy-backup-weekly.schedule: "0 0 3 ? * SUN" # Copies latest dump on every sunday 03:00 am
+      ofelia.job-local.copy-backup-weekly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_weekly_`date +%Y-%m-%d_%H_%M_%S`.sql && echo `date`':Weekly backup successful' >> /app/logs/backup.log || echo `date`':Weekly backup failed' >> /app/logs/backup.log"
+      ofelia.job-local.prune-weekly-backup.schedule: "0 45 2 ? * SUN" # Retains only latest 4 of the weekly backups
+      ofelia.job-local.prune-weekly-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_weekly* | head -n -4 |  xargs rm -f -- && echo `date`':Weekly Prune successful' >> /app/logs/backup.log || echo `date`':Weekly Prune failed' >> /app/logs/backup.log"
+      ofelia.job-local.copy-backup-monthly.schedule: "0 0 3 1 * *" # Copies latest dump on first day of every month
+      ofelia.job-local.copy-backup-monthly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_monthly_`date +%Y-%m-%d_%H_%M_%S`.sql && echo `date`':Monthly backup successful' >> /app/logs/backup.log || echo `date`':Monthly backup failed' >> /app/logs/backup.log"
+      ofelia.job-local.prune-monthly-backup.schedule: "0 45 2 1 * *" # Retains only latest 12 of the montly dumps
+      ofelia.job-local.prune-monthly-backup.command: sh -c "ls -tr /var/backup-copies/postgres_backup_monthly* | head -n -12 |  xargs rm -f -- && echo `date`':Monthly Prune successful' >> /app/logs/backup.log || echo `date`':Monthly Prune failed' >> /app/logs/backup.log"
+      ofelia.job-local.copy-backup-yearly.schedule: "0 0 3 * JAN *" # Copies latest dump on first day of every year
+      ofelia.job-local.copy-backup-yearly.command: sh -c "cp /var/backups/postgres_backup_latest.sql /var/backup-copies/postgres_backup_yearly_`date +%Y-%m-%d_%H_%M_%S`.sql && echo `date`':Yearly backup successful' >> /app/logs/backup.log || echo `date`':Yearly backup failed' >> /app/logs/backup.log"
     networks:
      - chatbot-network
 
