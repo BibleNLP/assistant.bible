@@ -59,7 +59,7 @@ services:
     labels:
       ofelia.enabled: "true"
       ofelia.job-exec.backup.schedule: "0 0 0 * * *" #"Takes a single dump within the db container every day at 00:00 am"
-      ofelia.job-exec.backup.command: "pg_dump --dbname=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB  --file=/var/backups/postgres_backup_latest.sql"
+      ofelia.job-exec.backup.command: "pg_dump --dbname=postgresql://$POSTGRES_DB_USER:$POSTGRES_DB_PASSWORD@localhost:5432/$POSTGRES_DB_NAME  --file=/var/backups/postgres_backup_latest.sql"
 
   webserver:
     image: nginx:latest
