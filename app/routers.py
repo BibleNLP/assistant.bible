@@ -7,20 +7,24 @@ from fastapi import (
                     Body, Path, Query,
                     WebSocket, WebSocketDisconnect,
                     Depends,
-                    UploadFile)
+                    UploadFile, Form,
+                    HTTPException,)
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from pydantic import SecretStr
+import gotrue.errors
+
 
 import schema
 from log_configs import log
 from core.auth import (admin_auth_check_decorator,
-    chatbot_auth_check_decorator)
+    chatbot_auth_check_decorator, chatbot_get_labels_decorator)
 from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
-from custom_exceptions import GenericException
+from custom_exceptions import PermissionException, GenericException
+from core.auth.supabase import supa
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -69,12 +73,12 @@ async def get_root():
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-# @auth_check_decorator
 async def get_ui(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
     return templates.TemplateResponse("chat-demo.html",
-        {"request": request, "ws_url": WS_URL})
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
 @router.get("/ui2",
     response_class=HTMLResponse,
@@ -83,12 +87,27 @@ async def get_ui(request: Request):
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-# @auth_check_decorator
+# @chatbot_auth_check_decorator
 async def get_ui2(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
     return templates.TemplateResponse("chat-demo-postgres.html",
-        {"request": request, "ws_url": WS_URL})
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
+
+@router.get("/login",
+    response_class=HTMLResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=200, tags=["UI"])
+async def get_login(request: Request):
+    '''The development login UI'''
+    log.info("In login endpoint!!!")
+    return templates.TemplateResponse("login.html",
+        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+        "demo_url2":f"http://{DOMAIN}/ui2"})
 
 def compose_vector_db_args(db_type, settings):
     '''Convert the API params or default values, to args to initializing the DB'''
@@ -124,7 +143,9 @@ def compose_vector_db_args(db_type, settings):
 
 @router.websocket("/chat")
 @chatbot_auth_check_decorator
+@chatbot_get_labels_decorator
 async def websocket_chat_endpoint(websocket: WebSocket,
+    # jwt_bearer: JWTBearer=Depends(JWTBearer()),
     settings=Depends(schema.ChatPipelineSelector),
     # user:str=Query(..., desc= "user id of the end user accessing the chat bot"),
     token:SecretStr=Query(None,
@@ -132,6 +153,8 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     labels:List[str]=Query(["ESV-Bible"],
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
+
+    log.info("In chat endpoint!!!")
     if token:
         log.info("User, connecting with token, %s", token )
     await websocket.accept()
@@ -176,7 +199,6 @@ async def websocket_chat_endpoint(websocket: WebSocket,
             # resp = schema.BotResponse(sender=schema.SenderType.USER,
             #     message=question, type=schema.ChatResponseType.QUESTION)
             # await websocket.send_json(resp.dict())
-
 
             bot_response = chat_stack.llm_framework.generate_text(
                             query=question, chat_history=chat_stack.chat_history)
@@ -386,3 +408,63 @@ async def get_source_tags(
         raise GenericException("This database type is not supported (yet)!")
 
     return vectordb.get_available_labels()
+
+
+@router.post("/login")
+async def login(
+    email=Form(..., desc="Email of the user"),
+    password=Form(..., desc="Password of the user"),
+    ):
+    """Signs in a user"""
+    try:
+        data = supa.auth.sign_in_with_password({"email": email, "password": password})
+    except gotrue.errors.AuthApiError as e:
+        log.info(f'We have an error: {e}')
+        print(e)
+        if str(e) == 'Email not confirmed':
+            print("It's an email not confirmed error")
+            raise HTTPException(status_code=401, detail="The user email hasn't been confirmed. Please confirm your email and then try to log in again.")
+        
+        raise PermissionException("Unauthorized access. Invalid token.") from e
+
+    return {
+        "message": "User logged in successfully",
+        "access_token": data.session.access_token
+        }
+
+
+@router.post("/logout")
+async def logout(
+    ):
+    """Signs out a user"""
+    supa.auth.sign_out()
+
+    return {
+        "message": "User logged out successfully",
+        "next_url": f"http://{DOMAIN}/login"
+        }
+
+
+@router.post("/signup")
+async def signup(
+    email=Form(..., desc="Email of the user"),
+    password=Form(..., desc="Password of the user"),
+    ):
+    """Signs up a new user"""
+    try:
+        access_token = supa.auth.sign_up({
+            "email": email, 
+            "password": password,
+            "options": {
+                "data": {
+                "user_types": ["public"],
+                },
+  },
+            })
+    except gotrue.errors.AuthApiError as e:
+        raise PermissionException("Unauthorized access. Invalid token.") from e
+
+    return {
+        "message": "User signed up successfully",
+        "access_token": access_token
+        }

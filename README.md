@@ -41,6 +41,10 @@ Environment variables and their default values,
 * `POSTGRES_DB_USER=admin`
 * `POSTGRES_DB_PASSWORD=secret`
 * `POSTGRES_DB_QUERY_LIMIT=10`
+* `DOMAIN=assistant.bible`
+* `SUPABASE_URL`
+* `SUPABASE_KEY`
+
 
 If using default values, once started the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
 
