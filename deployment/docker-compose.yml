@@ -18,6 +18,9 @@ services:
      - POSTGRES_DB_NAME=${POSTGRES_DB_NAME:-adotbcollection}
      - POSTGRES_DB_HOST=postgresvectordb
      - POSTGRES_DB_PORT=5432
+     - SUPABASE_URL=${SUPABASE_URL}
+     - SUPABASE_KEY=${SUPABASE_KEY}
+     - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     command: uvicorn main:app --host 0.0.0.0 --port 9000 --workers 1
     logging:
      options:
