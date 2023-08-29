@@ -3,8 +3,8 @@ import os
 from functools import wraps
 from custom_exceptions import PermissionException
 import gotrue.errors
-from supabase import create_client, Client
 from fastapi import WebSocket
+import uuid
 
 from core.auth.supabase import supa
 from log_configs import log
@@ -23,10 +23,17 @@ def admin_auth_check_decorator(func):
         # Verify the access token using Supabase secret
         try:
             user_data = supa.auth.get_user(access_token_str)
+
         except gotrue.errors.AuthApiError as e:
             raise PermissionException("Unauthorized access. Invalid token.") from e
-
-        if 'admin' not in user_data.user_metadata.get('user_types'):
+        else:
+            result = supa.table('adminUsers').select('''
+                    user_id
+                    '''
+                ).eq(
+                'user_id', user_data.user.id
+                ).execute()
+        if not result.data:
             raise PermissionException("Unauthorized access. User is not admin.")
 
         return await func(*args, **kwargs)
