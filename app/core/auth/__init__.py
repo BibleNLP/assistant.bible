@@ -4,7 +4,6 @@ from functools import wraps
 from custom_exceptions import PermissionException
 import gotrue.errors
 from fastapi import WebSocket
-import uuid
 
 from core.auth.supabase import supa
 from log_configs import log
