@@ -20,6 +20,19 @@ server {
 }
 
 
+server {
+    listen 80;
+    listen [::]:80;
+    listen 443 default_server ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_name ${PROD_DOMAIN};
+
+    location / {
+     return 301 https://${CHAT_DOMAIN}$request_uri;
+    }
+}
+
  server {
      listen 443 default_server ssl http2;
      listen [::]:443 ssl http2;
