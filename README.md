@@ -78,7 +78,11 @@ If using default values, once started the app should be running at [http://local
 1. Start the app
 	```
 	cd app
-	uvicorn main:app --port 8000
+	uvicorn main:app --port 8000 
+	# Note: if you get ModuleNotFoundError, your system may be trying to use 
+	# python > or < 3.10 despite the virtual environment. If this happens,
+	# try rerunning with the python version specified, e.g.: 
+	# python 3.10 -m uvicorn main:app --port 8000 
 	```
 If successfully started, the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
 
