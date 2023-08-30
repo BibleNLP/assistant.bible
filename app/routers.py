@@ -52,8 +52,7 @@ async def index(request:Request):
     '''Landing page'''
     log.info("In index router")
     return templates.TemplateResponse("index.html",
-        {"request": request, "demo_url":f"http://{DOMAIN}/ui",
-        "demo_url2":f"http://{DOMAIN}/ui2"})
+        {"request": request, "demo_url":f"http://{DOMAIN}/app"})
 
 @router.get("/test",
     response_model=schema.APIInfoResponse,
@@ -66,21 +65,21 @@ async def get_root():
     log.info("In root endpoint")
     return {"message": "App is up and running"}
 
-@router.get("/ui",
-    response_class=HTMLResponse,
-    responses={
-        422: {"model": schema.APIErrorResponse},
-        403: {"model": schema.APIErrorResponse},
-        500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["UI"])
-async def get_ui(request: Request):
-    '''The development UI using http for chat'''
-    log.info("In ui endpoint!!!")
-    return templates.TemplateResponse("chat-demo.html",
-        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
-        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
+# @router.get("/ui",
+#     response_class=HTMLResponse,
+#     responses={
+#         422: {"model": schema.APIErrorResponse},
+#         403: {"model": schema.APIErrorResponse},
+#         500: {"model": schema.APIErrorResponse}},
+#     status_code=200, tags=["UI"])
+# async def get_ui(request: Request):
+#     '''The development UI using http for chat'''
+#     log.info("In ui endpoint!!!")
+#     return templates.TemplateResponse("chat-demo.html",
+#         {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
+#         "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-@router.get("/ui2",
+@router.get("/app",
     response_class=HTMLResponse,
     responses={
         422: {"model": schema.APIErrorResponse},
@@ -92,8 +91,10 @@ async def get_ui2(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
     return templates.TemplateResponse("chat-demo-postgres.html",
-        {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
-        "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
+        {"request": request,
+         "ws_url": WS_URL,
+         "demo_url":f"http://{DOMAIN}/app",
+         "login_url":f"http://{DOMAIN}/login"})
 
 @router.get("/login",
     response_class=HTMLResponse,
