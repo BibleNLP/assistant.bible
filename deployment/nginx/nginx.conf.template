@@ -11,6 +11,9 @@ server {
     proxy_connect_timeout 300;
     proxy_send_timeout 300;
 
+#    location /.well-known/acme-challenge/ {
+#        root /var/www/certbot;
+#    }
     
     location / {
      return 301 https://${CHAT_DOMAIN}$request_uri;
@@ -23,10 +26,15 @@ server {
 server {
     listen 80;
     listen [::]:80;
-    listen 443 default_server ssl http2;
+    listen 443 ssl http2;
     listen [::]:443 ssl http2;
 
     server_name ${PROD_DOMAIN};
+    client_max_body_size 100M;
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
 
     location / {
      return 301 https://${CHAT_DOMAIN}$request_uri;
