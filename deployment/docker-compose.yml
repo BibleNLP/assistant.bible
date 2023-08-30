@@ -74,6 +74,7 @@ services:
      - chatbot
     environment:
       - CHAT_DOMAIN=${DOMAIN:-"localhost"}
+      - PROD_DOMAIN=${DOMAIN2:-assistant.bible}
     volumes:
      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
