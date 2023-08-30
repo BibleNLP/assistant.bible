@@ -163,3 +163,6 @@ chromadb/
 **/chromadb_store/
 **/uploaded-files/
 **/chromadb_store_test/
+
+**/backup/
+
