@@ -8,14 +8,14 @@ from core.embedding import EmbeddingInterface
 '''Implementation for generating sentence_transformers embeddings using Huggingface sentence_transformers'''
 class SentenceTransformerEmbedding(EmbeddingInterface):
     '''Uses sentence_transformers to generate embeddings.'''
+    default_model: str = 'thenlper/gte-small' # TODO: figure out what model we want to use
     
-    default_model: str = 'gte-small' # TODO: figure out what model we want to use
     def __init__(self, model:str=default_model) -> None:
         '''Initializes the model'''
         
         # If SentenceTransformerEmbedding is being instantiated for the first
         # time, it will download the model from the internet. Delay will depend
-        # on model size.
+        # on model size. Downloaded model will be stored in root/.cache by default
         log.info(f"Initializing SentenceTransformerEmbedding with model: {model}.")
         
         from sentence_transformers import SentenceTransformer
