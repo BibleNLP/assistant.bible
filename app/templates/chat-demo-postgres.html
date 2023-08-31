@@ -13,12 +13,8 @@
     </p>
     </div>
     <div class="col-md-1">
-        <input type="checkbox" id="esv" name="esv" value="ESV-Bible" onchange="changeLabel(this)" checked>
-        <label for="esv">ESV Bible</label>
-    </div>
-    <div class="col-md-1">
-        <input type="checkbox" id="tw" name="tw" value="translation-words" onchange="changeLabel(this)">
-        <label for="tw">Translation Words</label>
+        <input type="checkbox" id="tyndale-open" name="tyndale-open" value="tyndale_open" onchange="changeLabel(this)" checked>
+        <label for="tyndale-open">Tyndale Open Resources</label>
         </div>
 
         <div class="col-md-1">
@@ -96,14 +92,12 @@
 
           function changeLabel(src) {
             let labels = [];
-            let esvElement = document.getElementById('esv')
-            let twElement = document.getElementById('tw')
+            let tyndaleOpenElement = document.getElementById('tyndale-open')
             var endpoint = {{ ws_url|tojson }};
             endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
-            if (esvElement.checked==true) { endpoint += '&labels='+esvElement.value }
-            if (twElement.checked==true) { endpoint += '&labels='+twElement.value }
+            if (tyndaleOpenElement.checked==true) { endpoint += '&labels='+tyndaleOpenElement.value }
             ws.close();
-            $('#messages').append('<div>---<b>Domain:ESV-Bible:'+esvElement.checked+', Translation Words:'+twElement.checked+'</b>---</div');
+            $('#messages').append('<div>---<b>Domain:Tyndale-Open:'+tyndaleOpenElement.checked+'</b>---</div');
             setupWebsocket(endpoint);
           }
           </script>
