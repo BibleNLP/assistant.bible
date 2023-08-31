@@ -20,6 +20,7 @@ class FileProcessorType(str, Enum):
 
 class EmbeddingType(str, Enum):
     '''Available text embedding technology choices'''
+    HUGGINGFACE_DEFAULT = "huggingface" # TODO: add support for multiple models ?
     OPENAI = "OpenAI"
 
 class DatabaseType(str, Enum):
