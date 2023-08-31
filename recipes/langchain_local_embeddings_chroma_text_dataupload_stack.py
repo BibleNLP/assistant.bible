@@ -20,6 +20,7 @@ data_stack = DataUploadPipeline()
 # Set the file processor, embedding, and database
 data_stack.set_file_processor(schema.FileProcessorType.LANGCHAIN)
 data_stack.set_embedding(schema.EmbeddingType.HUGGINGFACE_DEFAULT)
+print(f"Embedding documents with model: {schema.EmbeddingType.HUGGINGFACE_DEFAULT}")
 data_stack.set_vectordb(schema.DatabaseType.CHROMA, path="chromadb_store", collection_name='aDotBCollection')
 
 # Process input files
