@@ -73,6 +73,7 @@ class DataUploadPipeline:
         host_n_port:schema.HostnPortPattern=None,
         path: Optional[str]=None,
         collection_name: Optional[str]=None,
+        embedding_function=SentenceTransformerEmbedding(),
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         args = {}
