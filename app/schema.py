@@ -166,3 +166,7 @@ class Document(BaseModel):
     metadata: dict = Field({}, desc="Any additional data that needs to go along with the text,"+\
                         " as per usecases. Could help in pre- and/or post-processing",
                         example={"displayimages": True})
+
+class SupabaseKeys(BaseModel):
+    supabaseUrl: str
+    supabaseKey: str
