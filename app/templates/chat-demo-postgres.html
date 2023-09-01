@@ -122,18 +122,18 @@
             event.preventDefault();
             try {
                 const response = await fetch('/logout', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                    })
-                });
-                localStorage.removeItem('accessToken');
-                const data = await response.json();
-                next_url = data.next_url;
-                window.location.href = next_url;
-            }
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                })
+            });
+            localStorage.removeItem('accessToken');
+            const data = await response.json();
+            next_url = data.next_url;
+            window.location.href = next_url;
+        }
             catch (error) {
                 console.error('Error:', error);
             }
