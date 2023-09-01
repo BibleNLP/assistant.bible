@@ -88,15 +88,11 @@ def chatbot_get_labels_decorator(func):
                 labels = []
 
             else:
-                result = supa.table('userTypes').select('''
-                        sources
-                        '''
-                    ).in_(
-                    'user_type', user_data.user.user_metadata.get('user_types')
-                    ).execute()
+                result = supa.table('userAttributes').select('id, user_id, user_type, "userTypes"(user_type, sources)').eq('user_id', user_data.user.id).execute()
                 labels = []
                 for data in result.data:
-                    labels.extend(data.get('sources'))
+                    labels.extend(data.get('userTypes', {}).get('sources', []))
+                log.info(f'{labels=}')
         labels = list(set(labels))
         kwargs['labels'] = labels
         # Proceed with the original function call and pass the sources to it
