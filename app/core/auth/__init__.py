@@ -92,7 +92,7 @@ def chatbot_get_labels_decorator(func):
                 labels = []
                 for data in result.data:
                     labels.extend(data.get('userTypes', {}).get('sources', []))
-                print(f'{labels=}')
+                log.info(f'{labels=}')
         labels = list(set(labels))
         kwargs['labels'] = labels
         # Proceed with the original function call and pass the sources to it
