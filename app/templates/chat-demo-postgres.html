@@ -1,135 +1,176 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Assistant.Bible</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      </head>
-      <body>
-        <div class="container">
-            <div class="row">
-              <div class="col-md-1">
-        <p>
-        Search Domain: 
-    </p>
-    </div>
-    <div class="col-md-1">
-        <input type="checkbox" id="tyndale-open" name="tyndale-open" value="tyndale_open" onchange="changeLabel(this)" checked>
-        <label for="tyndale-open">Tyndale Open Resources</label>
-        </div>
-
-        <div class="col-md-1">
-        <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
-          <button type="submit" class="btn btn-primary" id="logout" style="display: none;">Log Out</button>
-        </div>
-      </div>
-    </div>
-        <div class="container">
-          <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-              <h1 class="text-center">Chat Demo</h1>
-              <div class="well" id="messages"></div>
-              <form class="form-inline" action="" method="post">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="message" name="message" autofocus>
-                </div>
-                <button type="submit" class="btn btn-primary">Send</button>
-              </form>
-            </div>
+  <head>
+    <title>Assistant.Bible</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gray-100 flex flex-col min-h-screen">
+    <header class="w-full bg-blue-500 text-white p-4">
+      <h1 class="text-center text-2xl font-bold">Chat Demo</h1>
+    </header>
+    <main class="container mx-auto p-4 flex-grow">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="w-full md:w-auto">
+          <p class="font-bold">Search Domain:</p>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="tyndale-open"
+              name="tyndale-open"
+              value="tyndale_open"
+              onchange="changeLabel(this)"
+              checked
+            />
+            <label for="tyndale-open" class="ml-2"
+              >Tyndale Open Resources</label
+            >
           </div>
         </div>
-        <script src="//code.jquery.com/jquery-1.11.1.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-        <script type="module">
-    
-        </script>
-        <script>
-            // Fetch Supabase keys when the page loads
-            const accessToken = localStorage.getItem('accessToken');
-            if (accessToken === null) {
-                // The user is not logged in, so render the Log In button.
-                document.querySelector('#login').style.display = 'block';
-            } else {
-                // The user is logged in, so render the Log Out button.
-                document.querySelector('#logout').style.display = 'block';
-            }
-        </script>
-        <script>
-          let label = "ESV-Bible"
-          var endpoint = {{ ws_url|tojson }};
-          endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&labels='+label;
-          var ws = null;
-          setupWebsocket(endpoint);
+        <div class="w-full md:w-auto mt-4 md:mt-0">
+          <a
+            href="/login"
+            class="bg-blue-500 text-white px-4 py-2 rounded hidden"
+            id="login"
+          >
+            Log In
+          </a>
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded hidden ml-2"
+            id="logout"
+          >
+            Log Out
+          </button>
+        </div>
+      </div>
+      <div class="mt-8">
+        <div class="bg-gray-200 p-4 rounded" id="messages"></div>
+        <form class="flex mt-4">
+          <input
+            type="text"
+            class="form-control flex-grow p-2 rounded-l"
+            id="message"
+            name="message"
+            autofocus
+          />
+          <button
+            type="submit"
+            class="bg-blue-500 text-white px-4 py-2 rounded-r ml-3"
+          >
+            Send
+          </button>
+        </form>
+      </div>
+    </main>
+    <footer class="bg-gray-300 text-center p-3 mt-4">
+      <div class="text-center">
+        <ul class="flex flex-row justify-center items-center px-1 gap-2">
+          <li>
+            <span role="img" aria-label="Technology stack">🛠️</span> Technology
+            Stack:
+          </li>
+          <li>
+            <span role="img" aria-label="LLM">🧠</span>gpt-3.5-turbo (OpenAI)
+          </li>
+          <li><span role="img" aria-label="Database">💾</span>Postgres</li>
+          <li>
+            <span role="img" aria-label="Framework">🖼️</span>
+            LangChain
+          </li>
+          <li>
+            <span role="img" aria-label="Embeddings">🔍</span> Embeddings: ada
+            (OpenAI)
+          </li>
+        </ul>
+      </div>
+    </footer>
+    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module"></script>
+    <script>
+      // Fetch Supabase keys when the page loads
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken === null) {
+        // The user is not logged in, so render the Log In button.
+        document.querySelector('#login').style.display = 'block';
+      } else {
+        // The user is logged in, so render the Log Out button.
+        document.querySelector('#logout').style.display = 'block';
+      }
+    </script>
+    <script>
+      let label = "ESV-Bible"
+      var endpoint = {{ ws_url|tojson }};
+      endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&labels='+label;
+      var ws = null;
+      setupWebsocket(endpoint);
 
-          function setupWebsocket(endpoint) {
-            ws = new WebSocket(endpoint);
+      function setupWebsocket(endpoint) {
+        ws = new WebSocket(endpoint);
 
-            ws.onmessage = function (event) {
-              data = JSON.parse(event.data)
-              if(data.type == "error"){
-                alert(data.message);
-              } else {
-                $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
-                  '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
-                  '</div>'
-                  );
-              }
-            };
+        ws.onmessage = function (event) {
+          data = JSON.parse(event.data)
+          if(data.type == "error"){
+            alert(data.message);
+          } else {
+            $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message +
+              '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
+              '</div>'
+              );
           }
+        };
+      }
 
-          $('form').submit(function(event) {
-            event.preventDefault();
-            if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
-              window.location.replace({{ site_url }}+'/login');
-            }
-            const encoder = new TextEncoder();
-            const encodedText = encoder.encode($('#message').val());
+      $('form').submit(function(event) {
+        event.preventDefault();
+        if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
+          window.location.replace({{ site_url }}+'/login');
+        }
+        const encoder = new TextEncoder();
+        const encodedText = encoder.encode($('#message').val());
 
-            ws.send(encodedText);
-            $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
-            $('#message').val('').focus();
-          });
+        ws.send(encodedText);
+        $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
+        $('#message').val('').focus();
+      });
 
-          function changeLabel(src) {
-            let labels = [];
-            let tyndaleOpenElement = document.getElementById('tyndale-open')
-            var endpoint = {{ ws_url|tojson }};
-            endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
-            if (tyndaleOpenElement.checked==true) { endpoint += '&labels='+tyndaleOpenElement.value }
-            ws.close();
-            $('#messages').append('<div>---<b>Domain:Tyndale-Open:'+tyndaleOpenElement.checked+'</b>---</div');
-            setupWebsocket(endpoint);
-          }
-          </script>
-          <script>
-            document.getElementById('logout').addEventListener('click', async (event) => {
-            console.log("Logging out");
-            event.preventDefault();
-            try {
-                const response = await fetch('/logout', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                })
+      function changeLabel(src) {
+        let labels = [];
+        let tyndaleOpenElement = document.getElementById('tyndale-open')
+        var endpoint = {{ ws_url|tojson }};
+        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
+        if (tyndaleOpenElement.checked==true) { endpoint += '&labels='+tyndaleOpenElement.value }
+        ws.close();
+        $('#messages').append('<div>---<b>Domain:Tyndale-Open:'+tyndaleOpenElement.checked+'</b>---</div');
+        setupWebsocket(endpoint);
+      }
+    </script>
+    <script>
+      document
+        .getElementById('logout')
+        .addEventListener('click', async (event) => {
+          console.log('Logging out');
+          event.preventDefault();
+          try {
+            const response = await fetch('/logout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({}),
             });
             localStorage.removeItem('accessToken');
             const data = await response.json();
             next_url = data.next_url;
             window.location.href = next_url;
-        }
-            catch (error) {
-                console.error('Error:', error);
-            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
         });
-        </script>
-      <br><br>
-      <footer class="bg-light text-center text-lg-start">
-        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-          Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
-        </div>
-      </footer>
-      </body>
-      
+    </script>
+  </body>
 </html>
