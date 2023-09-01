@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Assistant.Bible</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -107,8 +106,7 @@
         function changeLabel(src) {
             let labels = [];
             let tyndaleOpenElement = document.getElementById('tyndale-open')
-            var endpoint = {{ ws_url| tojson
-        }};
+            var endpoint = {{ ws_url| tojson }};
         endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + key;
         if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
         ws.close();
