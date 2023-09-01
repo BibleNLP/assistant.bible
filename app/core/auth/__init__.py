@@ -2,48 +2,104 @@
 import os
 from functools import wraps
 from custom_exceptions import PermissionException
+import gotrue.errors
+from fastapi import WebSocket
 
-from supabase import create_client, Client
+from core.auth.supabase import supa
+from log_configs import log
+import schema
 
 
 def admin_auth_check_decorator(func):
     '''For all data managment APIs'''
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        token = kwargs.get('token')
-        if token.get_secret_value() != os.getenv('ADMIN_ACCESS_TOKEN', "chatchatchat"):
-            raise PermissionException("Wrong access token!!!")
+        # Extract the access token from the request headers
+        access_token = kwargs.get('token')
+        if not access_token:
+            raise ValueError("Access token is missing")
+        access_token_str = access_token.get_secret_value()
+        # Verify the access token using Supabase secret
+        try:
+            user_data = supa.auth.get_user(access_token_str)
+
+        except gotrue.errors.AuthApiError as e:
+            raise PermissionException("Unauthorized access. Invalid token.") from e
+        else:
+            result = supa.table('adminUsers').select('''
+                    user_id
+                    '''
+                ).eq(
+                'user_id', user_data.user.id
+                ).execute()
+        if not result.data:
+            raise PermissionException("Unauthorized access. User is not admin.")
+
         return await func(*args, **kwargs)
+
     return wrapper
 
 
 def chatbot_auth_check_decorator(func):
-    '''checks a predefined token in request header'''
+    '''checks a predefined token in request header, and checks it is a
+    valid, logged in, user.
+    '''
+    @wraps(func)
+    async def wrapper(websocket: WebSocket, *args, **kwargs):
+        # Extract the access token from the request headers
+        access_token = kwargs.get('token')
+        if not access_token:
+            raise ValueError("Access token is missing")
+        access_token_str = access_token.get_secret_value()
+
+        # Verify the access token using Supabase secret
+        try:
+            supa.auth.get_user(access_token_str)
+        except gotrue.errors.AuthApiError as e:
+            await websocket.accept()
+            json_response = schema.BotResponse(sender=schema.SenderType.BOT,
+                    message='Please sign in first, and then I will look forward to answering your question.', type=schema.ChatResponseType.ANSWER,
+                    sources=[],
+                    media=[])
+            await websocket.send_json(json_response.dict())
+            return
+        return await func(websocket, *args, **kwargs)
+
+    return wrapper
+
+
+def chatbot_get_labels_decorator(func):
+    '''checks a predefined token in request header, and returns available sources.
+    '''
     @wraps(func)
     async def wrapper(*args, **kwargs):
-        # To be implemented.
-        # Uses Supabase, gets user roles
-        # Verify the DB requesting to connect to and sources listed for querying are permissible
-        # Raises 403 error for unauthorized access
-        # Passes the list of accessible sources to the calling function
+        # Extract the access token from the request headers
+        access_token = kwargs.get('token')
+        if not access_token:
+            labels = []
+        else:
+            access_token_str = access_token.get_secret_value()
 
-        # url: str = os.environ.get("SUPABASE_URL")
-        # key: str = os.environ.get("SUPABASE_KEY")
-        # supabase: Client = create_client(url, key)
+            # Verify the access token using Supabase secret
+            try:
+                user_data = supa.auth.get_user(access_token_str)
 
-        # email: str = kwargs.get('email')
-        # password: str = kwargs.get('password')
-        # email = 'woodwardmw@gmail.com'
-        # password = 'password'
-        # try:
-        #     data = supabase.auth.sign_in_with_password({ "email": email, "password": password})
-        # except Exception as e:
-        #     raise PermissionException("Cannot authenticate user in Supabase")
-        # session = supabase.auth.get_session(data['access_token'])
+            except gotrue.errors.AuthApiError as e: # The user is not logged in
+                labels = []
 
-        # Until Supabase or something else is ready
-        token = kwargs.get('token')
-        if token.get_secret_value() != os.getenv('CHATBOT_ACCESS_TOKEN', "chatchatchat"):
-            raise PermissionException("Wrong access token!!!")
+            else:
+                result = supa.table('userTypes').select('''
+                        sources
+                        '''
+                    ).in_(
+                    'user_type', user_data.user.user_metadata.get('user_types')
+                    ).execute()
+                labels = []
+                for data in result.data:
+                    labels.extend(data.get('sources'))
+        labels = list(set(labels))
+        kwargs['labels'] = labels
+        # Proceed with the original function call and pass the sources to it
         return await func(*args, **kwargs)
+
     return wrapper

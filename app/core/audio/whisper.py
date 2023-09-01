@@ -1,3 +1,8 @@
+"""
+This module contains the WhisperAudioTranscription class which is used to
+transcribe audio using OpenAI's Whisper API.
+"""
+
 import io
 import os
 import openai
@@ -6,6 +11,7 @@ from core.audio import AudioTranscriptionInterface
 from custom_exceptions import AccessException
 
 class WhisperAudioTranscription(AudioTranscriptionInterface):
+    '''Interface for audio transcription technology and its use'''
     def __init__(self, #pylint: disable=super-init-not-called
                 key:str=os.getenv("OPENAI_API_KEY"),
                 ) -> None:
@@ -17,13 +23,15 @@ class WhisperAudioTranscription(AudioTranscriptionInterface):
         self.api_object = openai
         self.api_object.api_key = key
         self.model = "whisper-1"
+        self.audio_file = None
 
-    
+
     def transcribe_audio(self, audio_data: bytes) -> str:
+        '''Generate transcription for the audio data'''
         self.audio_file = io.BytesIO()
         self.audio_file.write(audio_data)
         self.audio_file.seek(0)
         self.audio_file.name = 'recorded_audio.wav'
         transcript = openai.Audio.transcribe(self.model, self.audio_file)
-        
+
         return transcript['text']

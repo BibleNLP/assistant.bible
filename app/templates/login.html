@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Assistant.Bible</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<!-- Form-->
+
+<body>
+    <div class="container">
+        <!-- Form-->
+        <div class="row justify-content-center">
+            <div class="col-sm-6">
+                <div class="form-panel">
+                    <div class="form-header">
+                        <h1 id="form-title">Account Login</h1>
+                    </div>
+                    <div class="form-content">
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <label for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" name="loginEmail" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="loginPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Log In</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-remember">
+                                    <input type="checkbox" />Remember Me
+                                </label>
+                                <p class="form-remember">Don't have an account? <a id="signUpLink" href="#">Sign Up</a>
+                                </p>
+                                <a class="form-recovery" href="#">Forgot Password?</a>
+                            </div>
+                        </form>
+                        <form id="signupForm" style="display: none;">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="signupEmail" name="signupEmail" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="signupPassword">Password</label>
+                                <input type="password" id="signupPassword" name="signupPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Sign Up</button>
+                            </div>
+                            <div class="form-group">
+                                <p class="form-remember">Already have an account? <a id="signInLink" href="#">Sign
+                                        in</a></p>
+                            </div>
+                        </form>
+                        <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript to toggle between Sign In and Sign Up forms
+        document.getElementById("signInLink").addEventListener("click", function () {
+            var signInForm = document.getElementById("loginForm");
+            var signUpForm = document.getElementById("signupForm");
+            var formTitle = document.getElementById("form-title");
+            signInForm.style.display = "block";
+            signUpForm.style.display = "none";
+            formTitle.textContent = "Account Login";
+        });
+        document.getElementById("signUpLink").addEventListener("click", function () {
+            var signInForm = document.getElementById("loginForm");
+            var signUpForm = document.getElementById("signupForm");
+            var formTitle = document.getElementById("form-title");
+
+            signInForm.style.display = "none";
+            signUpForm.style.display = "block";
+            formTitle.textContent = "Create an Account";
+        });
+    </script>
+
+    <script>
+        // Add the event listener to handle form submission 
+        document.getElementById("loginForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const email = formData.get("loginEmail");
+        const password = formData.get("loginPassword");
+
+        try {
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                },
+                body: new URLSearchParams({ email, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                const access_token = data.access_token;
+
+                // Save the access token to localStorage
+                localStorage.setItem("accessToken", access_token);
+                // Redirect the user to the chat page
+                window.location.href = "/app";
+            } else {
+                console.log(response)
+                const data = await response.json();
+                console.log(data)
+                const errorDiv = document.getElementById("error-message");
+                errorDiv.textContent = data.detail;
+                errorDiv.style.display = "block";
+
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        }
+    });
+
+    document.getElementById("signupForm").addEventListener("submit", async function(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const formData = new FormData(form);
+
+    const email = formData.get("signupEmail");
+    const password = formData.get("signupPassword");
+
+    try {
+        const response = await fetch("/signup", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: new URLSearchParams({ email, password }),
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const access_token = data.access_token;
+
+            // Save the access token to localStorage
+            localStorage.setItem("access_token", access_token);
+
+            // Optionally redirect the user to a different page
+            window.location.href = "/app";
+        } else {
+            const errorMessage = "Sign up failed. Please try again.";
+            const errorDiv = document.getElementById("error-message");
+            errorDiv.textContent = errorMessage;
+            errorDiv.style.display = "block";        }
+    } catch (error) {
+        console.error("Error:", error);
+    }
+});
+</script>
+</body>
+</html>

@@ -1,35 +1,51 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Assistant.Bible</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
-</head>
-<body>
-	<div class="container my-3">
-		<div class="d-flex flex-column m-1 p-1 border">
-			<h1> Assistant.Bible</h1>
-			<p>
-				<a href="{{ demo_url }}">Demo1</a>
-			</p>
-			<p>
-				<a href="{{ demo_url2 }}">Demo2</a>
-			</p>
-			<p> A collaborative software development project called Assistant.Bible that will provide a modular software platform for connecting Large Language generative AI models (LLMs), machine translation, text-to-speech, speech-to-text, and text data that organizations upload as their ground truth texts. The Assistant.Bible software will enable organizations to provide a chat interface for their users, where users can ask questions and receive natural language responses based on the ground truth texts, through a chat user interface. </p>
-
-			<p> At the core of Assistant.Bible is the ability to connect to LLMs and other AI models that are trained on the ground truth texts uploaded by the organization. This enables the software to provide highly accurate and relevant responses to user queries, based on the specific context of the organization's data. With the natural language chat interface, users can easily interact with the data and gain insights that would be difficult or time-consuming to obtain otherwise. This application forms the basis for an intelligent search engine that not only provides relevant links to resources but also synthesizes and summarizes results to provide a succinct and relevant answer through an interactive interface. </p>
-
-			<h3>Usecases</h3>
-			<p>We anticipate many use cases for Christian organizations working in Bible translation and Kingdom growth. For example:
-			 <ul>
-			  <li>Bible translation resources: A chat interface for users to interact with exegetical resources to gain insights into the meaning and context of the text. This can be particularly useful for individuals and communities who prefer a more conversational style of learning.</li>
-			  <li>Evangelism and discipleship: A chat interface for users to ask questions about Christian faith and beliefs, and receive natural language responses based on the organization's understanding of Christian teachings and values. This can be a powerful tool for evangelism and discipleship, providing an accessible and engaging way for individuals to explore their faith and deepen their understanding of Scripture.</li>
-			  <li>Training and support: A chat interface for employees and volunteers to ask questions and receive natural language responses about company policies, HR guidelines, and other important information. This can improve employee understanding and compliance, reduce the workload on HR departments, and help organizations ensure that policies and guidelines are being consistently applied across the organization.</li>
-			</ul> 
-			</p>
-		</div>
-	</div>
-
-</body>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>assistant.bible: A Bible Assistant</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      h1 {
+        font-size: 4em;
+        background: linear-gradient(45deg, #0cdd2b, #64b5f6, #ffc107);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center h-screen px-2 text-white">
+    <div
+      class="container bg-white p-8 text-black transition duration-300 ease-in-out max-w-xl"
+    >
+      <a href="https://assistant.bible">
+        <h1 class="font-bold mb-4">assistant.bible</h1></a
+      >
+      <p class="text-lg mb-2">
+        An intelligent search engine for domain-specific Bible data.
+      </p>
+      <p class="text-lg mb-2">
+        Connects to LLMs and other AI models to provide accurate and relevant
+        answers.
+      </p>
+      <p class="text-lg mb-4">
+        Features a natural language chat interface for easy interaction.
+      </p>
+      <a
+        href="https://github.com/BibleNLP/assistant.bible/tree/main"
+        target="_blank"
+        class="text-blue-600 hover:underline"
+        >Open Source!</a
+      >
+      <br>
+      <a
+        href="{{ demo_url }}"
+        target="_blank"
+        class="text-blue-600 hover:underline"
+        >Try Now!</a
+      >
+    </div>
+  </body>
 </html>

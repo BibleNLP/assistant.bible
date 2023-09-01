@@ -1,0 +1,82 @@
+
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name ${CHAT_DOMAIN};
+
+    client_max_body_size 100M;
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+
+#    location /.well-known/acme-challenge/ {
+#        root /var/www/certbot;
+#    }
+    
+    location / {
+     return 301 https://${CHAT_DOMAIN}$request_uri;
+#    proxy_pass http://chatbot:8000;
+    }
+
+}
+
+
+server {
+    listen 443 default_server ssl http2;
+    listen [::]:443 ssl http2;
+
+    server_name ${CHAT_DOMAIN};
+
+    client_max_body_size 100M;
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+
+    ssl_certificate /etc/nginx/ssl/live/${CHAT_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${CHAT_DOMAIN}/privkey.pem;
+
+    location /chat {
+        proxy_pass http://chatbot:9000/chat;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+    location / {
+         # Important, make sure you always remove the trailing slash
+         proxy_pass http://chatbot:9000;    
+         proxy_set_header      X-Real-IP $remote_addr;
+         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+         proxy_set_header      Host $http_host;
+         proxy_set_header X-Forwarded-Proto $scheme;        
+    }    
+
+ }
+
+server {
+    listen 80;
+    listen [::]:80;
+    listen 443 http2;
+    listen [::]:443 http2;
+
+    server_name ${PROD_DOMAIN};
+    client_max_body_size 100M;
+
+#    location /.well-known/acme-challenge/ {
+#        root /var/www/certbot;
+#    }
+
+    proxy_read_timeout 300;
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+
+    ssl_certificate /etc/nginx/ssl/live/${PROD_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${PROD_DOMAIN}/privkey.pem;
+
+    location / {
+     return 301 https://${CHAT_DOMAIN}$request_uri;
+    }
+}
