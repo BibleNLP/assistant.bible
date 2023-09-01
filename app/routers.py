@@ -79,38 +79,14 @@ async def get_root():
 #         {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
 #         "demo_url2":f"http://{DOMAIN}/ui2", "login_url":f"http://{DOMAIN}/login"})
 
-<<<<<<< HEAD
-
-@router.get("/ui2",
-=======
 @router.get("/app",
->>>>>>> 8d5bb87db54209ab2153faeb6ce410556bcbd460
     response_class=HTMLResponse,
     responses={
         422: {"model": schema.APIErrorResponse},
         403: {"model": schema.APIErrorResponse},
         500: {"model": schema.APIErrorResponse}},
     status_code=200, tags=["UI"])
-<<<<<<< HEAD
-
-
-# @auth_check_decorator
-@router.get("/login",
-    response_class=HTMLResponse,
-    responses={
-        422: {"model": schema.APIErrorResponse},
-        403: {"model": schema.APIErrorResponse},
-        500: {"model": schema.APIErrorResponse}},
-    status_code=200, tags=["UI"])
-async def get_login(request: Request):
-    '''The development login UI'''
-    log.info("In login endpoint!!!")
-    return templates.TemplateResponse("login.html",
-        {"request": request, "ws_url": WS_URL})
-
-=======
 # @chatbot_auth_check_decorator
->>>>>>> 8d5bb87db54209ab2153faeb6ce410556bcbd460
 async def get_ui2(request: Request):
     '''The development UI using http for chat'''
     log.info("In ui endpoint!!!")
@@ -434,17 +410,6 @@ async def get_source_tags(
 
     return vectordb.get_available_labels()
 
-<<<<<<< HEAD
-@router.get('/api/get-supabase-keys', response_model=schema.SupabaseKeys)
-def get_supabase_keys():
-    supabase_url = os.environ.get('SUPABASE_URL')
-    supabase_key = os.environ.get('SUPABASE_KEY')
-
-    if not supabase_url or not supabase_key:
-        return {"supabaseUrl": "", "supabaseKey": ""}
-
-    return {"supabaseUrl": supabase_url, "supabaseKey": supabase_key}
-=======
 
 @router.post("/login")
 async def login(
@@ -504,4 +469,3 @@ async def signup(
         "message": "User signed up successfully",
         "access_token": access_token
         }
->>>>>>> 8d5bb87db54209ab2153faeb6ce410556bcbd460
