@@ -14,20 +14,62 @@
 
   <body>
     <div class="container">
-      <div class="row">
-        <div class="col-md-8 col-md-offset-2">
-          <h1 class="text-center">Assistant.Bible</h1>
-          <div class="well" id="messages"></div>
-          <form class="form-inline" id="loginForm" action="" method="post">
-            <div class="form-group">
-              <label for="loginEmail">Email</label>
-              <input
-                type="email"
-                id="loginEmail"
-                name="loginEmail"
-                required="required"
-                class="form-control"
-              />
+        <!-- Form-->
+        <div class="row justify-content-center">
+            <div class="col-sm-6">
+                <div class="form-panel">
+                    <div class="form-header">
+                        <h1 id="form-title">Account Login</h1>
+                    </div>
+                    <div class="form-content">
+                        <form id="loginForm">
+                            <div class="form-group">
+                                <label for="loginEmail">Email</label>
+                                <input type="email" id="loginEmail" name="loginEmail" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password</label>
+                                <input type="password" id="loginPassword" name="loginPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Log In</button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-remember" style="display: none">
+                                    <input type="checkbox" />Remember Me
+                                </label>
+                                <p class="form-remember">Don't have an account? <a id="signUpLink" href="#">Sign Up</a>
+                                </p>
+                                <a class="form-recovery" href="#">Forgot Password?</a>
+                            </div>
+                        </form>
+                        <form id="signupForm" style="display: none;">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="signupEmail" name="signupEmail" required="required"
+                                    class="form-control" />
+                            </div>
+                            <div class="form-group">
+                                <label for="signupPassword">Password</label>
+                                <input type="password" id="signupPassword" name="signupPassword" required="required"
+                                    class="form-control" />
+                            </div>
+
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Sign Up</button>
+                            </div>
+                            <div class="form-group">
+                                <p class="form-remember">Already have an account? <a id="signInLink" href="#">Sign
+                                        in</a></p>
+                            </div>
+                        </form>
+                        <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
+
+                    </div>
+                </div>
             </div>
             <div class="form-group">
               <label for="loginPassword">Password</label>
@@ -132,10 +174,10 @@
               const data = await response.json();
               const access_token = data.access_token;
 
-              // Save the access token to sessionStorage
-              sessionStorage.setItem('accessToken', access_token);
-              // Redirect the user to the chat page
-              window.location.href = '/app';
+                // Save the access token to sessionStorage
+                sessionStorage.setItem("accessToken", access_token);
+                // Redirect the user to the chat page
+                window.location.href = "/app";
             } else {
               console.log(response);
               const data = await response.json();
@@ -154,8 +196,8 @@
         .addEventListener('submit', async function (event) {
           event.preventDefault();
 
-          const form = event.target;
-          const formData = new FormData(form);
+            // Save the access token to sessionStorage
+            sessionStorage.setItem("accessToken", access_token);
 
           const email = formData.get('signupEmail');
           const password = formData.get('signupPassword');

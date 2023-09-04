@@ -158,36 +158,35 @@
         const encodedText = encoder.encode($('#message').val());
 
         ws.send(encodedText);
-        $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
+        $('#messages').append('<div><b>You</b>: ' + $('#message').val() + '</div>');
         $('#message').val('').focus();
-      });
+          });
 
-      function changeLabel(src) {
-        let labels = [];
-        let tyndaleOpenElement = document.getElementById('tyndale-open')
-        var endpoint = {{ ws_url|tojson }};
-        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
-        if (tyndaleOpenElement.checked==true) { endpoint += '&labels='+tyndaleOpenElement.value }
+        function changeLabel(src) {
+            let labels = [];
+            let tyndaleOpenElement = document.getElementById('tyndale-open')
+            var endpoint = {{ ws_url| tojson }};
+        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + key;
+        if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
         ws.close();
-        $('#messages').append('<div>---<b>Domain:Tyndale-Open:'+tyndaleOpenElement.checked+'</b>---</div');
+        $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
         setupWebsocket(endpoint);
-      }
+          }
     </script>
     <script>
-      document
-        .getElementById('logout')
-        .addEventListener('click', async (event) => {
-          console.log('Logging out');
-          event.preventDefault();
-          try {
-            const response = await fetch('/logout', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({}),
+        document.getElementById('logout').addEventListener('click', async (event) => {
+            console.log("Logging out");
+            event.preventDefault();
+            try {
+                const response = await fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                })
             });
-            localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('accessToken');
             const data = await response.json();
             next_url = data.next_url;
             window.location.href = next_url;
@@ -196,5 +195,77 @@
           }
         });
     </script>
-  </body>
+    <script>
+        let mediaRecorder;
+        let chunks = [];
+
+        // Check if the browser supports the required APIs
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function (stream) {
+                    const recordButton = document.getElementById("recordButton");
+                    let isRecording = false;
+
+
+                    recordButton.addEventListener("click", function () {
+
+                        if (isRecording) {
+                            // If already recording, stop the recording
+                            mediaRecorder.stop();
+                            recordButton.innerHTML = '<i class="fas fa-circle fa-sm"></i> Record';
+                        } else {
+                            // If not recording, start recording
+                            startRecording(stream);
+                            recordButton.innerHTML = '<i class="fas fa-stop-circle fa-sm"></i> Stop';
+                        }
+                        // Toggle the recording state
+                        isRecording = !isRecording;
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error accessing microphone:", error);
+                });
+        } else {
+            console.error("getUserMedia not supported on your browser");
+        }
+
+        function startRecording(stream) {
+            mediaRecorder = new MediaRecorder(stream);
+            chunks = [];
+
+            mediaRecorder.addEventListener("dataavailable", function (event) {
+
+                chunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener("stop", function () {
+
+                const audioBlob = new Blob(chunks, { type: "audio/wav" });
+                const audioFile = new File([audioBlob], "recorded_audio.wav");
+                sendToSocket(audioFile);
+
+            });
+
+            mediaRecorder.start();
+        }
+
+        function sendToSocket(audioFile) {
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const arrayBuffer = event.target.result;
+                ws.send(arrayBuffer);
+            };
+            reader.readAsArrayBuffer(audioFile);
+        }
+    </script>
+    <br><br>
+    <footer class="bg-light text-center text-lg-start">
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
+        </div>
+    </footer>
+</body>
+
 </html>
