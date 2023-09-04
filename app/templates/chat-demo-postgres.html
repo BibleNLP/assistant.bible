@@ -187,36 +187,33 @@
         let mediaRecorder;
         let chunks = [];
 
+        recordButton.addEventListener("click", function () {
         // Check if the browser supports the required APIs
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(function (stream) {
-                    const recordButton = document.getElementById("recordButton");
-                    let isRecording = false;
-
-
-                    recordButton.addEventListener("click", function () {
-
-                        if (isRecording) {
-                            // If already recording, stop the recording
-                            mediaRecorder.stop();
-                            recordButton.innerHTML = '<i class="fas fa-circle fa-sm"></i> Record';
-                        } else {
-                            // If not recording, start recording
-                            startRecording(stream);
-                            recordButton.innerHTML = '<i class="fas fa-stop-circle fa-sm"></i> Stop';
-                        }
-                        // Toggle the recording state
-                        isRecording = !isRecording;
-                    });
+          navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(function (stream) {
+                const recordButton = document.getElementById("recordButton");
+                let isRecording = false;
+                  if (isRecording) {
+                    // If already recording, stop the recording
+                    mediaRecorder.stop();
+                    recordButton.innerHTML = '<i class="fas fa-circle fa-sm"></i> Record';
+                  } else {
+                    // If not recording, start recording
+                    startRecording(stream);
+                    recordButton.innerHTML = '<i class="fas fa-stop-circle fa-sm"></i> Stop';
+                  }
+                  // Toggle the recording state
+                  isRecording = !isRecording;
                 })
                 .catch(function (error) {
-                    console.error("Error accessing microphone:", error);
+                  console.error("Error accessing microphone:", error);
                 });
-        } else {
-            console.error("getUserMedia not supported on your browser");
-        }
+              } else {
+                console.error("getUserMedia not supported on your browser");
+              }
+            });
 
         function startRecording(stream) {
             mediaRecorder = new MediaRecorder(stream);
