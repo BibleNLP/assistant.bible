@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+<<<<<<< HEAD
 
 <head>
     <title>Assistant.Bible</title>
@@ -7,6 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 
+=======
+<head>
+    <title>Assistant.Bible</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+>>>>>>> main
 <body>
     <div class="container">
         <div class="row">
@@ -69,7 +78,7 @@
         }
     </script>
     <script>
-        let label = "ESV-Bible"
+        let label = "tyndale_open"
         var endpoint = {{ ws_url| tojson }};
         endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + accessToken + '&labels=' + label;
         var ws = null;
@@ -107,8 +116,12 @@
         function changeLabel(src) {
             let labels = [];
             let tyndaleOpenElement = document.getElementById('tyndale-open')
+<<<<<<< HEAD
             var endpoint = {{ ws_url| tojson
         }};
+=======
+            var endpoint = {{ ws_url| tojson }};
+>>>>>>> main
         endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + key;
         if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
         ws.close();
