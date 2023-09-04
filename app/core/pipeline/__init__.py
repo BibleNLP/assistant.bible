@@ -1,6 +1,6 @@
 '''Pipeline classes'''
 from io import TextIOWrapper
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 import schema
 from custom_exceptions import GenericException
@@ -13,6 +13,7 @@ from core.audio import AudioTranscriptionInterface
 from core.file_processor.langchain_loader import LangchainLoader
 from core.file_processor.vanilla_loader import VanillaLoader
 from core.embedding.openai import OpenAIEmbedding
+from core.embedding.sentence_transformers import SentenceTransformerEmbedding
 from core.vectordb.chroma import Chroma
 from core.vectordb.chroma4langchain import Chroma as ChromaLC
 from core.vectordb.postgres4langchain import Postgres
@@ -26,7 +27,7 @@ class DataUploadPipeline:
 
     def __init__(self,
         file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=OpenAIEmbedding(),
+        embedding: EmbeddingInterface=SentenceTransformerEmbedding(),
         vectordb: VectordbInterface=Chroma()) -> None:
         '''Define the stack with defaults, in the constructor'''
         self.file_processor = file_processor()
@@ -46,8 +47,8 @@ class DataUploadPipeline:
 
     def set_embedding(self,
         choice:schema.EmbeddingType,
-        api_key:str=None,
-        model:str=None,
+        api_key: Optional[str]=None,
+        model: Optional[str]=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         if choice == schema.EmbeddingType.OPENAI:
@@ -57,14 +58,22 @@ class DataUploadPipeline:
             if not model is None:
                 args['model'] = model
             self.embedding = OpenAIEmbedding(**args)
+        
+        elif choice == schema.EmbeddingType.HUGGINGFACE_DEFAULT:
+            args = {}
+            if not model is None:
+                args['model'] = model
+            self.embedding = SentenceTransformerEmbedding(**args)
+        
         else:
             raise GenericException("This technology type is not supported (yet)!")
 
     def set_vectordb(self,
         choice:schema.DatabaseType,
         host_n_port:schema.HostnPortPattern=None,
-        path:str=None,
-        collection_name:str=None,
+        path: Optional[str]=None,
+        collection_name: Optional[str]=None,
+        embedding_function=SentenceTransformerEmbedding(),
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         args = {}
@@ -93,7 +102,7 @@ class ConversationPipeline(DataUploadPipeline):
         user,
         labels:List[str] = ["ESV-Bible"],
         file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=OpenAIEmbedding(),
+        embedding: EmbeddingInterface=SentenceTransformerEmbedding(),
         vectordb: VectordbInterface=Chroma(),
         llm_framework: LLMFrameworkInterface=LangchainOpenAI(),
         transcription_framework: AudioTranscriptionInterface=WhisperAudioTranscription) -> None:
@@ -110,8 +119,8 @@ class ConversationPipeline(DataUploadPipeline):
 
     def set_llm_framework(self,
         choice:schema.LLMFrameworkType,
-        api_key:str=None,
-        model_name:str=None,
+        api_key: Optional[str]=None,
+        model_name: Optional[str]=None,
         vectordb:VectordbInterface=Chroma,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
@@ -125,8 +134,8 @@ class ConversationPipeline(DataUploadPipeline):
 
     def set_transcription_framework(self,
         choice:schema.AudioTranscriptionType,
-        api_key:str=None,
-        model_name:str=None,
+        api_key: Optional[str]=None,
+        model_name: Optional[str]=None,
         **kwargs) -> None:
         '''Change the default tech with one of our choice'''
         self.transcription_framework.api_key = api_key
