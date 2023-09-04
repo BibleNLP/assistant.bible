@@ -1,114 +1,121 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Assistant.Bible</title>
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      </head>
-      <body>
-        <div class="container">
-            <div class="row">
-              <div class="col-md-1">
-        <p>
-        Search Domain: 
-    </p>
-    </div>
-    <div class="col-md-1">
-        <input type="checkbox" id="esv" name="esv" value="ESV-Bible" onchange="changeLabel(this)" checked>
-        <label for="esv">ESV Bible</label>
-    </div>
-    <div class="col-md-1">
-        <input type="checkbox" id="tw" name="tw" value="translation-words" onchange="changeLabel(this)">
-        <label for="tw">Translation Words</label>
-        </div>
+<head>
+    <title>Assistant.Bible</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
 
-        <div class="col-md-1">
-        <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
-          <button type="submit" class="btn btn-primary" id="logout" style="display: none;">Log Out</button>
-        </div>
-      </div>
-    </div>
-        <div class="container">
-          <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-              <h1 class="text-center">Chat Demo</h1>
-              <div class="well" id="messages"></div>
-              <form class="form-inline" action="" method="post">
-                <div class="form-group">
-                  <input type="text" class="form-control" id="message" name="message" autofocus>
-                </div>
-                <button type="submit" class="btn btn-primary">Send</button>
-              </form>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-1">
+                <p>
+                    Search Domain:
+                </p>
             </div>
-          </div>
-        </div>
-        <script src="//code.jquery.com/jquery-1.11.1.js"></script>
-        <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-        <script type="module">
-    
-        </script>
-        <script>
-            // Fetch Supabase keys when the page loads
-            const accessToken = localStorage.getItem('accessToken');
-            if (accessToken === null) {
-                // The user is not logged in, so render the Log In button.
-                document.querySelector('#login').style.display = 'block';
-            } else {
-                // The user is logged in, so render the Log Out button.
-                document.querySelector('#logout').style.display = 'block';
-            }
-        </script>
-        <script>
-          let label = "ESV-Bible"
-          var endpoint = {{ ws_url|tojson }};
-          endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+accessToken+'&labels='+label;
-          var ws = null;
-          setupWebsocket(endpoint);
+            <div class="col-md-1">
+                <input type="checkbox" id="tyndale-open" name="tyndale-open" value="tyndale_open"
+                    onchange="changeLabel(this)" checked>
+                <label for="tyndale-open">Tyndale Open Resources</label>
+            </div>
 
-          function setupWebsocket(endpoint) {
+            <div class="col-md-1">
+                <a href="/login" class="btn btn-primary" id="login" style="display: none;" role="button">Log In</a>
+                <button type="submit" class="btn btn-primary" id="logout" style="display: none;">Log Out</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <h1 class="text-center">Assistant.Bible</h1>
+                <div class="well" id="messages"></div>
+                <form class="form-inline" action="" method="post">
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="message" name="message" autofocus>
+                    </div>
+                    <button type="submit" class="btn btn-primary">        
+                        Send  <i class="fas fa-paper-plane fa-sm"></i> 
+                    </button>
+                </form>
+                <div class="row mt-4">
+                    <div class="col-md-12 mt-4">
+                        <button class="btn btn-primary" id="recordButton" style="margin-top: 10px;">
+                            <i class="fas fa-circle fa-sm"></i> Record
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script type="module">
+
+    </script>
+    <script>
+        // Fetch Supabase keys when the page loads
+        const accessToken = localStorage.getItem('accessToken');
+        console.log("accessToken: " + accessToken)
+        if (accessToken === null) {
+            // The user is not logged in, so render the Log In button.
+            document.querySelector('#login').style.display = 'block';
+        } else {
+            // The user is logged in, so render the Log Out button.
+            document.querySelector('#logout').style.display = 'block';
+        }
+    </script>
+    <script>
+        let label = "ESV-Bible"
+        var endpoint = {{ ws_url| tojson }};
+        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + accessToken + '&labels=' + label;
+        var ws = null;
+        setupWebsocket(endpoint);
+
+        function setupWebsocket(endpoint) {
             ws = new WebSocket(endpoint);
 
             ws.onmessage = function (event) {
-              data = JSON.parse(event.data)
-              if(data.type == "error"){
-                alert(data.message);
-              } else {
-                $('#messages').append('<div><b>' + data.sender+'</b>: '+data.message + 
-                  '<button class="btn btn-link" onclick="alert(\''+data.sources+'\');">(sources)</button>'+
-                  '</div>'
-                  );
-              }
+                data = JSON.parse(event.data)
+                if (data.type == "error") {
+                    alert(data.message);
+                } else {
+                    $('#messages').append('<div><b>' + data.sender + '</b>: ' + data.message +
+                        '<button class="btn btn-link" onclick="alert(\'' + data.sources + '\');">(sources)</button>' +
+                        '</div>'
+                    );
+                }
             };
-          }
+        }
 
-          $('form').submit(function(event) {
+        $('form').submit(function (event) {
             event.preventDefault();
-            if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
-              window.location.replace({{ site_url }}+'/login');
+            if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING) {
+                window.location.replace({{ site_url }} +'/login');
             }
-            const encoder = new TextEncoder();
-            const encodedText = encoder.encode($('#message').val());
+        const encoder = new TextEncoder();
+        const encodedText = encoder.encode($('#message').val());
 
-            ws.send(encodedText);
-            $('#messages').append('<div><b>You</b>: '+$('#message').val() + '</div>');
-            $('#message').val('').focus();
+        ws.send(encodedText);
+        $('#messages').append('<div><b>You</b>: ' + $('#message').val() + '</div>');
+        $('#message').val('').focus();
           });
 
-          function changeLabel(src) {
+        function changeLabel(src) {
             let labels = [];
-            let esvElement = document.getElementById('esv')
-            let twElement = document.getElementById('tw')
-            var endpoint = {{ ws_url|tojson }};
-            endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token='+key;
-            if (esvElement.checked==true) { endpoint += '&labels='+esvElement.value }
-            if (twElement.checked==true) { endpoint += '&labels='+twElement.value }
-            ws.close();
-            $('#messages').append('<div>---<b>Domain:ESV-Bible:'+esvElement.checked+', Translation Words:'+twElement.checked+'</b>---</div');
-            setupWebsocket(endpoint);
+            let tyndaleOpenElement = document.getElementById('tyndale-open')
+            var endpoint = {{ ws_url| tojson }};
+        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + key;
+        if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
+        ws.close();
+        $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
+        setupWebsocket(endpoint);
           }
-          </script>
-          <script>
-            document.getElementById('logout').addEventListener('click', async (event) => {
+    </script>
+    <script>
+        document.getElementById('logout').addEventListener('click', async (event) => {
             console.log("Logging out");
             event.preventDefault();
             try {
@@ -129,13 +136,78 @@
                 console.error('Error:', error);
             }
         });
-        </script>
-      <br><br>
-      <footer class="bg-light text-center text-lg-start">
+    </script>
+    <script>
+        let mediaRecorder;
+        let chunks = [];
+
+        // Check if the browser supports the required APIs
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(function (stream) {
+                    const recordButton = document.getElementById("recordButton");
+                    let isRecording = false;
+
+
+                    recordButton.addEventListener("click", function () {
+
+                        if (isRecording) {
+                            // If already recording, stop the recording
+                            mediaRecorder.stop();
+                            recordButton.innerHTML = '<i class="fas fa-circle fa-sm"></i> Record';
+                        } else {
+                            // If not recording, start recording
+                            startRecording(stream);
+                            recordButton.innerHTML = '<i class="fas fa-stop-circle fa-sm"></i> Stop';
+                        }
+                        // Toggle the recording state
+                        isRecording = !isRecording;
+                    });
+                })
+                .catch(function (error) {
+                    console.error("Error accessing microphone:", error);
+                });
+        } else {
+            console.error("getUserMedia not supported on your browser");
+        }
+
+        function startRecording(stream) {
+            mediaRecorder = new MediaRecorder(stream);
+            chunks = [];
+
+            mediaRecorder.addEventListener("dataavailable", function (event) {
+
+                chunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener("stop", function () {
+
+                const audioBlob = new Blob(chunks, { type: "audio/wav" });
+                const audioFile = new File([audioBlob], "recorded_audio.wav");
+                sendToSocket(audioFile);
+
+            });
+
+            mediaRecorder.start();
+        }
+
+        function sendToSocket(audioFile) {
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                const arrayBuffer = event.target.result;
+                ws.send(arrayBuffer);
+            };
+            reader.readAsArrayBuffer(audioFile);
+        }
+    </script>
+    <br><br>
+    <footer class="bg-light text-center text-lg-start">
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-          Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
+            Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
         </div>
-      </footer>
-      </body>
-      
+    </footer>
+</body>
+
 </html>
