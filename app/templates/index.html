@@ -7,6 +7,13 @@
       href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+      integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <style>
       h1 {
         font-size: 4em;
@@ -24,25 +31,54 @@
         <h1 class="font-bold mb-4">assistant.bible</h1></a
       >
       <p class="text-lg mb-2">
-        An intelligent search engine for domain-specific Bible data.
+        Access specialized Bible data intuitively through natural language.
       </p>
       <p class="text-lg mb-2">
-        Connects to LLMs and other AI models to provide accurate and relevant
-        answers.
+        Utilize AI and LLMs for accurate and relevant Bible insights.
       </p>
       <p class="text-lg mb-4">
-        Features a natural language chat interface for easy interaction.
+        Interact easily with our natural language chat interface.
       </p>
-      <a
-        href="https://github.com/BibleNLP/assistant.bible/tree/main"
-        target="_blank"
-        class="text-blue-600 hover:underline"
-        >Open Source!</a
-      >
-      <br />
-      <a href="{{ demo_url }}" class="text-blue-600 hover:underline"
-        >Try Now!</a
-      >
+
+      <div class="flex flex-row gap-2">
+        <a
+          href="{{ demo_url }}"
+          class="bg-blue-500 text-white px-4 py-2 rounded ml-2"
+        >
+          <i class="fas fa-play-circle"></i> Try Now!
+        </a>
+        <a
+          href="https://github.com/BibleNLP/assistant.bible/tree/main"
+          target="_blank"
+          class="bg-blue-500 text-white px-4 py-2 rounded ml-2"
+        >
+          <i class="fas fa-code-branch"></i> Open Source!
+        </a>
+      </div>
+      <p class="text-sm mt-8">
+        A collaboration between
+        <a
+          href="https://www.sil.org"
+          target="_blank"
+          class="text-blue-600 hover:underline"
+        >
+          SIL </a
+        >,
+        <a
+          href="https://bridgeconn.com"
+          target="_blank"
+          class="text-blue-600 hover:underline"
+        >
+          BCS </a
+        >, and
+        <a
+          href="https://www.biblica.com/clear/"
+          target="_blank"
+          class="text-blue-600 hover:underline"
+        >
+          Biblica's Clear project
+        </a>
+      </p>
     </div>
   </body>
 </html>
