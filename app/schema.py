@@ -95,7 +95,7 @@ class ChatPipelineSelector(BaseModel):
                             "One collection should use single embedding type for all docs")
     dbUser:str = Field(None, desc="Creds to connect to the server or remote db")
     dbPassword:SecretStr = Field(None, desc="Creds to connect to the server or remote db")
-    embeddingType:EmbeddingType = Field(None,
+    embeddingType:EmbeddingType = Field(EmbeddingType.HUGGINGFACE_DEFAULT,
                     desc="EmbeddingType used for storing and searching documents in vectordb")
     embeddingApiKey: str = Field(None,
                     desc="If using a cloud service, like OpenAI, the key obtained from them")
