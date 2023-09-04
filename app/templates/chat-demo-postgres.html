@@ -68,7 +68,7 @@
         }
     </script>
     <script>
-        let label = "ESV-Bible"
+        let label = "tyndale_open"
         var endpoint = {{ ws_url| tojson }};
         endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&embeddingType=OpenAI&token=' + accessToken + '&labels=' + label;
         var ws = null;
