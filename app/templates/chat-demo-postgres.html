@@ -78,7 +78,7 @@
         <form class="flex mt-4">
           <input
             type="text"
-            class="form-control flex-grow p-2 rounded-l"
+            class="form-control flex-grow p-2 rounded-l border"
             id="message"
             name="message"
             autofocus
@@ -92,25 +92,6 @@
         </form>
       </div>
     </main>
-    <footer class="bg-gray-300 text-center p-3 mt-4">
-      <div class="text-center">
-        <ul class="flex flex-row justify-center items-center px-1 gap-2">
-          <li>
-            <i class="fas fa-tools"></i> Technology Stack:
-          </li>
-          <li>
-            <i class="fas fa-brain"></i> gpt-3.5-turbo (OpenAI)
-          </li>
-          <li><i class="fas fa-database"></i> Postgres</li>
-          <li>
-            <i class="fas fa-border-all"></i> LangChain
-          </li>
-          <li>
-            <i class="fas fa-search"></i> Embeddings: ada (OpenAI)
-          </li>
-        </ul>
-      </div>
-    </footer>
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -261,11 +242,24 @@
         }
     </script>
     <br><br>
-    <footer class="bg-light text-center text-lg-start">
-        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-            Technology stack: LLM=gpt-3.5-turbo(OpenAI), Database=Postgres, Framework=LangChain, Embeddings=ada(OpenAI)
-        </div>
+    <footer class="bg-gray-300 text-center p-3 mt-4">
+      <div class="text-center">
+        <ul class="flex flex-row justify-center items-center px-1 gap-2">
+          <li>
+            <i class="fas fa-tools"></i> Technology Stack:
+          </li>
+          <li>
+            <i class="fas fa-brain"></i> gpt-3.5-turbo (OpenAI)
+          </li>
+          <li><i class="fas fa-database"></i> Postgres</li>
+          <li>
+            <i class="fas fa-border-all"></i> LangChain
+          </li>
+          <li>
+            <i class="fas fa-search"></i> Embeddings: ada (OpenAI)
+          </li>
+        </ul>
+      </div>
     </footer>
 </body>
-
 </html>
