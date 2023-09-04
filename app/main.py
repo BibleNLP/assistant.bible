@@ -6,6 +6,7 @@ import time
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from core.embedding.sentence_transformers import SentenceTransformerEmbedding
 
 from log_configs import log
 import routers
@@ -29,6 +30,7 @@ DB_COLLECTION = None
 async def startup_event():
     '''Any setup we need on start up'''
     log.info("App is starting...")
+    SentenceTransformerEmbedding() # instantiate once to download the model
 
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
