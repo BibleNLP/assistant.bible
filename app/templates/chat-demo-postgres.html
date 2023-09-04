@@ -57,7 +57,7 @@
     </script>
     <script>
         // Fetch Supabase keys when the page loads
-        const accessToken = localStorage.getItem('accessToken');
+        const accessToken = sessionStorage.getItem('accessToken');
         console.log("accessToken: " + accessToken)
         if (accessToken === null) {
             // The user is not logged in, so render the Log In button.
@@ -127,7 +127,7 @@
                 body: JSON.stringify({
                 })
             });
-            localStorage.removeItem('accessToken');
+            sessionStorage.removeItem('accessToken');
             const data = await response.json();
             next_url = data.next_url;
             window.location.href = next_url;
