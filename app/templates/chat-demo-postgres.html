@@ -114,29 +114,24 @@
         }
     </script>
     <script>
-        let label = "tyndale_open"
-        var endpoint = {{ ws_url| tojson }};
-        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
-        var ws = 
-        setupWebsocket(endpoint);
-
-        function setupWebsocket(endpoint) {
-            ws = new WebSocket(endpoint);
-
-        ws.onmessage = function (event) {
-          data = JSON.parse(event.data)
-          if(data.type == "error"){
-            alert(data.message);
-          } else {
-            let sourcesButton = '';
-            if(data.sources.length > 1) {
-              sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
-            }
-            $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
+      let label = "tyndale_open"
+      var endpoint = {{ ws_url| tojson }};
+      endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
+      var ws = new WebSocket(endpoint);
+      
+      ws.onmessage = function (event) {
+        data = JSON.parse(event.data)
+        if(data.type == "error"){
+          alert(data.message);
+        } else {
+          let sourcesButton = '';
+          if(data.sources.length > 1) {
+            sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
           }
-        };
-      }
-
+          $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
+        }
+      };
+      
       $('form').submit(function(event) {
         event.preventDefault();
         if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
