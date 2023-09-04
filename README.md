@@ -18,8 +18,9 @@ An intelligent search engine for domain specific data, that not only provides re
 
 ## Build and Run using Docker
 
-1. `cd docker/`
-1. `docker build -t assistant.bible .`
+1. `git pull`
+2. `cd deployment/`
+1. `docker build -t assistant.bible .` --or using docker compose, you can run `docker compose --env-file .env up --build -d`
 1. 
 	```
 	docker run \
