@@ -23,6 +23,7 @@ from core.pipeline import ConversationPipeline, DataUploadPipeline
 from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
+from core.embedding.sentence_transformers import SentenceTransformerEmbedding
 from custom_exceptions import PermissionException, GenericException
 from core.auth.supabase import supa
 
@@ -167,6 +168,11 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     if settings.embeddingType:
         if settings.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args['embedding'] = OpenAIEmbedding()
+            
+        else:
+            vectordb_args['embedding'] = SentenceTransformerEmbedding() # FIXME: should have a default instantiation using schema.EmbeddingType.DEFAULT ?
+        
+        
     chat_stack.set_vectordb(settings.vectordbType,**vectordb_args)
     llm_args = {}
     if settings.llmApiKey:
@@ -292,7 +298,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OPENAI
+        embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
