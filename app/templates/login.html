@@ -114,8 +114,8 @@
                 const data = await response.json();
                 const access_token = data.access_token;
 
-                // Save the access token to localStorage
-                localStorage.setItem("accessToken", access_token);
+                // Save the access token to sessionStorage
+                sessionStorage.setItem("accessToken", access_token);
                 // Redirect the user to the chat page
                 window.location.href = "/app";
             } else {
@@ -154,8 +154,8 @@
             const data = await response.json();
             const access_token = data.access_token;
 
-            // Save the access token to localStorage
-            localStorage.setItem("access_token", access_token);
+            // Save the access token to sessionStorage
+            sessionStorage.setItem("accessToken", access_token);
 
             // Optionally redirect the user to a different page
             window.location.href = "/app";

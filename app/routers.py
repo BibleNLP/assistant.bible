@@ -453,7 +453,7 @@ async def signup(
     ):
     """Signs up a new user"""
     try:
-        access_token = supa.auth.sign_up({
+        data = supa.auth.sign_up({
             "email": email, 
             "password": password,
             "options": {
@@ -464,6 +464,8 @@ async def signup(
             })
     except gotrue.errors.AuthApiError as e:
         raise PermissionException("Unauthorized access. Invalid token.") from e
+
+    access_token = data.session.access_token
 
     return {
         "message": "User signed up successfully",
