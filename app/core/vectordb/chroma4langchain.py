@@ -4,6 +4,7 @@ from typing import List
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
 from core.vectordb import VectordbInterface
+from core.embedding.sentence_transformers import SentenceTransformerEmbedding
 import schema
 from custom_exceptions import ChromaException
 
@@ -20,6 +21,7 @@ class Chroma(VectordbInterface, BaseRetriever):
     collection_name:str = "aDotBCollection"  # Collection to connect to a remote/local DB
     db_conn=None
     db_client=None
+    embedding_function=None
     def __init__(self, host=None, port=None, path="chromadb_store", collection_name=None) -> None: #pylint: disable=super-init-not-called
         '''Instanciate a chroma client'''
         if host:
@@ -59,9 +61,12 @@ class Chroma(VectordbInterface, BaseRetriever):
             except Exception as exe:
                 raise ChromaException("While initializing client: "+str(exe)) from exe
         try:
+            # Check for passed embedding function, or use schema.EmbeddingType.DEFAULT
+            if not self.embedding_function:
+                embedding_function = SentenceTransformerEmbedding().get_embeddings
             self.db_conn = chroma_client.get_or_create_collection(
                 name=self.collection_name,
-                # embedding_function=custom_openai_emb_fn,
+                embedding_function=embedding_function,
                 )
             self.db_client = chroma_client
         except Exception as exe:
