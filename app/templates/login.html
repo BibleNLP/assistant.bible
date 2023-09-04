@@ -3,127 +3,164 @@
   <head>
     <title>Assistant.Bible</title>
     <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
       rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
     />
   </head>
+  <head>
+    <meta charset="UTF-8" />
+    <title>assistant.bible: A Bible Assistant</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.15/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      h1 {
+        font-size: 4em;
+        background: linear-gradient(45deg, #0cdd2b, #64b5f6, #ffc107);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 2em;
+        }
+      }
+      @media (max-width: 1400px) {
+        h1 {
+          font-size: 2em;
+        }
+      }
+    </style>
+  </head>
 
-  <body>
-    <div class="container">
-        <!-- Form-->
-        <div class="row justify-content-center">
-            <div class="col-sm-6">
-                <div class="form-panel">
-                    <div class="form-header">
-                        <h1 id="form-title">Account Login</h1>
-                    </div>
-                    <div class="form-content">
-                        <form id="loginForm">
-                            <div class="form-group">
-                                <label for="loginEmail">Email</label>
-                                <input type="email" id="loginEmail" name="loginEmail" required="required"
-                                    class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label for="loginPassword">Password</label>
-                                <input type="password" id="loginPassword" name="loginPassword" required="required"
-                                    class="form-control" />
-                            </div>
-
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Log In</button>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-remember" style="display: none">
-                                    <input type="checkbox" />Remember Me
-                                </label>
-                                <p class="form-remember">Don't have an account? <a id="signUpLink" href="#">Sign Up</a>
-                                </p>
-                                <a class="form-recovery" href="#">Forgot Password?</a>
-                            </div>
-                        </form>
-                        <form id="signupForm" style="display: none;">
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="signupEmail" name="signupEmail" required="required"
-                                    class="form-control" />
-                            </div>
-                            <div class="form-group">
-                                <label for="signupPassword">Password</label>
-                                <input type="password" id="signupPassword" name="signupPassword" required="required"
-                                    class="form-control" />
-                            </div>
-
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary">Sign Up</button>
-                            </div>
-                            <div class="form-group">
-                                <p class="form-remember">Already have an account? <a id="signInLink" href="#">Sign
-                                        in</a></p>
-                            </div>
-                        </form>
-                        <div id="error-message" class="alert alert-danger mt-3" style="display: none;"></div>
-
-                    </div>
-                </div>
-            </div>
-            <div class="form-group">
-              <label for="loginPassword">Password</label>
-              <input
-                type="password"
-                id="loginPassword"
-                name="loginPassword"
-                required="required"
-                class="form-control"
-              />
-            </div>
-            <button type="submit" class="btn btn-primary">Log In</button>
-          </form>
-          <div
-            id="error-message"
-            class="alert alert-danger mt-3"
-            style="display: none"
-          ></div>
-          <form
-            class="form-inline"
-            id="signupForm"
-            action=""
-            method="post"
-            style="display: none"
-          >
-            <div class="form-group">
-              <label for="signupEmail">Email</label>
-              <input
-                type="email"
-                id="signupEmail"
-                name="signupEmail"
-                required="required"
-                class="form-control"
-              />
-            </div>
-            <div class="form-group">
-              <label for="signupPassword">Password</label>
-              <input
-                type="password"
-                id="signupPassword"
-                name="signupPassword"
-                required="required"
-                class="form-control"
-              />
-            </div>
-            <button type="submit" class="btn btn-primary">Sign Up</button>
-          </form>
+  <body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+      <div class="flex flex-col md:flex-row justify-center">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full md:w-1/2 sm:2/3">
+          <div class="text-center">
+            <header class="px-2 text-white">
+              <div
+                class="container bg-white p-8 text-black transition duration-300 ease-in-out max-w-xl"
+              >
+                <a href="https://assistant.bible">
+                  <h1 class="font-bold mb-4 text-2xl lg:text-8xl md:text-4xl">
+                    assistant.bible
+                  </h1></a
+                >
+                <p class="text-lg mb-2">
+                  An intelligent search engine for domain-specific Bible data.
+                </p>
+              </div>
+            </header>
+            <h2 id="form-title" class="text-2xl font-semibold text-gray-700">
+              Account Login
+            </h2>
+          </div>
+          <div class="mt-4">
+            <form id="loginForm">
+              <div class="mb-4">
+                <label
+                  for="loginEmail"
+                  class="block text-sm font-medium text-gray-600"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="loginEmail"
+                  name="loginEmail"
+                  required
+                  class="mt-1 p-2 w-full rounded-md border"
+                />
+              </div>
+              <div class="mb-4">
+                <label
+                  for="loginPassword"
+                  class="block text-sm font-medium text-gray-600"
+                  >Password</label
+                >
+                <input
+                  type="password"
+                  id="loginPassword"
+                  name="loginPassword"
+                  required
+                  class="mt-1 p-2 w-full rounded-md border"
+                />
+              </div>
+              <div class="mb-4">
+                <button
+                  type="submit"
+                  class="btn btn-primary bg-blue-500 text-white p-2 rounded"
+                >
+                  Log In
+                </button>
+              </div>
+              <div class="text-sm">
+                <label class="form-remember hidden">
+                  <input type="checkbox" class="mr-1" />Remember Me
+                </label>
+                <p class="form-remember">
+                  Don't have an account?
+                  <a id="signUpLink" href="#" class="text-blue-500">Sign Up</a>
+                </p>
+                <a class="form-recovery text-blue-500" href="#"
+                  >Forgot Password?</a
+                >
+              </div>
+            </form>
+            <form id="signupForm" class="hidden">
+              <div class="mb-4">
+                <label
+                  for="signupEmail"
+                  class="block text-sm font-medium text-gray-600"
+                  >Email</label
+                >
+                <input
+                  type="email"
+                  id="signupEmail"
+                  name="signupEmail"
+                  required
+                  class="mt-1 p-2 w-full rounded-md border"
+                />
+              </div>
+              <div class="mb-4">
+                <label
+                  for="signupPassword"
+                  class="block text-sm font-medium text-gray-600"
+                  >Password</label
+                >
+                <input
+                  type="password"
+                  id="signupPassword"
+                  name="signupPassword"
+                  required
+                  class="mt-1 p-2 w-full rounded-md border"
+                />
+              </div>
+              <div class="mb-4">
+                <button
+                  type="submit"
+                  class="btn btn-primary bg-blue-500 text-white p-2 rounded"
+                >
+                  Sign Up
+                </button>
+              </div>
+              <div class="text-sm">
+                <p class="form-remember">
+                  Already have an account?
+                  <a id="signInLink" href="#" class="text-blue-500">Sign in</a>
+                </p>
+              </div>
+            </form>
+            <div
+              id="error-message"
+              class="alert alert-danger mt-3 hidden text-red-500"
+            ></div>
+          </div>
         </div>
       </div>
     </div>
-    <script src="//code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script type="module">
+    <script>
       // JavaScript to toggle between Sign In and Sign Up forms
       document
         .getElementById('signInLink')
@@ -174,10 +211,10 @@
               const data = await response.json();
               const access_token = data.access_token;
 
-                // Save the access token to sessionStorage
-                sessionStorage.setItem("accessToken", access_token);
-                // Redirect the user to the chat page
-                window.location.href = "/app";
+              // Save the access token to sessionStorage
+              sessionStorage.setItem('accessToken', access_token);
+              // Redirect the user to the chat page
+              window.location.href = '/app';
             } else {
               console.log(response);
               const data = await response.json();
@@ -196,8 +233,8 @@
         .addEventListener('submit', async function (event) {
           event.preventDefault();
 
-            // Save the access token to sessionStorage
-            sessionStorage.setItem("accessToken", access_token);
+          const form = event.target;
+          const formData = new FormData(form);
 
           const email = formData.get('signupEmail');
           const password = formData.get('signupPassword');
