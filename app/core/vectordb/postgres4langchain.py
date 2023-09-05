@@ -1,10 +1,12 @@
 '''Implemetations for vectordb interface for postgres with vector store'''
 import math
 import os
-from typing import List
+from typing import List, Optional
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
+from pydantic import Field
 from core.vectordb import VectordbInterface
+from core.embedding import EmbeddingInterface
 import schema
 from custom_exceptions import PostgresException, GenericException
 import numpy as np
@@ -20,17 +22,27 @@ QUERY_LIMIT = os.getenv('POSTGRES_DB_QUERY_LIMIT', "10")
 class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-instance-attributes
     '''Interface for vector database technology, its connection, configs and operations'''
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
-    db_port: str = os.environ.get("POSTGRES_DB_PORT", 5432)
-    db_path: str = None # Path for a local DB, if that is being used
+    db_port: str = os.environ.get("POSTGRES_DB_PORT", "5432")
+    db_path: Optional[str] = None # Path for a local DB, if that is being used
     collection_name:str = os.environ.get("POSTGRES_DB_NAME", "adotbcollection")
     db_user=os.environ.get("POSTGRES_DB_USER", "postgres")
-    db_password =os.environ.get("POSTGRES_DB_PASSWORD", "secret")
+    db_password=os.environ.get("POSTGRES_DB_PASSWORD", "secret")
+    embedding: EmbeddingInterface = None
     db_client=None
-    def __init__(self, host=None, port=None, path=None, collection_name=None, #pylint: disable=super-init-not-called
+    def __init__(self, 
+                 embedding: EmbeddingInterface = None, 
+                 host=None, 
+                 port=None, 
+                 path=None, 
+                 collection_name=None, 
+                 #pylint: disable=super-init-not-called
     **kwargs) -> None: #pylint: disable=super-init-not-called
-        '''Instanciate a chroma client'''
-        self.embedding = kwargs.get("embedding")
-        self.labels = kwargs.get("labels",["ESV-Bible"])
+        '''Instantiate a chroma client'''
+        # You MUST set embedding with PGVector, since with this DB type the embedding dimension size always hard-coded on init
+        if embedding is None:
+            raise ValueError("You MUST set embedding with PGVector, since with this DB type the embedding dimension size always hard-coded on init")
+        self.embedding = embedding
+        self.labels = kwargs.get("labels",["tyndale_open"])
         self.query_limit = kwargs.get("query_limit", QUERY_LIMIT)
         if host:
             self.db_host = host
@@ -56,9 +68,18 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
 
             # Register the vector type with psycopg2
             register_vector(self.db_conn)
+            
+            if self.embedding:
+                test_doc = schema.Document(docId="test", text="test")
+                self.embedding.get_embeddings([test_doc])
+                embedding_vector_size = len(test_doc.embedding)
+                log.info("Using PGVector embedding dimension size: %s", embedding_vector_size)
+            else: 
+                embedding_vector_size = schema.EmbeddingDimensionSize.HUGGINGFACE_DEFAULT
+                log.info("Using PGVector embedding dimension size: %s", embedding_vector_size)
 
             # Create table to store embeddings and metadata
-            table_create_command = """
+            table_create_command = f"""
             CREATE TABLE IF NOT EXISTS embeddings (
                         id bigserial primary key,
                         source_id text unique,
@@ -66,7 +87,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
                         label text,
                         media text,
                         links text,
-                        embedding vector(1536),
+                        embedding vector({embedding_vector_size}),
                         metadata jsonb
                         );
                         """
@@ -81,8 +102,16 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
         '''Loads the document object as per chroma DB formats into the collection'''
         data_list = []
         for doc in docs:
-            data_list.append(
-                [doc.docId, doc.text, doc.label, doc.media, doc.links, doc.embedding])
+            cur = self.db_conn.cursor()
+            cur.execute("SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
+            doc_id_already_exists = cur.fetchone()
+            if not doc_id_already_exists:
+                data_list.append([doc.docId, doc.text, doc.label, doc.media, doc.links, doc.embedding])
+            else:
+                # Update instead of add
+                cur.execute("UPDATE embeddings SET document = %s, label = %s, media = %s, links = %s, embedding = %s WHERE source_id = %s",
+                    (doc.text, doc.label, doc.media, doc.links, doc.embedding, doc.docId))
+            cur.close()
         try:
             cur = self.db_conn.cursor()
             execute_values(cur,
