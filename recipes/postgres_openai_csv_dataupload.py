@@ -15,20 +15,22 @@ import sys
 sys.path.append('../app')
 
 from core.pipeline import DataUploadPipeline
+from core.vectordb.postgres4langchain import Postgres
+from core.embedding.openai import OpenAIEmbedding
 import schema
 
 ######## Configure the pipeline's tech stack ############
-data_stack = DataUploadPipeline()
-data_stack.set_embedding(
-    schema.EmbeddingType.OPENAI,
-    api_key=os.getenv('OPENAI_API_KEY'),
-    model='text-embedding-ada-002')
-data_stack.set_vectordb(schema.DatabaseType.POSTGRES,
-    host_n_port="localhost:5435",              # change if your port is different
-    collection_name='aDotBCollection_fromTSV'.lower(), # change if you db name is different
-    user='postgres',
-    password="password")
-
+data_stack = DataUploadPipeline(
+    vectordb=Postgres(
+        host_n_port="localhost:5435",       # change if your port is different
+        collection_name='adotbcollection',  # change if you db name is different
+        user='admin',
+        password="secret",
+        embedding=OpenAIEmbedding(
+            api_key=os.getenv('OPENAI_API_KEY'),
+            model='text-embedding-ada-002')
+        ),   
+)
 
 ######## File Processor #############
 INPUTFILE = "./data/dataupload.tsv"

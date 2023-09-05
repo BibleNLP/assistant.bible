@@ -31,4 +31,8 @@ class VectordbInterface(ABC):
     def get_available_labels(self) -> List[str]:
         '''Query DB and find out the list of labels available in metadata,
         to be used for later filtering'''
+        
+    def get(self, **kwargs) -> List:
+        '''Return properties of the DB'''
+        return self.db_conn.get(**kwargs)
     
