@@ -71,8 +71,7 @@
         let label = "tyndale_open"
         var endpoint = {{ ws_url| tojson }};
         endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
-        var ws = 
-        setupWebsocket(endpoint);
+        var ws = setupWebsocket(endpoint);
 
         function setupWebsocket(endpoint) {
             ws = new WebSocket(endpoint);
@@ -88,6 +87,7 @@
                     );
                 }
             };
+            return ws;
         }
 
         $('form').submit(function (event) {
