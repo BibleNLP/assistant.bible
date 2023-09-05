@@ -86,6 +86,7 @@
           <button
             type="submit"
             class="bg-blue-500 text-white px-4 py-2 rounded-r ml-3"
+            id="sendButton"
           >
             Send
           </button>
@@ -117,23 +118,28 @@
       let label = "tyndale_open"
       var endpoint = {{ ws_url| tojson }};
       endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
-      var ws = new WebSocket(endpoint);
-      
-      ws.onmessage = function (event) {
-        data = JSON.parse(event.data)
-        if(data.type == "error"){
-          alert(data.message);
-        } else {
-          let sourcesButton = '';
-          if(data.sources.length > 1) {
-            sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
-          }
-          $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
-        }
-      };
+      function setupWebsocket(endpoint){
+        var ws = new WebSocket(endpoint);
+        
+        ws.onmessage = function (event) {
+            data = JSON.parse(event.data)
+            if(data.type == "error"){
+            alert(data.message);
+            } else {
+            let sourcesButton = '';
+            if(data.sources.length > 1) {
+                sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
+            }
+            $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
+            }
+        };
+        return ws
+        }   
+        ws = setupWebsocket(endpoint);
       
       $('form').submit(function(event) {
         event.preventDefault();
+        if (event.originalEvent.submitter.id === 'sendButton') {
         if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
           window.location.replace({{ site_url }}+'/login');
         }
@@ -141,20 +147,22 @@
         const encodedText = encoder.encode($('#message').val());
 
         ws.send(encodedText);
-        $('#messages').append('<div class="font-bold">You</div><div>: ' + $('#message').val() + '</div>');
+        $('#messages').append('<div class="font-bold">You:</div><div>' + $('#message').val() + '</div>');
         $('#message').val('').focus();
-          });
+          };
+        });
 
         function changeLabel(src) {
             let labels = [];
             let tyndaleOpenElement = document.getElementById('tyndale-open')
             var endpoint = {{ ws_url| tojson }};
-        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + key;
+        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken;
         if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
         ws.close();
         $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
-        setupWebsocket(endpoint);
-          }
+        console.log("endpoint: " + endpoint)
+
+        ws = setupWebsocket(endpoint);          }
     </script>
     <script>
         document.getElementById('logout').addEventListener('click', async (event) => {
@@ -181,6 +189,7 @@
     <script>
         let mediaRecorder;
         let chunks = [];
+        let isRecording = false;
 
         recordButton.addEventListener("click", function () {
         // Check if the browser supports the required APIs
@@ -189,7 +198,6 @@
           navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function (stream) {
                 const recordButton = document.getElementById("recordButton");
-                let isRecording = false;
                   if (isRecording) {
                     // If already recording, stop the recording
                     mediaRecorder.stop();
