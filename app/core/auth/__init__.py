@@ -58,7 +58,7 @@ def chatbot_auth_check_decorator(func):
         except gotrue.errors.AuthApiError as e:
             await websocket.accept()
             json_response = schema.BotResponse(sender=schema.SenderType.BOT,
-                    message='Please sign in first, and then I will look forward to answering your question.', type=schema.ChatResponseType.ANSWER,
+                    message='Please sign in first. I look forward to answering your questions.', type=schema.ChatResponseType.ANSWER,
                     sources=[],
                     media=[])
             await websocket.send_json(json_response.dict())
