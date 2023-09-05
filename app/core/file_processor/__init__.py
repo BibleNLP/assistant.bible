@@ -32,7 +32,6 @@ class FileProcessorInterface:
         with open(file, 'r', encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile, delimiter=col_delimiter)
             for row in reader:
-                print(row)
                 if row['links'] is None or row['links'].strip() == "":
                     links = []
                 else:
