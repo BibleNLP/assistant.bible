@@ -263,10 +263,10 @@ async def upload_sentences(
         embedding_type=schema.EmbeddingType.OPENAI
     if embedding_type:
         data_stack.set_embedding(embedding_type)
-        # This may have to be a background job!!!
+        # FIXME: This may have to be a background job!!!
         data_stack.embedding.get_embeddings(doc_list=document_objs)
 
-    # This may have to be a background job!!!
+    # FIXME: This may have to be a background job!!!
     data_stack.vectordb.add_to_collection(docs=document_objs)
     return {"message": "Documents added to DB"}
 
@@ -305,7 +305,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
         tfp.write(file_obj.file.read().decode("utf-8"))
 
-    # This may have to be a background job!!!
+    # FIXME: This may have to be a background job!!!
     docs = data_stack.file_processor.process_file(
         file=f"{UPLOAD_PATH}{file_obj.filename}",
         file_type=schema.FileType.TEXT,
@@ -314,7 +314,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         )
     if embedding_type:
         data_stack.set_embedding(embedding_type)
-        # This may have to be a background job!!!
+        # FIXME: This may have to be a background job!!!
         data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
@@ -346,14 +346,14 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OPENAI
+        embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
         tfp.write(file_obj.file.read().decode("utf-8"))
 
-    # This may have to be a background job!!!
+    # FIXME: This may have to be a background job!!!
     if col_delimiter==schema.CsvColDelimiter.COMMA:
         col_delimiter=","
     elif col_delimiter==schema.CsvColDelimiter.TAB:
@@ -365,7 +365,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
         )
     if embedding_type:
         data_stack.set_embedding(embedding_type)
-        # This may have to be a background job!!!
+        # FIXME: This may have to be a background job!!!
         data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
