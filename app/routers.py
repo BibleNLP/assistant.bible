@@ -24,7 +24,7 @@ from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
 from core.embedding.sentence_transformers import SentenceTransformerEmbedding
-from custom_exceptions import PermissionException, GenericException
+from custom_exceptions import PermissionException, GenericException, ChatErrorResponse
 from core.auth.supabase import supa
 
 router = APIRouter()
@@ -220,7 +220,14 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     sources=[item.metadata['source'] for item in bot_response['source_documents']],
                     media=[])
             await websocket.send_json(start_resp.dict())
-
+        except ChatErrorResponse as exe:
+            resp = schema.BotResponse(
+                sender=schema.SenderType.BOT,
+                message="Sorry, I am unable to answer that. "+exe.detail,
+                type=schema.ChatResponseType.ERROR,
+            )
+            await websocket.send_json(resp.dict())
+            break
         except WebSocketDisconnect:
             if isinstance(chat_stack.vectordb, Chroma):
                 chat_stack.vectordb.db_client.persist()

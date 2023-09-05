@@ -8,7 +8,7 @@ from pydantic import Field
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
-from custom_exceptions import PostgresException, GenericException
+from custom_exceptions import PostgresException, GenericException, ChatErrorResponse
 import numpy as np
 
 import psycopg2
@@ -152,6 +152,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
         except Exception as exe:
             log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
+        if len(records) == 0:
+            raise ChatErrorResponse("No matching content found")
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
 
@@ -174,6 +176,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
         except Exception as exe:
             log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
+        if len(records) == 0:
+            raise ChatErrorResponse("No matching content found")
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
 
