@@ -293,12 +293,24 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     * Keeps other details, sourceTag, link, and media as metadata in vector store
     * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
-    data_stack = DataUploadPipeline()
-    data_stack.set_file_processor(file_processor_type)
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
-    data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
         embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
+    if vectordb_type == schema.DatabaseType.POSTGRES:
+        log.info("Because the db is Postgres, and embedding dimension size must be hard-coded, setting embedding type to %s", embedding_type)
+        vectordb_args['embedding'] = SentenceTransformerEmbedding()
+        data_stack = DataUploadPipeline(
+            vectordb=Postgres(
+                embedding=OpenAIEmbedding(
+                    api_key=os.getenv('OPENAI_API_KEY'),
+                    model='text-embedding-ada-002')
+                ),
+        )
+    else:
+        data_stack = DataUploadPipeline()
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+        
+    data_stack.set_file_processor(file_processor_type)
 
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
@@ -342,12 +354,22 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     * Keeps other details, sourceTag, link, and media as metadata in vector store
     * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
-    data_stack = DataUploadPipeline()
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
-    data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
         embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
-
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
+    if vectordb_type == schema.DatabaseType.POSTGRES:
+        log.info("Because the db is Postgres, and embedding dimension size must be hard-coded, setting embedding type to %s", embedding_type)
+        vectordb_args['embedding'] = SentenceTransformerEmbedding()
+        data_stack = DataUploadPipeline(
+            vectordb=Postgres(
+                embedding=OpenAIEmbedding(
+                    api_key=os.getenv('OPENAI_API_KEY'),
+                    model='text-embedding-ada-002')
+                ),
+        )
+    else:
+        data_stack = DataUploadPipeline()
+        data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
