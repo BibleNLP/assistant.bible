@@ -22,6 +22,10 @@ class EmbeddingType(str, Enum):
     '''Available text embedding technology choices'''
     HUGGINGFACE_DEFAULT = "huggingface" # TODO: add support for multiple models ?
     OPENAI = "OpenAI"
+    
+class EmbeddingDimensionSize(str, Enum):
+    OPENAI = 1536
+    HUGGINGFACE_DEFAULT = 384
 
 class DatabaseType(str, Enum):
     '''Available Database type choices'''
