@@ -11,13 +11,13 @@ from custom_exceptions import AccessException, OpenAIException
 from log_configs import log
 
 
-def get_context(results):
+def get_context(source_documents):
     '''Constructs a context string based on the provided results.'''
     context = '['
     # ** This will need to be adjusted, based on what the returned results look like **
-    for i in range(len(results['documents'][0])):
-        context += '{source:' + results['metadatas'][0][i]['citation']
-        context += ', text: ' + results['documents'][0][i] + '}' + ','
+    for i in range(len(source_documents)):
+        context += '{source:' + source_documents[i].metadata.get('source', '')
+        context += ', text: ' + source_documents[i].page_content + '}' + ','
     context += ']' + '\n'
 
     return context
@@ -58,7 +58,7 @@ def append_query_to_prompt(prompt, query, chat_history):
     return prompt
 
 
-class VanillaOpenAI(LLMFrameworkInterface): #pylint: disable=too-few-public-methods
+class OpenAIVanilla(LLMFrameworkInterface): #pylint: disable=too-few-public-methods
     '''Uses OpenAI APIs to create vectors for text'''
     api_key: str = None
     model_name: str = None
@@ -91,8 +91,9 @@ class VanillaOpenAI(LLMFrameworkInterface): #pylint: disable=too-few-public-meth
         # We'll need to figure out if this is optimal or not.
         query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history])
         query_text += '\n' + query
-        results = self.vectordb.get_relevant_documents(query_text)
-        context = get_context(results)
+        source_documents = self.vectordb.get_relevant_documents(query_text)
+        print(f'{source_documents=}')
+        context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
 
@@ -102,7 +103,11 @@ class VanillaOpenAI(LLMFrameworkInterface): #pylint: disable=too-few-public-meth
                                 temperature=0,
                     messages=[{"role": "user", "content": prompt}]
                 )
-            return response['choices'][0]["message"]["content"]
+            return {
+                'question': query,
+                'answer': response['choices'][0]["message"]["content"],
+                'source_documents': source_documents,
+                }
 
         except Exception as exe:
             raise OpenAIException("While generating answer: "+str(exe)) from exe

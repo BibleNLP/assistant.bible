@@ -18,6 +18,7 @@ from core.vectordb.chroma import Chroma
 from core.vectordb.chroma4langchain import Chroma as ChromaLC
 from core.vectordb.postgres4langchain import Postgres
 from core.llm_framework.openai_langchain import LangchainOpenAI
+from core.llm_framework.openai_vanilla import OpenAIVanilla
 from core.audio.whisper import WhisperAudioTranscription
 
 #pylint: disable=unused-argument
@@ -131,6 +132,11 @@ class ConversationPipeline(DataUploadPipeline):
                 vectordb = ChromaLC(host=vectordb.db_host, port=vectordb.db_port,
                     path=vectordb.db_path, collection_name=vectordb.collection_name)
             self.llm_framework = LangchainOpenAI(vectordb=vectordb)
+        elif choice == schema.LLMFrameworkType.VANILLA:
+            if isinstance(vectordb, Chroma):
+                vectordb = ChromaLC(host=vectordb.db_host, port=vectordb.db_port,
+                    path=vectordb.db_path, collection_name=vectordb.collection_name)
+            self.llm_framework = OpenAIVanilla(vectordb=vectordb)
 
     def set_transcription_framework(self,
         choice:schema.AudioTranscriptionType,
