@@ -92,7 +92,6 @@ class OpenAIVanilla(LLMFrameworkInterface): #pylint: disable=too-few-public-meth
         query_text = '\n'.join([x[0] + '/n' + x[1][:50] + '\n' for x in chat_history])
         query_text += '\n' + query
         source_documents = self.vectordb.get_relevant_documents(query_text)
-        print(f'{source_documents=}')
         context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
