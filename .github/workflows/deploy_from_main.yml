@@ -26,4 +26,4 @@ jobs:
           cd /home/kavitha/assistant.bible
           git pull origin main
           cd deployment
-          docker compose --env-file .env up --build -d
+          docker compose --env-file .env up --force-recreate --build -d
