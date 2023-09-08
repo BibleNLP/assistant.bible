@@ -1,0 +1,29 @@
+# Workflow to deploy to a DC server via SSH over RSA
+
+name: deploy
+
+on: [push ]
+# Triggers the workflow on push to main branch 
+# on:
+#   push:
+#     branches: [ main ]
+#   # Allows you to run this workflow manually from the Actions tab
+#   workflow_dispatch:
+
+jobs:
+  pull-n-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: executing remote ssh commands using RSA
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.BCS_DO_HOST }}
+        username: ${{ secrets.BCS_DO_USERNAME }}
+        key: ${{ secrets.BCS_DO_SSH_KEY }}
+        port: 22
+        script_stop: true
+        script: |
+          cd /home/kavitha/assistant.bible
+          git pull origin main
+          cd deployment
+          docker compose --env-file .env up --build -d
