@@ -145,7 +145,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label = ANY(%s) ORDER BY embedding <=> %s LIMIT %s;",
+                "where label = ANY(%s) and embedding <=> %s < 0.1 LIMIT %s;",
                 (self.labels, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
@@ -169,7 +169,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label = ANY(%s) ORDER BY embedding <=> %s LIMIT %s;",
+                "where label = ANY(%s) and embedding <=> %s < 0.1 LIMIT %s;",
                 (self.labels, np.array(query_vector), self.query_limit))
             records = cur.fetchall()
             cur.close()
