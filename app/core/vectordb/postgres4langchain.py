@@ -18,6 +18,7 @@ from log_configs import log
 
 #pylint: disable=too-few-public-methods, unused-argument
 QUERY_LIMIT = os.getenv('POSTGRES_DB_QUERY_LIMIT', "10")
+MAX_COSINE_DISTANCE = os.getenv('POSTGRES_MAX_COSINE_DISTANCE', '0.1')
 
 class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-instance-attributes
     '''Interface for vector database technology, its connection, configs and operations'''
@@ -44,6 +45,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
         self.embedding = embedding
         self.labels = kwargs.get("labels",["tyndale_open"])
         self.query_limit = kwargs.get("query_limit", QUERY_LIMIT)
+        self.max_cosine_distance = kwargs.get("max_cosine_distance", MAX_COSINE_DISTANCE)
         if host:
             self.db_host = host
         if port:
@@ -145,8 +147,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label = ANY(%s) and embedding <=> %s < 0.1 LIMIT %s;",
-                (self.labels, np.array(query_vector), self.query_limit))
+                "where label = ANY(%s) and embedding <=> %s < %s LIMIT %s;",
+                (self.labels, np.array(query_vector), self.max_cosine_distance, self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
@@ -169,8 +171,8 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "+\
-                "where label = ANY(%s) and embedding <=> %s < 0.1 LIMIT %s;",
-                (self.labels, np.array(query_vector), self.query_limit))
+                "where label = ANY(%s) and embedding <=> %s < %s LIMIT %s;",
+                (self.labels, np.array(query_vector), self.max_cosine_distance ,self.query_limit))
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
