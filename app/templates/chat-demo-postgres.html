@@ -94,7 +94,11 @@
               <i class="fas fa-circle fa-sm"></i> Record
           </button>
         </form>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-3" id="resetButton">
+            Reset Conversation
+          </button>
       </div>
+
     </main>
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
@@ -143,14 +147,32 @@
         if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
           window.location.replace({{ site_url }}+'/login');
         }
+        const jsonMessage = JSON.stringify({
+            type: 'message',
+            message: $('#message').val()
+        });
         const encoder = new TextEncoder();
-        const encodedText = encoder.encode($('#message').val());
+        const encodedJson = encoder.encode(jsonMessage);
 
-        ws.send(encodedText);
+        ws.send(encodedJson);
         $('#messages').append('<div class="font-bold">You:</div><div>' + $('#message').val() + '</div>');
         $('#message').val('').focus();
           };
         });
+
+        document.getElementById('resetButton').addEventListener("click", function(event) {
+            console.log("Resetting conversation");
+            var messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML = "";
+            var messageInput = document.getElementById("message");
+            messageInput.focus();
+            const jsonMessage = JSON.stringify({
+                type: 'reset'
+              });
+                const encoder = new TextEncoder();
+                const encodedJson = encoder.encode(jsonMessage);
+              ws.send(encodedJson);  // Emit a reset event to the server
+            });
 
         function changeLabel(src) {
             let labels = [];
