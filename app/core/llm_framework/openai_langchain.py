@@ -27,7 +27,8 @@ class LangchainOpenAI(LLMFrameworkInterface):
     def __init__(self, #pylint: disable=super-init-not-called
                 key:str=os.getenv("OPENAI_API_KEY"),
                 model_name:str = 'gpt-3.5-turbo',
-                vectordb:VectordbInterface = Chroma()) -> None:
+                vectordb:VectordbInterface = Chroma(),
+                max_tokens_limit:int=int(os.getenv("OPENAI_MAX_TOKEN_LIMIT", '3052'))) -> None:
         '''Sets the API key and initializes library objects if any'''
         if key is None:
             raise AccessException("OPENAI_API_KEY needs to be provided."+\
@@ -43,6 +44,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
         self.chain = ConversationalRetrievalChain.from_llm(self.llm,
 			self.vectordb,
 			# memory = memory,
+            max_tokens_limit=max_tokens_limit,
         	return_source_documents=True)
 
     def generate_text(self,
