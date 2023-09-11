@@ -35,6 +35,7 @@ class DatabaseType(str, Enum):
 class LLMFrameworkType(str, Enum):
     '''Available framework types'''
     LANGCHAIN = "openai-langchain"
+    VANILLA = "openai-vanilla"
 
 class AudioTranscriptionType(str, Enum):
     '''The type fo text-to-speech audio transcription'''

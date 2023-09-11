@@ -308,10 +308,8 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         vectordb_args['embedding'] = SentenceTransformerEmbedding()
         data_stack = DataUploadPipeline(
             vectordb=Postgres(
-                embedding=OpenAIEmbedding(
-                    api_key=os.getenv('OPENAI_API_KEY'),
-                    model='text-embedding-ada-002')
-                ),
+                embedding=vectordb_args['embedding'],
+        )
         )
     else:
         data_stack = DataUploadPipeline()
