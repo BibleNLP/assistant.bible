@@ -10,7 +10,7 @@ from core.llm_framework import LLMFrameworkInterface
 from core.vectordb import VectordbInterface
 from core.vectordb.chroma4langchain import Chroma
 
-from custom_exceptions import AccessException, OpenAIException
+from custom_exceptions import AccessException, OpenAIException, ChatErrorResponse
 from log_configs import log
 
 
@@ -54,5 +54,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
             log.warning("Unused arguments in LangchainOpenAI.generate_text(): ",**kwargs)
         try:
             return self.chain({"question": query, "chat_history": chat_history})
+        except ChatErrorResponse as exe:
+            raise exe
         except Exception as exe:
             raise OpenAIException("While generating answer: "+str(exe)) from exe
