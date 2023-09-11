@@ -111,7 +111,7 @@ async def get_login(request: Request):
         {"request": request, "ws_url": WS_URL, "demo_url":f"http://{DOMAIN}/ui",
         "demo_url2":f"http://{DOMAIN}/ui2"})
 
-def compose_vector_db_args(db_type, settings):
+def compose_vector_db_args(db_type, settings, embedding_config):
     '''Convert the API params or default values, to args to initializing the DB'''
     vectordb_args = {}
     if settings.dbHostnPort:
@@ -141,6 +141,17 @@ def compose_vector_db_args(db_type, settings):
         vectordb_args['collection_name']=CHROMA_DB_COLLECTION
     elif db_type==schema.DatabaseType.POSTGRES:
         vectordb_args['collection_name']=POSTGRES_DB_NAME
+    if db_type == schema.DatabaseType.POSTGRES:
+        log.info("Because the db is Postgres, and embedding dimension size must be hard-coded, "+\
+            "setting embedding type to %s", embedding_config.embeddingType)
+        if embedding_config.embeddingType == schema.EmbeddingType.HUGGINGFACE_DEFAULT:
+            vectordb_args['embedding'] = SentenceTransformerEmbedding()
+        elif embedding_config.embeddingType == schema.EmbeddingType.OPENAI:
+            vectordb_args['embedding'] = OpenAIEmbedding()
+        else:
+            raise GenericException("This embedding type is not supported (yet)!")
+
+
     return vectordb_args
 
 @router.websocket("/chat")
@@ -163,16 +174,10 @@ async def websocket_chat_endpoint(websocket: WebSocket,
 
     chat_stack = ConversationPipeline(user="XXX", labels=labels)
 
-    vectordb_args = compose_vector_db_args(settings.vectordbType, settings)
+    vectordb_args = compose_vector_db_args(settings.vectordbType, settings,
+        schema.EmbeddingSelector(embeddingType=settings.embeddingType))
     vectordb_args['labels'] = labels
-    if settings.embeddingType:
-        if settings.embeddingType == schema.EmbeddingType.OPENAI:
-            vectordb_args['embedding'] = OpenAIEmbedding()
-            
-        else:
-            vectordb_args['embedding'] = SentenceTransformerEmbedding() # FIXME: should have a default instantiation using schema.EmbeddingType.DEFAULT ?
-        
-        
+
     chat_stack.set_vectordb(settings.vectordbType,**vectordb_args)
     llm_args = {}
     if settings.llmApiKey:
@@ -255,7 +260,7 @@ async def upload_sentences(
         desc="List of pre-processed sentences"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
-    embedding_type:schema.EmbeddingType=Query(None),
+    embedding_config:schema.EmbeddingSelector=Depends(schema.EmbeddingSelector),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind of data that has been pre-processed as list of sentences.
@@ -264,14 +269,13 @@ async def upload_sentences(
     * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used:%s", token)
     data_stack = DataUploadPipeline()
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
     data_stack.set_vectordb(vectordb_type,**vectordb_args)
-    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.OPENAI
-    if embedding_type:
-        data_stack.set_embedding(embedding_type)
-        # FIXME: This may have to be a background job!!!
-        data_stack.embedding.get_embeddings(doc_list=document_objs)
+    data_stack.set_embedding(embedding_config.embeddingType,
+                                embedding_config.embeddingApiKey,
+                                embedding_config.embeddingModelName)
+    # FIXME: This may have to be a background job!!!
+    data_stack.embedding.get_embeddings(doc_list=document_objs)
 
     # FIXME: This may have to be a background job!!!
     data_stack.vectordb.add_to_collection(docs=document_objs)
@@ -291,7 +295,7 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
-    embedding_type:schema.EmbeddingType=Query(None),
+    embedding_config:schema.EmbeddingSelector=Depends(schema.EmbeddingSelector),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present")):
     '''* Upload of any kind text files like .md, .txt etc.
@@ -300,21 +304,10 @@ async def upload_text_file( #pylint: disable=too-many-arguments
     * Keeps other details, sourceTag, link, and media as metadata in vector store
     * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
-    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
-    if vectordb_type == schema.DatabaseType.POSTGRES:
-        log.info("Because the db is Postgres, and embedding dimension size must be hard-coded, setting embedding type to %s", embedding_type)
-        vectordb_args['embedding'] = SentenceTransformerEmbedding()
-        data_stack = DataUploadPipeline(
-            vectordb=Postgres(
-                embedding=vectordb_args['embedding'],
-        )
-        )
-    else:
-        data_stack = DataUploadPipeline()
-        data_stack.set_vectordb(vectordb_type,**vectordb_args)
-        
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
+    data_stack = DataUploadPipeline()
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
     data_stack.set_file_processor(file_processor_type)
 
     if not os.path.exists(UPLOAD_PATH):
@@ -329,10 +322,11 @@ async def upload_text_file( #pylint: disable=too-many-arguments
         label=label,
         name="".join(file_obj.filename.split(".")[:-1])
         )
-    if embedding_type:
-        data_stack.set_embedding(embedding_type)
-        # FIXME: This may have to be a background job!!!
-        data_stack.embedding.get_embeddings(doc_list=docs)
+    data_stack.set_embedding(embedding_config.embeddingType,
+                                embedding_config.embeddingApiKey,
+                                embedding_config.embeddingModelName)
+    # FIXME: This may have to be a background job!!!
+    data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
 
@@ -350,7 +344,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
         desc="Seperator used in input file"),
     vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
     vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
-    embedding_type:schema.EmbeddingType=Query(None),
+    embedding_config:schema.EmbeddingSelector=Depends(schema.EmbeddingSelector),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     ):
@@ -359,22 +353,9 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     * Keeps other details, sourceTag, link, and media as metadata in vector store
     * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
     log.info("Access token used: %s", token)
-    if not embedding_type and vectordb_type==schema.DatabaseType.POSTGRES:
-        embedding_type=schema.EmbeddingType.HUGGINGFACE_DEFAULT
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config)
-    if vectordb_type == schema.DatabaseType.POSTGRES:
-        log.info("Because the db is Postgres, and embedding dimension size must be hard-coded, setting embedding type to %s", embedding_type)
-        vectordb_args['embedding'] = SentenceTransformerEmbedding()
-        data_stack = DataUploadPipeline(
-            vectordb=Postgres(
-                embedding=OpenAIEmbedding(
-                    api_key=os.getenv('OPENAI_API_KEY'),
-                    model='text-embedding-ada-002')
-                ),
-        )
-    else:
-        data_stack = DataUploadPipeline()
-        data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
+    data_stack = DataUploadPipeline()
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
     with open(f"{UPLOAD_PATH}{file_obj.filename}", 'w', encoding='utf-8') as tfp:
@@ -390,10 +371,11 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
         file_type=schema.FileType.CSV,
         col_delimiter=col_delimiter
         )
-    if embedding_type:
-        data_stack.set_embedding(embedding_type)
-        # FIXME: This may have to be a background job!!!
-        data_stack.embedding.get_embeddings(doc_list=docs)
+    data_stack.set_embedding(embedding_config.embeddingType,
+                                embedding_config.embeddingApiKey,
+                                embedding_config.embeddingModelName)
+    # FIXME: This may have to be a background job!!!
+    data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
 
@@ -424,7 +406,8 @@ async def check_job_status(job_id:int = Path(...),
 @admin_auth_check_decorator
 async def get_source_tags(
     db_type:schema.DatabaseType=schema.DatabaseType.CHROMA,
-    settings=Depends(schema.DBSelector),
+    settings:schema.DBSelector=Depends(schema.DBSelector),
+    embedding_config:schema.EmbeddingSelector=Depends(schema.EmbeddingSelector),
     token:SecretStr=Query(None,
         desc="Optional access token to be used if user accounts not present"),
     ):
@@ -432,7 +415,7 @@ async def get_source_tags(
     log.debug("host:port:%s, path:%s, collection:%s",
         settings.dbHostnPort, settings.dbPath, settings.collectionName)
     log.info("Access token used: %s", token)
-    args = compose_vector_db_args(db_type, settings)
+    args = compose_vector_db_args(db_type, settings, embedding_config)
 
     if db_type == schema.DatabaseType.CHROMA:
         vectordb = Chroma(**args)

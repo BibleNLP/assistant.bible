@@ -72,6 +72,8 @@ class DBSelector(BaseModel):
 
 class EmbeddingSelector(BaseModel):
     '''The credentials to connect to an Embedding creation service'''
+    embeddingType:EmbeddingType = Field(EmbeddingType.HUGGINGFACE_DEFAULT,
+                    desc="EmbeddingType used for storing and searching documents in vectordb")
     embeddingApiKey: str = Field(None,
                     desc="If using a cloud service, like OpenAI, the key obtained from them")
     embeddingModelName: str = Field(None,
