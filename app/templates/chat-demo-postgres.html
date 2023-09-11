@@ -127,7 +127,7 @@
             alert(data.message);
             } else {
             let sourcesButton = '';
-            if(data.sources.length > 1) {
+            if(data.sources.length > 0) {
                 sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
             }
             $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
