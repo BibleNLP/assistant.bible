@@ -226,12 +226,12 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     f"{[item.metadata['source'] for item in bot_response['source_documents']]}\n\n")
                 chat_stack.chat_history.append((bot_response['question'], bot_response['answer']))
 
-            # Construct a response
-            start_resp = schema.BotResponse(sender=schema.SenderType.BOT,
-                    message=bot_response['answer'], type=schema.ChatResponseType.ANSWER,
-                    sources=[item.metadata['source'] for item in bot_response['source_documents']],
-                    media=[])
-            await websocket.send_json(start_resp.dict())
+                # Construct a response
+                start_resp = schema.BotResponse(sender=schema.SenderType.BOT,
+                        message=bot_response['answer'], type=schema.ChatResponseType.ANSWER,
+                        sources=[item.metadata['source'] for item in bot_response['source_documents']],
+                        media=[])
+                await websocket.send_json(start_resp.dict())
         except ChatErrorResponse as exe:
             resp = schema.BotResponse(
                 sender=schema.SenderType.BOT,
