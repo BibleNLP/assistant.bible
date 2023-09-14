@@ -112,11 +112,15 @@
         const accessToken = sessionStorage.getItem('accessToken');
         console.log("accessToken: " + accessToken)
         if (accessToken === null) {
-            // The user is not logged in, so render the Log In button.
+            // The user is not logged in, so render the Log In button and disable the message input.
             document.querySelector('#login').style.display = 'block';
+            document.querySelector('#message').disabled = true;
+            document.querySelector('#message').style.cursor = 'not-allowed';
         } else {
-            // The user is logged in, so render the Log Out button.
+            // The user is logged in, so render the Log Out button and enable the message input.
             document.querySelector('#logout').style.display = 'block';
+            document.querySelector('#message').disabled = false;
+            document.querySelector('#message').style.cursor = 'text';
         }
     </script>
     <script>
