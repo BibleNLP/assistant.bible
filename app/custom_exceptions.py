@@ -1,5 +1,14 @@
 '''Definitions of different error classes and thier common names, messages, status code etc'''
 
+class ChatErrorResponse(Exception):
+    '''Errors to be notified to user via bot's chat response'''
+    def __init__(self, detail: str):
+        super().__init__()
+        self.name = "Chat Error Response"
+        self.detail = detail
+        self.status_code = 500
+
+
 class UnprocessableException(Exception):
     """Format for Unprocessable error"""
     def __init__(self, detail: str):
