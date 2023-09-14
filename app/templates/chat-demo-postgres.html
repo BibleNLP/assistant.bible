@@ -75,6 +75,7 @@
       </div>
       <div class="mt-8">
         <div class="bg-gray-200 p-4 rounded" id="messages"></div>
+        <div class="text-red-500 mt-2" id="errorDiv"></div>
         <form class="flex mt-4">
           <input
             type="text"
@@ -94,7 +95,11 @@
               <i class="fas fa-circle fa-sm"></i> Record
           </button>
         </form>
+        <button class="bg-blue-500 text-white px-4 py-2 rounded mt-3" id="resetButton">
+            Reset Conversation
+        </button>
       </div>
+
     </main>
     <script src="//code.jquery.com/jquery-1.11.1.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.2/socket.io.min.js"></script>
@@ -126,6 +131,10 @@
             if(data.type == "error"){
             alert(data.message);
             } else {
+                if(data.logged_in == false) {
+            document.querySelector('#login').style.display = 'block';
+            document.querySelector('#logout').style.display = 'none';
+                }
             let sourcesButton = '';
             if(data.sources.length > 0) {
                 sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
@@ -136,21 +145,37 @@
         return ws
         }   
         ws = setupWebsocket(endpoint);
-      
-      $('form').submit(function(event) {
-        event.preventDefault();
-        if (event.originalEvent.submitter.id === 'sendButton') {
-        if (ws.readyState == WebSocket.CLOSED || ws.readyState == WebSocket.CLOSING){
-          window.location.replace({{ site_url }}+'/login');
-        }
-        const encoder = new TextEncoder();
-        const encodedText = encoder.encode($('#message').val());
 
-        ws.send(encodedText);
-        $('#messages').append('<div class="font-bold">You:</div><div>' + $('#message').val() + '</div>');
-        $('#message').val('').focus();
-          };
+        $('form').submit(function(event) {
+            event.preventDefault();
+            if (event.originalEvent.submitter.id === 'sendButton') {
+                if (ws.readyState === WebSocket.OPEN) { // Check if WebSocket is open
+                    const encoder = new TextEncoder();
+                    const encodedText = encoder.encode($('#message').val());
+                    ws.send(encodedText);
+                    $('#messages').append('<div class="font-bold">You:</div><div>' + $('#message').val() + '</div>');
+                    $('#message').val('').focus();
+                    $('#errorDiv').empty();
+                } else {
+                    $('#errorDiv').text('Please sign in first, then ask your question.');
+                    console.log('WebSocket is not open');
+                }
+            }
         });
+
+        document.getElementById('resetButton').addEventListener("click", function(event) {
+            console.log("Resetting conversation");
+            var messagesDiv = document.getElementById("messages");
+            messagesDiv.innerHTML = "";
+            var messageInput = document.getElementById("message");
+            messageInput.focus();
+            const jsonMessage = JSON.stringify({
+                type: 'reset'
+              });
+                const encoder = new TextEncoder();
+                const encodedJson = encoder.encode(jsonMessage);
+              ws.send(encodedJson);  // Emit a reset event to the server
+            });
 
         function changeLabel(src) {
             let labels = [];
@@ -198,7 +223,8 @@
           navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function (stream) {
                 const recordButton = document.getElementById("recordButton");
-                  if (isRecording) {
+                if (ws.readyState === WebSocket.OPEN) {
+                    if (isRecording) {
                     // If already recording, stop the recording
                     mediaRecorder.stop();
                     recordButton.innerHTML = '<i class="fas fa-circle fa-sm"></i> Record';
@@ -209,6 +235,11 @@
                   }
                   // Toggle the recording state
                   isRecording = !isRecording;
+                } else {
+                    $('#errorDiv').text('Please sign in first, then ask your question.');
+                    console.log('WebSocket is not open');
+                }
+ 
                 })
                 .catch(function (error) {
                   console.error("Error accessing microphone:", error);

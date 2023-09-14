@@ -1,5 +1,6 @@
 '''API endpoint definitions'''
 import os
+import json
 from typing import List
 from fastapi import (
                     APIRouter,
@@ -195,9 +196,19 @@ async def websocket_chat_endpoint(websocket: WebSocket,
             # Receive and send back the client message
             received_bytes = await websocket.receive_bytes()
             try:  # Try treating the bytes as text
-                received_question = received_bytes.decode('utf-8')
+                received_json = received_bytes.decode('utf-8')
+                received_dict = json.loads(received_json)
                 log.info("Text received")
-                question = received_question
+                if received_dict.get("type") == "reset":
+                    chat_stack.chat_history = []
+                    await websocket.send_json({
+                        'sender': 'Bot',
+                        'message': "Let's start a new conversation! What's your question?",
+                        'sources': [],
+                    })
+                    question = ''
+                else:
+                    question = received_dict.get('message')
             except UnicodeDecodeError:  # If that fails, treat it as audio
                 log.info("Audio file received")
                 question = chat_stack.transcription_framework.transcribe_audio(received_bytes)
@@ -207,17 +218,13 @@ async def websocket_chat_endpoint(websocket: WebSocket,
                     media=[])
                 await websocket.send_json(start_human_q.dict())
 
-            # # send back the response
-            # resp = schema.BotResponse(sender=schema.SenderType.USER,
-            #     message=question, type=schema.ChatResponseType.QUESTION)
-            # await websocket.send_json(resp.dict())
-
-            bot_response = chat_stack.llm_framework.generate_text(
-                            query=question, chat_history=chat_stack.chat_history)
-            log.debug(f"Human: {question}\nBot:{bot_response['answer']}\n"+\
-                "Sources:"+\
-                f"{[item.metadata['source'] for item in bot_response['source_documents']]}\n\n")
-            chat_stack.chat_history.append((bot_response['question'], bot_response['answer']))
+            if len(question) > 0:
+                bot_response = chat_stack.llm_framework.generate_text(
+                                query=question, chat_history=chat_stack.chat_history)
+                log.debug(f"Human: {question}\nBot:{bot_response['answer']}\n"+\
+                    "Sources:"+\
+                    f"{[item.metadata['source'] for item in bot_response['source_documents']]}\n\n")
+                chat_stack.chat_history.append((bot_response['question'], bot_response['answer']))
 
             # Construct a response
             start_resp = schema.BotResponse(sender=schema.SenderType.BOT,

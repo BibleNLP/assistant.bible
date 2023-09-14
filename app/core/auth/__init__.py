@@ -55,13 +55,14 @@ def chatbot_auth_check_decorator(func):
         # Verify the access token using Supabase secret
         try:
             supa.auth.get_user(access_token_str)
+
         except gotrue.errors.AuthApiError as e:
             await websocket.accept()
             json_response = schema.BotResponse(sender=schema.SenderType.BOT,
                     message='Please sign in first. I look forward to answering your questions.', type=schema.ChatResponseType.ANSWER,
                     sources=[],
                     media=[])
-            await websocket.send_json(json_response.dict())
+            await websocket.send_json({'logged_in': False, **json_response.dict()})
             return
         return await func(websocket, *args, **kwargs)
 
