@@ -147,6 +147,9 @@ def compose_vector_db_args(db_type, settings, embedding_config):
             "setting embedding type to %s", embedding_config.embeddingType)
         if embedding_config.embeddingType == schema.EmbeddingType.HUGGINGFACE_DEFAULT:
             vectordb_args['embedding'] = SentenceTransformerEmbedding()
+        elif embedding_config.embeddingType == schema.EmbeddingType.HUGGINGFACE_MULTILINGUAL:
+            vectordb_args['embedding'] = SentenceTransformerEmbedding(
+                model="sentence-transformers/LaBSE")
         elif embedding_config.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args['embedding'] = OpenAIEmbedding()
         else:

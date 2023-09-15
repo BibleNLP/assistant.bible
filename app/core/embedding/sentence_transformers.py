@@ -8,7 +8,7 @@ from core.embedding import EmbeddingInterface
 '''Implementation for generating sentence_transformers embeddings using Huggingface sentence_transformers'''
 class SentenceTransformerEmbedding(EmbeddingInterface):
     '''Uses sentence_transformers to generate embeddings.'''
-    default_model: str = 'sentence-transformers/LaBSE'
+    default_model: str = 'thenlper/gte-small'
     
     def __init__(self, model:str=default_model) -> None:
         '''Initializes the model'''
