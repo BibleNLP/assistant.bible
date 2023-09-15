@@ -222,11 +222,14 @@
               // Redirect the user to the chat page
               window.location.href = '/app';
             } else {
-              console.log(response);
               const data = await response.json();
-              console.log(data);
               const errorDiv = document.getElementById('error-message');
-              errorDiv.textContent = data.detail;
+              if (data.error === 'Permission Denied') {
+                errorDiv.textContent =
+                  'Unauthorized access. Please check your credentials and try again.';
+              } else {
+                errorDiv.textContent = data.detail;
+              }
               errorDiv.style.display = 'block';
             }
           } catch (error) {
