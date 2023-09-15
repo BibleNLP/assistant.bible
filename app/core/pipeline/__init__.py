@@ -65,6 +65,14 @@ class DataUploadPipeline:
             if not model is None:
                 args['model'] = model
             self.embedding = SentenceTransformerEmbedding(**args)
+            
+        elif choice == schema.EmbeddingType.HUGGINGFACE_MULTILINGUAL:
+            args = {}
+            if not model is None:
+                args['model'] = model # ? Do we need to allow model override if we are using multilingual?
+            else:
+                args['model'] = 'sentence-transformers/LaBSE'
+            self.embedding = SentenceTransformerEmbedding(**args)
         
         else:
             raise GenericException("This technology type is not supported (yet)!")

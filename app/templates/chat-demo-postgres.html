@@ -159,7 +159,7 @@
         $('form').submit(function(event) {
             event.preventDefault();
             if (event.originalEvent.submitter.id === 'sendButton') {
-                if (ws.readyState === WebSocket.OPEN) { // Check if WebSocket is open
+                if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) { // Check if WebSocket is open
                     const encoder = new TextEncoder();
                     const encodedText = encoder.encode($('#message').val());
                     ws.send(encodedText);
@@ -233,7 +233,7 @@
           navigator.mediaDevices.getUserMedia({ audio: true })
             .then(function (stream) {
                 const recordButton = document.getElementById("recordButton");
-                if (ws.readyState === WebSocket.OPEN) {
+                if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
                     if (isRecording) {
                     // If already recording, stop the recording
                     mediaRecorder.stop();
