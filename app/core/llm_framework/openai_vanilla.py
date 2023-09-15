@@ -27,7 +27,7 @@ def get_pre_prompt(context):
     '''Constructs a pre-prompt for the conversation, including the context'''
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
-    chat_prefix += " helpful, creative, clever, and very friendly.\n"
+    chat_prefix += " helpful, creative, clever, very friendly and follows instructions carefully.\n"
     prompt = (
         chat_prefix +
         'Read the paragraph below and answer the question, using only the information'
