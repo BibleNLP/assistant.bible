@@ -27,14 +27,12 @@ def get_pre_prompt(context):
     '''Constructs a pre-prompt for the conversation, including the context'''
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
-    chat_prefix += " helpful, creative, clever, and very friendly.\n"
+    chat_prefix += " helpful, creative, clever, very friendly and follows instructions carefully.\n"
     prompt = (
         chat_prefix +
         'Read the paragraph below and answer the question, using only the information'
         ' in the context delimited by triple backticks. '
-        'At the end of your answer, include the source of each context text that '
-        'you used. You may use more than one, and include the sources of all those'
-        ' you used. If the question cannot be answered based on the context alone, '
+        'If the question cannot be answered based on the context alone, '
         'write "Sorry, I had trouble answering this question based on the '
         'information I found\n'
         "\n"
@@ -95,6 +93,7 @@ class OpenAIVanilla(LLMFrameworkInterface): #pylint: disable=too-few-public-meth
         context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
+        print(f'{prompt=}')
 
         try:
             response = openai.ChatCompletion.create(

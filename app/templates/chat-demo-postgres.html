@@ -146,7 +146,7 @@
             document.querySelector('#logout').style.display = 'none';
                 }
             let sourcesButton = '';
-            if(data.sources.length > 0) {
+            if(data.sources.length > 0 && data.sources[0].metadata['source'] !== 'no records found') {
                 sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
             }
             $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
