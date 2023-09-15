@@ -132,7 +132,7 @@
     <script>
       let label = "tyndale_open"
       var endpoint = {{ ws_url| tojson }};
-      endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
+      endpoint += '?llmFrameworkType=openai-vanilla&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
       function setupWebsocket(endpoint){
         var ws = new WebSocket(endpoint);
         
@@ -195,7 +195,7 @@
             let labels = [];
             let tyndaleOpenElement = document.getElementById('tyndale-open')
             var endpoint = {{ ws_url| tojson }};
-        endpoint += '?llmFrameworkType=openai-langchain&vectordbType=postgres-with-pgvector&token=' + accessToken;
+        endpoint += '?llmFrameworkType=openai-vanilla&vectordbType=postgres-with-pgvector&token=' + accessToken;
         if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
         ws.close();
         $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
@@ -305,7 +305,7 @@
           </li>
           <li><i class="fas fa-database"></i> Postgres</li>
           <li>
-            <i class="fas fa-border-all"></i> LangChain
+            <i class="fas fa-border-all"></i> Vanilla
           </li>
           <li>
             <i class="fas fa-search"></i> Embeddings: ada (OpenAI)
