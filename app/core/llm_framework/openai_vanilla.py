@@ -36,7 +36,7 @@ def get_pre_prompt(context):
         'you used. You may use more than one, and include the sources of all those'
         ' you used. If the question cannot be answered based on the context alone, '
         'write "Sorry, I had trouble answering this question based on the '
-        'information i found\n'
+        'information I found\n'
         "\n"
         "Context:\n"
         f"```{ context }```\n"
