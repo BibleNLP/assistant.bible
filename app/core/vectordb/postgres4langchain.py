@@ -155,8 +155,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
         if len(records) == 0:
-            pass  # Need to deal with this
-            # raise ChatErrorResponse("No matching content found")
+            return [LangchainDocument(page_content="No relevant context documents found. This question can't be answered, but the user could try rewording or asking something else.", metadata={"source": "no records found"})]
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
 
@@ -180,8 +179,7 @@ class Postgres(VectordbInterface, BaseRetriever): #pylint: disable=too-many-inst
             log.exception(exe)
             raise PostgresException("While querying with embedding: "+ str(exe)) from exe
         if len(records) == 0:
-            pass  # Need to deal with this
-            # raise ChatErrorResponse("No matching content found")
+            return [LangchainDocument(page_content="No relevant context documents found. This question can't be answered, but the user could try rewording or asking something else.", metadata={"source": "no records found"})]
         return [ LangchainDocument(page_content= doc[1], metadata={ "source": doc[0] } )
                                 for doc in records]
 
