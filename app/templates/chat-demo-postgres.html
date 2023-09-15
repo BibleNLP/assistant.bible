@@ -155,13 +155,17 @@
         return ws
         }   
         ws = setupWebsocket(endpoint);
-
+        
         $('form').submit(function(event) {
             event.preventDefault();
             if (event.originalEvent.submitter.id === 'sendButton') {
                 if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) { // Check if WebSocket is open
+                    const jsonMessage = JSON.stringify({
+                        message: $('#message').val()
+                    });
                     const encoder = new TextEncoder();
-                    const encodedText = encoder.encode($('#message').val());
+                    const encodedText = encoder.encode(jsonMessage);
+                    console.log("encodedJson: " + encodedText)
                     ws.send(encodedText);
                     $('#messages').append('<div class="font-bold">You:</div><div>' + $('#message').val() + '</div>');
                     $('#message').val('').focus();
