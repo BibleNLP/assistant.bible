@@ -50,7 +50,7 @@ def append_query_to_prompt(prompt, query, chat_history):
     '''Appends the provided query and chat history to the given prompt.'''
     if len(chat_history) > 0:
         if len(chat_history) > 15:
-            chat_history = chat_history[-15:]
+            chat_history = chat_history[-15:] # FIXME: use tiktoken library to check overall token count and ensure context window is not exceeded
         for exchange in chat_history:
             prompt += "\nHuman: " + exchange[0] + "\nAI: " + exchange[1]
     prompt += "\nHuman: " + query + "\nAI: "
