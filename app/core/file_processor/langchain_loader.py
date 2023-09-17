@@ -50,7 +50,7 @@ class LangchainLoader(FileProcessorInterface):
         output_list = []
         loader = TextLoader(file)
         texts = loader.load()
-        text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=200)
+        text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=50)
         text_splits = text_splitter.split_documents(texts)
 
         if not label:
