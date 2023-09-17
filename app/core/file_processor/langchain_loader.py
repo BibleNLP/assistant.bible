@@ -46,7 +46,7 @@ class LangchainLoader(FileProcessorInterface):
                  label:str,
                  name: str = None,
                  metadata: dict = None) -> List[schema.Document]:
-        '''Uses langchain's CharacterTextSplitter to convert text contents into document format'''
+        '''Uses langchain's TokenTextSplitter to convert text contents into document format'''
         output_list = []
         loader = TextLoader(file)
         texts = loader.load()
