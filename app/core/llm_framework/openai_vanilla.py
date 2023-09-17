@@ -16,6 +16,8 @@ def get_context(source_documents):
     context = '['
     # ** This will need to be adjusted, based on what the returned results look like **
     for i in range(len(source_documents)):
+        if len(source_documents[i].page_content) + len(context) > 14000:  # Maybe 3,500 tokens? Ideally we would estimate this based on tokens
+            break
         context += '{source:' + source_documents[i].metadata.get('source', '')
         context += ', text: ' + source_documents[i].page_content + '}' + ','
     context += ']' + '\n'
@@ -47,8 +49,8 @@ def get_pre_prompt(context):
 def append_query_to_prompt(prompt, query, chat_history):
     '''Appends the provided query and chat history to the given prompt.'''
     if len(chat_history) > 0:
-        if len(chat_history) > 3:
-            chat_history = chat_history[-3:]
+        if len(chat_history) > 15:
+            chat_history = chat_history[-15:]
         for exchange in chat_history:
             prompt += "\nHuman: " + exchange[0] + "\nAI: " + exchange[1]
     prompt += "\nHuman: " + query + "\nAI: "
