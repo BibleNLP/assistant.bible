@@ -16,7 +16,7 @@ def get_context(source_documents):
     context = '['
     # ** This will need to be adjusted, based on what the returned results look like **
     for i in range(len(source_documents)):
-        if len(source_documents[i].page_content) + len(context) > 14000:  # Maybe 3,500 tokens? Ideally we would estimate this based on tokens
+        if len(source_documents[i].page_content) + len(context) > 14000:  # FIXME: use tiktoken library to count tokens
             break
         context += '{source:' + source_documents[i].metadata.get('source', '')
         context += ', text: ' + source_documents[i].page_content + '}' + ','
