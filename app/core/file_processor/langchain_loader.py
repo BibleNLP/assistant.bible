@@ -1,7 +1,7 @@
 '''Langchain based implementation for file handling'''
 from io import TextIOWrapper
 from typing import List
-from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import TokenTextSplitter
 from langchain.document_loaders import TextLoader
 
 from core.file_processor import FileProcessorInterface
@@ -46,11 +46,11 @@ class LangchainLoader(FileProcessorInterface):
                  label:str,
                  name: str = None,
                  metadata: dict = None) -> List[schema.Document]:
-        '''Uses langchain's CharacterTextSplitter to convert text contents into document format'''
+        '''Uses langchain's TokenTextSplitter to convert text contents into document format'''
         output_list = []
         loader = TextLoader(file)
         texts = loader.load()
-        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+        text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=50)
         text_splits = text_splitter.split_documents(texts)
 
         if not label:
