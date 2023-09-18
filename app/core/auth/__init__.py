@@ -77,7 +77,7 @@ def chatbot_get_labels_decorator(func):
         # Extract the access token from the request headers
         access_token = kwargs.get('token')
         if not access_token:
-            labels = []
+            db_labels = []
         else:
             access_token_str = access_token.get_secret_value()
 
@@ -86,16 +86,15 @@ def chatbot_get_labels_decorator(func):
                 user_data = supa.auth.get_user(access_token_str)
 
             except gotrue.errors.AuthApiError as e: # The user is not logged in
-                labels = []
+                db_labels = []
 
             else:
                 result = supa.table('userAttributes').select('id, user_id, user_type, "userTypes"(user_type, sources)').eq('user_id', user_data.user.id).execute()
-                labels = []
+                db_labels = []
                 for data in result.data:
-                    labels.extend(data.get('userTypes', {}).get('sources', []))
-                log.info(f'{labels=}')
-        labels = list(set(labels))
-        kwargs['labels'] = labels
+                    db_labels.extend(data.get('userTypes', {}).get('sources', []))
+                log.info(f'{db_labels=}')
+        kwargs['labels'] = [label for label in kwargs['labels'] if label in db_labels]
         # Proceed with the original function call and pass the sources to it
         return await func(*args, **kwargs)
 
