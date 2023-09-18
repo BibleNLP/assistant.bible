@@ -134,6 +134,7 @@
       var endpoint = {{ ws_url| tojson }};
       endpoint += '?llmFrameworkType=openai-vanilla&vectordbType=postgres-with-pgvector&token=' + accessToken + '&labels=' + label;
       function setupWebsocket(endpoint){
+        console.log("endpoint: " + endpoint)
         var ws = new WebSocket(endpoint);
         
         ws.onmessage = function (event) {
@@ -149,7 +150,7 @@
             if(data.sources.length > 0 && data.sources[0] !== 'no records found') {
                 sourcesButton = '&nbsp(<button class="btn btn-link text-blue-500" onclick="alert(\''+data.sources+'\');">sources</button>)';
             }
-            $('#messages').append('<div class="font-bold">' + data.sender+'</div><div>'+data.message + sourcesButton + '</div>');
+            $('#messages').append('<div class="font-bold">' + data.sender+':</div><div>'+data.message + sourcesButton + '</div>');
             }
         };
         return ws
