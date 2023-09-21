@@ -145,6 +145,7 @@
               </div>
               <div class="mb-4">
                 <button
+                id="signup-button"
                   type="submit"
                   class="btn btn-primary bg-blue-500 text-white p-2 rounded"
                 >
@@ -162,6 +163,10 @@
               id="error-message"
               class="alert alert-danger mt-3 hidden text-red-500"
             ></div>
+            <div
+              id="info-message"
+              class="bg-blue-100 border-t-2 border-blue-500 rounded-b text-blue-900 px-4 py-3 mt-3 hidden"
+              ></div>
           </div>
         </div>
       </div>
@@ -259,14 +264,14 @@
 
             if (response.ok) {
               const data = await response.json();
-              const access_token = data.access_token;
-
-              // Save the access token to sessionStorage
-              sessionStorage.setItem('accessToken', access_token);
-
-              // Optionally redirect the user to a different page
-              window.location.href = '/app';
+              const message = data.message
+              const infoDiv = document.getElementById('info-message');
+              const signUpButton = document.getElementById("signup-button");
+              signUpButton.style.display = "none";
+              infoDiv.textContent = message;
+              infoDiv.style.display = 'block';
             } else {
+                console.log(response)
               const errorMessage = 'Sign up failed. Please try again.';
               const errorDiv = document.getElementById('error-message');
               errorDiv.textContent = errorMessage;
