@@ -482,10 +482,9 @@ async def signup(
             "password": password,
             })
     except gotrue.errors.AuthApiError as e:
-        raise PermissionException("Unauthorized access. Invalid token.") from e
-    access_token = data.session.access_token
+        raise PermissionException("Sign up error") from e
 
     return {
-        "message": "User signed up successfully",
-        "access_token": access_token
+        "message": "Please check your email to confirm your account.",
+        "access_token": None
         }
