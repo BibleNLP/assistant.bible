@@ -170,12 +170,10 @@ async def websocket_chat_endpoint(websocket: WebSocket,
     labels:List[str]=Query(["ESV-Bible"],
         desc="The document sets to be used for answering questions")):
     '''The http chat endpoint'''
-
     log.info("In chat endpoint!!!")
     if token:
         log.info("User, connecting with token, %s", token )
     await websocket.accept()
-
     chat_stack = ConversationPipeline(user="XXX", labels=labels)
 
     vectordb_args = compose_vector_db_args(settings.vectordbType, settings,
@@ -482,18 +480,11 @@ async def signup(
         data = supa.auth.sign_up({
             "email": email, 
             "password": password,
-            "options": {
-                "data": {
-                "user_types": ["public"],
-                },
-  },
             })
     except gotrue.errors.AuthApiError as e:
-        raise PermissionException("Unauthorized access. Invalid token.") from e
-
-    access_token = data.session.access_token
+        raise PermissionException("Sign up error") from e
 
     return {
-        "message": "User signed up successfully",
-        "access_token": access_token
+        "message": "Please check your email to confirm your account.",
+        "access_token": None
         }
