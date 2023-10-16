@@ -25,7 +25,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
     chain = None
     vectordb = None
     def __init__(self, #pylint: disable=super-init-not-called
-                key:str=os.getenv("OPENAI_API_KEY", "dummy-key-for-open-ai"),
+                key:str=os.getenv("OPENAI_API_KEY"),
                 model_name:str = 'gpt-3.5-turbo',
                 vectordb:VectordbInterface = Chroma(),
                 max_tokens_limit:int=int(os.getenv("OPENAI_MAX_TOKEN_LIMIT", '3052'))) -> None:
@@ -38,7 +38,9 @@ class LangchainOpenAI(LLMFrameworkInterface):
         self.vectordb = vectordb
         self.api_object = ChatOpenAI
         self.api_object.api_key = self.api_key
-        self.llm = self.api_object(temperature=0, model_name=self.model_name)
+        self.llm = self.api_object(temperature=0,
+                                    model_name=self.model_name,
+                                    openai_api_key=self.api_key)
         # memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
         self.chain = ConversationalRetrievalChain.from_llm(self.llm,

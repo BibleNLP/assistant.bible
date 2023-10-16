@@ -231,9 +231,9 @@ async def websocket_chat_endpoint(websocket: WebSocket,
 
                 # Construct a response
                 start_resp = schema.BotResponse(sender=schema.SenderType.BOT,
-                        message=bot_response['answer'], type=schema.ChatResponseType.ANSWER,
-                        sources=[item.metadata['source'] for item in bot_response['source_documents']],
-                        media=[])
+                    message=bot_response['answer'], type=schema.ChatResponseType.ANSWER,
+                    sources=[item.metadata['source'] for item in bot_response['source_documents']],
+                    media=[])
                 await websocket.send_json(start_resp.dict())
         except ChatErrorResponse as exe:
             resp = schema.BotResponse(
@@ -445,14 +445,15 @@ async def login(
     """Signs in a user"""
     try:
         data = auth_service.conn.auth.sign_in_with_password({"email": email, "password": password})
-    except gotrue.errors.AuthApiError as e:
-        log.info(f'We have an error: {e}')
-        print(e)
-        if str(e) == 'Email not confirmed':
+    except gotrue.errors.AuthApiError as exe:
+        log.error(f'We have an error: {exe}')
+        if str(exe) == 'Email not confirmed':
             print("It's an email not confirmed error")
-            raise HTTPException(status_code=401, detail="The user email hasn't been confirmed. Please confirm your email and then try to log in again.")
+            raise HTTPException(status_code=401,
+                detail="The user email hasn't been confirmed. "+\
+                "Please confirm your email and then try to log in again.") from exe
         
-        raise PermissionException("Unauthorized access. Invalid token.") from e
+        raise PermissionException("Unauthorized access. Invalid credentials.") from exe
 
     return {
         "message": "User logged in successfully",
