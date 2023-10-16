@@ -23,7 +23,7 @@ class Supabase(AuthInterface):
             raise PermissionException("Unauthorized access. Invalid token.") from exe
         except Exception as exe:
             raise SupabaseException(str(exe)) from exe
-        return user_data.__dict__
+        return {"user_id": user_data.user.id, "user_roles":[], "user_name":""}
 
     def check_role(self, user_id, role='admin'):
         '''Check supabase DB tables to see if user is the given role.'''

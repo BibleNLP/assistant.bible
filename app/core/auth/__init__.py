@@ -40,7 +40,7 @@ class AuthInterface:
             if not access_token:
                 raise ValueError("Access token is missing")
             user_data = self.check_token(access_token)
-            if not self.check_role(user_data['user']['id'], 'admin'):
+            if not self.check_role(user_data['user_id'], 'admin'):
                 raise PermissionException("Unauthorized access. User is not admin.")
             return await func(*args, **kwargs)
 
@@ -99,8 +99,8 @@ class AuthInterface:
                     log.exception(exe)
                     db_labels = []
                 else:
-                    db_labels = self.get_accessible_labels(user_data['user']['id'])
-                    log.info(f'{db_labels=}')
+                    db_labels = self.get_accessible_labels(user_data['user_id'])
+                    log.info(f'Accessible labels for the user: {db_labels=}')
 
             kwargs['labels'] = [label for label in kwargs['labels'] if label in db_labels]
             # Proceed with the original function call and pass the sources to it
