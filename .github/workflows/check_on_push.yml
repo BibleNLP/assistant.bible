@@ -48,4 +48,4 @@ jobs:
             set SUPABASE_URL=dummy-value
             set SUPABASE_KEY=dummy-value
             set SUPABASE_JWT_SECRET=dummy-value
-            python3 -m pytest tests/test_basics.py test/tests_dataupload.py
+            python3 -m pytest tests/test_basics.py test/tests_dataupload.py --show-capture=no
