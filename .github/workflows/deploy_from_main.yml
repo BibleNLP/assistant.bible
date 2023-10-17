@@ -23,7 +23,7 @@ jobs:
         port: 22
         script_stop: true
         script: |
-          cd /home/kavitha/assistant.bible
-          git pull origin main
+          cd /home/assistant-bible/assistant.bible
+          git pull origin develop
           cd deployment
           docker compose --env-file .env up --force-recreate --build -d
