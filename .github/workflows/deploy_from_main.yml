@@ -6,7 +6,7 @@ name: deploy
 # Triggers the workflow on push to main branch 
 on:
   push:
-    branches: [ main ]
+    branches: [ develop ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -17,9 +17,9 @@ jobs:
     - name: executing remote ssh commands using RSA
       uses: appleboy/ssh-action@master
       with:
-        host: ${{ secrets.BCS_DO_HOST }}
-        username: ${{ secrets.BCS_DO_USERNAME }}
-        key: ${{ secrets.BCS_DO_SSH_KEY }}
+        host: dev.assistant.bible
+        username: assistant-bible
+        key: ${{ DEV_SIL_SSH_KEY }}
         port: 22
         script_stop: true
         script: |
