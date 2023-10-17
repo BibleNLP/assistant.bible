@@ -9,7 +9,6 @@ on:
     branches: [ develop ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
 jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
@@ -23,8 +22,16 @@ jobs:
         port: 22
         script_stop: true
         script: |
+          echo "Debug: Starting SSH script"
           su - assistant-bible
+          echo "Debug: Switched to assistant-bible user"
           cd /home/assistant-bible/assistant.bible
+          echo "Debug: Changed directory to /home/assistant-bible/assistant.bible"
+          git status
+          echo "Debug: git stauts run "
           git pull origin develop
+          echo "Debug: Git pull command executed"
           cd deployment
+          echo "Debug: Changed directory to deployment"
           docker compose --env-file .env up --force-recreate --build -d
+          echo "Debug: Docker compose command executed"
