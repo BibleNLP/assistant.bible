@@ -19,7 +19,7 @@ jobs:
       with:
         host: dev.assistant.bible
         username: assistant-bible
-        key: ${{ DEV_SIL_SSH_KEY }}
+        key: ${{ secrets.DEV_SIL_SSH_KEY }}
         port: 22
         script_stop: true
         script: |
