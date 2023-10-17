@@ -25,7 +25,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
     chain = None
     vectordb = None
     def __init__(self, #pylint: disable=super-init-not-called
-                key:str=os.getenv("OPENAI_API_KEY"),
+                key:str=os.getenv("OPENAI_API_KEY","dummy-for-test"),
                 model_name:str = 'gpt-3.5-turbo',
                 vectordb:VectordbInterface = Chroma(),
                 max_tokens_limit:int=int(os.getenv("OPENAI_MAX_TOKEN_LIMIT", '3052'))) -> None:
