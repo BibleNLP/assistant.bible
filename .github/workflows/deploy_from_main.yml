@@ -14,8 +14,6 @@ jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Accept SSH Host Key
-      run: ssh-keyscan -H dev.assistant.bible >> ~/.ssh/known_hosts
     - name: executing remote ssh commands using RSA
       uses: appleboy/ssh-action@master
       with:
