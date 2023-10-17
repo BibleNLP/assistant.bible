@@ -13,7 +13,7 @@ jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: executing remote ssh commands using RSA
+    - name: Execute Commands on Remote Server
       uses: appleboy/ssh-action@master
       with:
         host: dev.assistant.bible
@@ -28,10 +28,13 @@ jobs:
           cd /home/assistant-bible/assistant.bible
           echo "Debug: Changed directory to /home/assistant-bible/assistant.bible"
           git status
-          echo "Debug: git stauts run "
+          echo "Debug: git status run"
+          ssh -o StrictHostKeyChecking=no -T git@github.com  # Test SSH connection to GitHub
+          echo "Debug: SSH connection test to GitHub completed"
           git pull origin develop
           echo "Debug: Git pull command executed"
           cd deployment
           echo "Debug: Changed directory to deployment"
           docker compose --env-file .env up --force-recreate --build -d
           echo "Debug: Docker compose command executed"
+
