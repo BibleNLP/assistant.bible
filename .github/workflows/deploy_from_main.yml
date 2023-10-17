@@ -22,7 +22,6 @@ jobs:
         port: 22
         script_stop: true
         script: |
-          echo "Debug: Switched to assistant-bible user"
           cd /home/assistant-bible/assistant.bible
           echo "Debug: Changed directory to /home/assistant-bible/assistant.bible"
           git status
@@ -33,6 +32,7 @@ jobs:
           echo "Debug: Git pull command executed"
           echo "Debug: Starting SSH script"
           su - assistant-bible
+          echo "Debug: Switched to assistant-bible user"
           cd deployment
           echo "Debug: Changed directory to deployment"
           docker compose --env-file .env up --force-recreate --build -d
