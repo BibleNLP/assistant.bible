@@ -50,14 +50,3 @@ def fresh_db():
         cur.execute(delete_statement)
         cur.close()
         db_conn.close()
-
-@pytest.fixture
-def clear_loggers():
-    """Remove handlers from all loggers due to an issue in chroma(duck-db) module
-    https://github.com/pytest-dev/pytest/issues/5502"""
-    import logging
-    loggers = [logging.getLogger()] + list(logging.Logger.manager.loggerDict.values())
-    for logger in loggers:
-        handlers = getattr(logger, 'handlers', [])
-        for handler in handlers:
-            logger.removeHandler(handler)
