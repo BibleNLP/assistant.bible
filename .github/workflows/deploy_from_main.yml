@@ -18,11 +18,11 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         host: dev.assistant.bible
-        username: assistant-bible
         key: ${{ secrets.DEV_SIL_SSH_KEY }}
         port: 22
         script_stop: true
         script: |
+          su - assistant-bible
           cd /home/assistant-bible/assistant.bible
           git pull origin develop
           cd deployment
