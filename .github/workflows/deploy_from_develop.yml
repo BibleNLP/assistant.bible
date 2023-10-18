@@ -23,11 +23,7 @@ jobs:
         script_stop: true
         script: |
           cd /home/assistant-bible/assistant.bible
-          echo "Debug: Changed directory to /home/assistant-bible/assistant.bible"
           git status
-          echo "Debug: git status run"
-          ssh -o StrictHostKeyChecking=no -T git@github.com  # Test SSH connection to GitHub
-          echo "Debug: SSH connection test to GitHub completed"
           git pull origin develop
           echo "Debug: Git pull command executed"
           echo "Debug: Starting SSH script"
