@@ -23,14 +23,8 @@ jobs:
         script_stop: true
         script: |
           cd /home/assistant-bible/assistant.bible
-          git status
           git pull origin develop
-          echo "Debug: Git pull command executed"
-          echo "Debug: Starting SSH script"
           su - assistant-bible
-          echo "Debug: Switched to assistant-bible user"
           cd deployment
-          echo "Debug: Changed directory to deployment"
           docker compose --env-file .env up --force-recreate --build -d
-          echo "Debug: Docker compose command executed"
 
