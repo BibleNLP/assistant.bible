@@ -106,3 +106,14 @@ After activating the virtual environment, from project root folder (`assistant.b
 ```
 pylint --rcfile=.pylintrc app/*.py app/tests/*.py
 ```
+
+
+### Contributing
+
+In this repository, there are two long-lived branches: develop and main. There are automated actions that trigger deployment upon a "push" event for the following respective environments: https://dev.assistant.bible/ (hosted in the SIL DO account) and https://assistant.bible/ (hosted in the BCS DO account ).
+
+To contribute, please follow these steps:
+
+- Create a feature branch.
+- Merge your changes into the develop branch for testing purposes.
+- Open a pull request (PR) when merging into the main branch (production).
