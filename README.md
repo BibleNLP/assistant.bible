@@ -110,7 +110,7 @@ pylint --rcfile=.pylintrc app/*.py app/tests/*.py
 
 ### Contributing
 
-In this repository, there are two long-lived branches: develop and main. There are automated actions that trigger deployment upon a "push" event for the following respective environments: https://dev.assistant.bible/ and https://assistant.bible/.
+In this repository, there are two long-lived branches: develop and main. There are automated actions that trigger deployment upon a "push" event for the following respective environments: https://dev.assistant.bible/ (hosted in the SIL DO account) and https://assistant.bible/ (hosted in BCS the DO account ).
 
 To contribute, please follow these steps:
 
