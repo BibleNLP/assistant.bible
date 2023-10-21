@@ -1,4 +1,4 @@
-''' Test fixtures and stuff'''
+""" Test fixtures and stuff"""
 
 import os
 import shutil
@@ -8,12 +8,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 @pytest.fixture
 def fresh_db():
-    '''For Chroma: Deletes the chroma test db folder if one existed
-    For Postgres: Drops the test database if one existed
-    Returns: the DB_config to be used for chroma or postgres connection'''
-    collection_name = "adotdcollection_test"
-
-    # Chroma Specific clean up
+    """Deletes the chroma db folder if one existed and
+    returns the DB_config to be used in all APIs"""
     chroma_db_path = "chromadb_store_test"
     if os.path.exists(chroma_db_path):
         shutil.rmtree(chroma_db_path)
@@ -35,10 +31,7 @@ def fresh_db():
     db_conn.close()
 
     try:
-        yield {
-                "dbPath": chroma_db_path,
-                "collectionName": collection_name
-              }
+        yield {"dbPath": chroma_db_path, "collectionName": chroma_db_collection}
     finally:
         if os.path.exists(chroma_db_path):
             shutil.rmtree(chroma_db_path)

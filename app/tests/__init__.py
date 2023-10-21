@@ -1,5 +1,5 @@
-'''Initializes a test client'''
-from unittest.mock import Mock, patch
+"""Initializes a test client"""
+
 from fastapi.testclient import TestClient
 
 mock = Mock()
