@@ -1,0 +1,30 @@
+# Workflow to deploy to a DC server via SSH over RSA
+
+name: deploy
+
+# on: [push ]
+# Triggers the workflow on push to main branch 
+on:
+  push:
+    branches: [ develop ]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+jobs:
+  pull-n-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Execute Commands on Remote Server
+      uses: appleboy/ssh-action@master
+      with:
+        host: dev.assistant.bible
+        username: root
+        key: ${{ secrets.DEV_SIL_SSH_KEY }}
+        port: 22
+        script_stop: true
+        script: |
+          cd /home/assistant-bible/assistant.bible
+          git pull origin develop
+          su - assistant-bible
+          cd deployment
+          docker compose --env-file .env up --force-recreate --build -d
+
