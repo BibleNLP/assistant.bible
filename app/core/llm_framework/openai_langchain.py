@@ -14,7 +14,7 @@ from custom_exceptions import AccessException, OpenAIException, ChatErrorRespons
 from log_configs import log
 
 
-#pylint: disable=too-few-public-methods
+#pylint: disable=too-few-public-methods,fixme
 
 class LangchainOpenAI(LLMFrameworkInterface):
     '''Uses OpenAI APIs to create vectors for text'''
@@ -25,6 +25,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
     chain = None
     vectordb = None
     def __init__(self, #pylint: disable=super-init-not-called
+                # FIXME : Ideal to be able to mock the __init__ from tests
                 key:str=os.getenv("OPENAI_API_KEY","dummy-for-test"),
                 model_name:str = 'gpt-3.5-turbo',
                 vectordb:VectordbInterface = Chroma(),

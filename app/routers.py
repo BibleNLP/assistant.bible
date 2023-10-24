@@ -44,6 +44,8 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 UPLOAD_PATH = "./uploaded-files/"
 
+#pylint: disable=fixme
+
 auth_service = Supabase()
 
 @router.get("/",
@@ -484,8 +486,8 @@ async def signup(
             "email": email, 
             "password": password,
             })
-    except gotrue.errors.AuthApiError as exe:
-        raise PermissionException("Sign up error") from exe
+    except gotrue.errors.AuthApiError as exce:
+        raise PermissionException("Sign up error") from exce
 
     return {
         "message": "Please check your email to confirm your account.",

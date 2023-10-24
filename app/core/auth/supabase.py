@@ -6,12 +6,14 @@ from core.auth import AuthInterface
 from custom_exceptions import SupabaseException, GenericException, PermissionException
 from log_configs import log
 
+#pylint: disable=fixme
 class Supabase(AuthInterface):
     '''The supabase implementation of the auth interface'''
     def __init__(self,
                 url=os.environ.get("SUPABASE_URL"),
                 key=os.environ.get("SUPABASE_KEY")):
         '''Connect to Supabase server'''
+        # FIXME : Ideal to be able to mock the __init__ from tests
         if url is None or key is None:
             self.conn = None
         else:
