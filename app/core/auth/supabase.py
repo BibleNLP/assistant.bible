@@ -47,7 +47,7 @@ class Supabase(AuthInterface):
         return False
 
     def get_accessible_labels(self, user_id):
-        '''Queries the supabase table to bet user-source mapping'''
+        '''Queries the supabase table to get user-source mapping'''
         try:
             result = self.conn.table('userAttributes').select(
                 'id, user_id, user_type, "userTypes"(user_type, sources)').eq(
