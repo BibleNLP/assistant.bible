@@ -88,7 +88,6 @@ class DataUploadPipeline:
         host_n_port: schema.HostnPortPattern = None,
         path: Optional[str] = None,
         collection_name: Optional[str] = None,
-        embedding_function=SentenceTransformerEmbedding(),
         **kwargs
     ) -> None:
         """Change the default tech with one of our choice"""
@@ -104,6 +103,7 @@ class DataUploadPipeline:
         if choice == schema.DatabaseType.CHROMA:
             self.vectordb = Chroma(**args)
         elif choice == schema.DatabaseType.POSTGRES:
+            # Add your code here
             args["user"] = kwargs.get("user")
             args["password"] = kwargs.get("password")
             args["embedding"] = kwargs.get("embedding")

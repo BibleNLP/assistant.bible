@@ -4,11 +4,10 @@ import os
 from typing import List, Optional
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
-from pydantic import Field
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
-from custom_exceptions import PostgresException, GenericException, ChatErrorResponse
+from custom_exceptions import PostgresException, GenericException
 import numpy as np
 
 import psycopg2
@@ -46,10 +45,13 @@ class Postgres(
         **kwargs,
     ) -> None:  # pylint: disable=super-init-not-called
         """Instantiate a chroma client"""
-        # You MUST set embedding with PGVector, since with this DB type the embedding dimension size always hard-coded on init
+        # You MUST set embedding with PGVector,
+        # since with this DB type the embedding dimension size always
+        # hard-coded on init
         if embedding is None:
             raise ValueError(
-                "You MUST set embedding with PGVector, since with this DB type the embedding dimension size always hard-coded on init"
+                "You MUST set embedding with PGVector, since with this DB type the "
+                "embedding dimension size always hard-coded on init" # break line
             )
         self.embedding = embedding
         self.labels = kwargs.get("labels", ["tyndale_open"])
@@ -143,7 +145,13 @@ class Postgres(
             else:
                 # Update instead of add
                 cur.execute(
-                    "UPDATE embeddings SET document = %s, label = %s, media = %s, links = %s, embedding = %s WHERE source_id = %s",
+                    """UPDATE embeddings SET document = %s,
+                    label = %s,
+                    media = %s,
+                    links = %s,
+                    embedding = %s
+                    WHERE source_id = %s""",
+
                     (
                         doc.text,
                         doc.label,
@@ -192,7 +200,8 @@ class Postgres(
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT source_id, document FROM embeddings "
-                + "WHERE label = ANY(%s) and embedding <=> %s < %s ORDER BY embedding <=> %s LIMIT %s;",
+                "WHERE label = ANY(%s) and embedding <=> %s < "
+                "%s ORDER BY embedding <=> %s LIMIT %s;",
                 (
                     self.labels,
                     np.array(query_vector),
@@ -211,7 +220,11 @@ class Postgres(
         if len(records) == 0:
             return [
                 LangchainDocument(
-                    page_content="No relevant context documents found. This question can't be answered, but the user could try rewording or asking something else.",
+                    page_content=(
+                        "No relevant context documents found. "
+                        "This question can't be answered, but the user "
+                        "could try rewording or asking something else."
+                    ),
                     metadata={"source": "no records found"},
                 )
             ]
@@ -232,9 +245,13 @@ class Postgres(
             raise GenericException("While vectorising the query: " + str(exe)) from exe
         try:
             cur = self.db_conn.cursor()
+
             cur.execute(
                 "SELECT source_id, document FROM embeddings "
-                + "WHERE label = ANY(%s) and embedding <=> %s < %s ORDER BY embedding <=> %s LIMIT %s;",
+                "WHERE label = ANY(%s) "
+                "and embedding <=> %s < %s "
+                "ORDER BY embedding <=> %s "
+                "LIMIT %s;",
                 (
                     self.labels,
                     np.array(query_vector),
@@ -243,6 +260,7 @@ class Postgres(
                     self.query_limit,
                 ),
             )
+
             records = cur.fetchall()
 
             cur.close()
@@ -254,7 +272,11 @@ class Postgres(
         if len(records) == 0:
             return [
                 LangchainDocument(
-                    page_content="No relevant context documents found. This question can't be answered, but the user could try rewording or asking something else.",
+                    page_content=(
+                        "No relevant context documents found. "
+                        "This question can't be answered, but the "
+                        "user could try rewording or asking something else."
+                    ),
                     metadata={"source": "no records found"},
                 )
             ]

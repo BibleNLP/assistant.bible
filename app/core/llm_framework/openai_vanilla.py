@@ -15,7 +15,7 @@ def get_context(source_documents):
     """Constructs a context string based on the provided results."""
     context = "["
     # ** This will need to be adjusted, based on what the returned results look like **
-    for i in range(len(source_documents)):
+    for i, _ in enumerate(source_documents):
         if (
             len(source_documents[i].page_content) + len(context) > 11000
         ):  # FIXME: use tiktoken library to count tokens
@@ -54,7 +54,9 @@ def append_query_to_prompt(prompt, query, chat_history):
         if len(chat_history) > 15:
             chat_history = chat_history[
                 -15:
-            ]  # FIXME: use tiktoken library to check overall token count and ensure context window is not exceeded
+            ]  # FIXME:
+            #use tiktoken library to check overall token count
+            # and ensure context window is not exceeded
         for exchange in chat_history:
             prompt += "\nHuman: " + exchange[0] + "\nAI: " + exchange[1]
     prompt += "\nHuman: " + query + "\nAI: "
@@ -71,17 +73,17 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
 
     def __init__(
         self,  # pylint: disable=super-init-not-called
-        key: str = os.getenv("OPENAI_API_KEY"),
+        key: str = os.getenv("OPENAI_API_KEY", None),
         model_name: str = "gpt-3.5-turbo",
         vectordb: VectordbInterface = None,  # What should this be by default?
     ) -> None:
         """Sets the API key and initializes library objects if any"""
-        if key is None:
+        self.api_key = key
+        if self.api_key is None:
             raise AccessException(
                 "OPENAI_API_KEY needs to be provided."
                 + "Visit https://platform.openai.com/account/api-keys"
             )
-        self.api_key = key
         openai.api_key = self.api_key
         self.model_name = model_name
         self.vectordb = vectordb
