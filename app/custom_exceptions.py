@@ -57,6 +57,14 @@ class PostgresException(Exception):
         self.detail = detail
         self.status_code = 502
 
+class SupabaseException(Exception):
+    '''Format for errors from Supabase'''
+    def __init__(self, detail):
+        super().__init__()
+        self.name = "Error from Supabase Authentication system"
+        self.detail = detail
+        self.status_code = 502
+
 class GenericException(Exception):
     '''Format for Database error'''
     def __init__(self, detail: str):

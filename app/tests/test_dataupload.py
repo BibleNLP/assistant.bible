@@ -1,8 +1,13 @@
 '''Test connecting to test DB and uploading different types of documents'''
 import os
-from . import client
+import pytest
+from functools import wraps
 
-admin_token = os.getenv('ADMIN_ACCESS_TOKEN', "chatchatchat")
+from . import client
+from app import schema
+
+
+ADMIN_TOKEN = "dummy-admin-token"
 
 SENT_DATA =  [
     {
@@ -41,17 +46,32 @@ MD_FILES = [
 
 CSV_FILE = "../recipes/data/dataupload.tsv"
 
-def test_data_upload_processed_sentences(fresh_db):
+
+
+@pytest.mark.parametrize('vectordb', [schema.DatabaseType.CHROMA, schema.DatabaseType.POSTGRES])
+def test_data_upload_processed_sentences(mocker, vectordb, fresh_db):
     '''Test uploading documents to the vector DB'''
+    mocker.patch('app.routers.Supabase.check_token',return_value={'user_id':'1111'})
+    mocker.patch('app.routers.Supabase.check_role',return_value=True)
     response = client.post("/upload/sentences",
-                    params={"vectordb_type": "chroma-db", "token":admin_token},
-                    json={"document_objs":SENT_DATA, "vectordb_config": fresh_db}
+                    params={"vectordb_type": vectordb.value,
+                            "token":ADMIN_TOKEN,
+                            "dbPath":fresh_db['dbPath'],
+                            "collectionName":fresh_db['collectionName'],
+                            "embeddingType":schema.EmbeddingType.HUGGINGFACE_DEFAULT.value},
+                    json=SENT_DATA
                     )
-    assert response.status_code == 201
+    assert response.status_code == 201, response.json()
     assert response.json() == {"message": "Documents added to DB"}
 
-def test_data_upload_markdown(fresh_db):
+@pytest.mark.parametrize('vectordb', [schema.DatabaseType.CHROMA, schema.DatabaseType.POSTGRES])
+@pytest.mark.parametrize('chunker', [schema.FileProcessorType.LANGCHAIN,
+    # schema.FileProcessorType.VANILLA
+    ])
+def test_data_upload_markdown(mocker, vectordb, chunker, fresh_db):
     '''Test uploading documents to the vector DB'''
+    mocker.patch('app.routers.Supabase.check_token',return_value={'user_id':'1111'})
+    mocker.patch('app.routers.Supabase.check_role',return_value=True)
     for md_file in MD_FILES:
         with open(md_file, 'rb') as input_file:
 
@@ -60,42 +80,48 @@ def test_data_upload_markdown(fresh_db):
                                                     input_file, "text/markdown")},
                         params={
                             "label":"translationwords",
-                            "file_processor_type": "Langchain-loaders",
-                            "vectordb_type": "chroma-db",
+                            "file_processor_type": chunker.value,
+                            "vectordb_type": vectordb.value,
                             "dbPath":fresh_db["dbPath"],
                             "collectionName":fresh_db["collectionName"],
-                            "token":admin_token
+                            "token":ADMIN_TOKEN
                             }
                         # json={"vectordb_config": fresh_db}
                         )
-            assert response.status_code == 201
+            assert response.status_code == 201, response.json()
             assert response.json() == {"message": "Documents added to DB"}
 
-def test_data_upload_csv(fresh_db):
+@pytest.mark.parametrize('vectordb', [schema.DatabaseType.CHROMA, schema.DatabaseType.POSTGRES])
+def test_data_upload_csv(mocker, vectordb, fresh_db):
     '''Test uploading documents to the vector DB'''
+    mocker.patch('app.routers.Supabase.check_token',return_value={'user_id':'1111'})
+    mocker.patch('app.routers.Supabase.check_role',return_value=True)
     with open(CSV_FILE, 'rb') as input_file:
         response = client.post("/upload/csv-file",
                     files={"file_obj": (CSV_FILE.rsplit('/', maxsplit=1)[-1],
                                                 input_file, "text/csv")},
                     params={
                         "col_delimiter":"tab",
-                        "vectordb_type": "chroma-db",
+                        "vectordb_type": vectordb.value,
                         "dbPath":fresh_db["dbPath"],
                         "collectionName":fresh_db["collectionName"],
-                        "token":admin_token
+                        "token":ADMIN_TOKEN
                         },
                     json={"vectordb_config": fresh_db}
                     )
-        assert response.status_code == 201
+        assert response.status_code == 201, response.json()
         assert response.json() == {"message": "Documents added to DB"}
 
-def test_get_lables(fresh_db):
+@pytest.mark.parametrize('vectordb', [schema.DatabaseType.CHROMA, schema.DatabaseType.POSTGRES])
+def test_get_lables(mocker, vectordb, fresh_db):
     '''Check available labels in the vector db, before and after data upload'''
+    mocker.patch('app.routers.Supabase.check_token',return_value={'user_id':'1111'})
+    mocker.patch('app.routers.Supabase.check_role',return_value=True)
     param_args = {
-                    "db_type": "chroma-db",
+                    "db_type": vectordb.value,
                     "dbPath": fresh_db["dbPath"],
                     "collectionName": fresh_db["collectionName"],
-                    "token":admin_token
+                    "token":ADMIN_TOKEN
                 }
 
     # Before upload
@@ -104,21 +130,22 @@ def test_get_lables(fresh_db):
     assert response.json() == []
 
     # Upload set 1
-    test_data_upload_processed_sentences(fresh_db)
+    test_data_upload_processed_sentences(mocker, vectordb, fresh_db)
     response = client.get("/source-labels",params=param_args)
     assert response.status_code == 200
     for label in ['NIV bible']:
         assert label in response.json()
 
     # Upload set 2
-    test_data_upload_markdown(fresh_db)
+    test_data_upload_markdown(
+        mocker, vectordb, schema.FileProcessorType.LANGCHAIN, fresh_db)
     response = client.get("/source-labels",params=param_args)
     assert response.status_code == 200
     for label in ['NIV bible', 'translationwords']:
         assert label in response.json()
 
     # Upload set 3
-    test_data_upload_csv(fresh_db)
+    test_data_upload_csv(mocker, vectordb, fresh_db)
     response = client.get("/source-labels",params=param_args)
     assert response.status_code == 200
     for label in ['NIV bible', 'translationwords', "ESV-Bible"]:
