@@ -7,7 +7,7 @@ import schema
 from custom_exceptions import GenericException
 
 
-# pylint: disable=too-few-public-methods, unused-argument
+# pylint: disable=too-few-public-methods, unused-argument, R0801
 
 
 class VanillaLoader(FileProcessorInterface):

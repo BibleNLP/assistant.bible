@@ -27,8 +27,8 @@ from core.vectordb.chroma import Chroma
 from core.vectordb.postgres4langchain import Postgres
 from core.embedding.openai import OpenAIEmbedding
 from core.embedding.sentence_transformers import SentenceTransformerEmbedding
-from custom_exceptions import PermissionException, GenericException
 from core.auth.supabase import supa
+from custom_exceptions import PermissionException, GenericException
 
 
 router = APIRouter()

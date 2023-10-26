@@ -23,19 +23,18 @@ def admin_auth_check_decorator(func):
         try:
             user_data = supa.auth.get_user(access_token_str)
 
-        except gotrue.errors.AuthApiError as e:
-            raise PermissionException("Unauthorized access. Invalid token.") from e
-        else:
-            result = (
-                supa.table("adminUsers")
-                .select(
-                    """
-                    user_id
-                    """
-                )
-                .eq("user_id", user_data.user.id)
-                .execute()
+        except gotrue.errors.AuthApiError as error:
+            raise PermissionException("Unauthorized access. Invalid token.") from error
+        result = (
+            supa.table("adminUsers")
+            .select(
+                """
+                user_id
+                """
             )
+            .eq("user_id", user_data.user.id)
+            .execute()
+        )
         if not result.data:
             raise PermissionException("Unauthorized access. User is not admin.")
 
@@ -82,7 +81,7 @@ def chatbot_auth_check_decorator(func):
         try:
             supa.auth.get_user(access_token_str)
 
-        except gotrue.errors.AuthApiError as e:
+        except gotrue.errors.AuthApiError:
             await websocket.accept()
             json_response = schema.BotResponse(
                 sender=schema.SenderType.BOT,
@@ -134,7 +133,7 @@ def chatbot_get_labels_decorator(func):
                 return
             return await func(websocket, *args, **kwargs)
 
-            except gotrue.errors.AuthApiError as e:  # The user is not logged in
+            except gotrue.errors.AuthApiError:  # The user is not logged in
                 db_labels = []
             else:
                 result = (

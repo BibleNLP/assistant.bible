@@ -10,6 +10,8 @@ from core.vectordb import VectordbInterface
 from custom_exceptions import AccessException, OpenAIException
 from log_configs import log
 
+# pylint: disable=super-init-not-called
+
 
 def get_context(source_documents):
     """Constructs a context string based on the provided results."""

@@ -5,7 +5,7 @@ import csv
 
 import schema
 
-# pylint: disable=too-few-public-methods, unused-argument
+# pylint: disable=too-few-public-methods, unused-argument, R0801
 
 
 class FileProcessorInterface:

@@ -16,7 +16,7 @@ from custom_exceptions import AccessException, OpenAIException, ChatErrorRespons
 from log_configs import log
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, super-init-not-called
 
 
 class LangchainOpenAI(LLMFrameworkInterface):

@@ -8,7 +8,7 @@ from core.embedding import EmbeddingInterface
 from custom_exceptions import AccessException, OpenAIException
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods,super-init-not-called
 
 
 class OpenAIEmbedding(EmbeddingInterface):

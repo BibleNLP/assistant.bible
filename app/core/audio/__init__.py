@@ -2,6 +2,7 @@
 Audio transcription interface for the application.
 """
 
+# pylint: disable=R0801, unused-argument, too-few-public-methods
 
 class AudioTranscriptionInterface:
     """Interface for audio transcription technology and its use"""

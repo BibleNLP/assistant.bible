@@ -2,6 +2,7 @@
 This module contains the WhisperAudioTranscription class which is used to
 transcribe audio using OpenAI's Whisper API.
 """
+# pylint: disable=R0801, super-init-not-called, too-few-public-methods
 
 import io
 import os
