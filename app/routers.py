@@ -1,6 +1,7 @@
 """API endpoint definitions"""
 import os
 from typing import List
+import json
 
 from fastapi import (
     APIRouter,
@@ -15,6 +16,7 @@ from fastapi import (
 )
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from fastapi import WebSocket, WebSocketDisconnect
 from pydantic import SecretStr
 import gotrue.errors
 
@@ -47,6 +49,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 UPLOAD_PATH = "./uploaded-files/"
 
+#pylint: disable=fixme, too-many-statements, too-many-locals
 
 @router.get(
     "/",
@@ -464,13 +467,11 @@ async def login(
         print(error)
         if str(error) == "Email not confirmed":
             print("It's an email not confirmed error")
-            raise HTTPException(
-                status_code=401,
-                detail="The user email hasn't been confirmed. "
-                "Please confirm your email and then try to log in again.",
-            ) from error
+            raise HTTPException(status_code=401,
+                detail="The user email hasn't been confirmed. "+\
+                "Please confirm your email and then try to log in again.") from exe
 
-        raise PermissionException("Unauthorized access. Invalid token.") from error
+        raise PermissionException("Unauthorized access. Invalid credentials.") from exe
 
     return {
         "message": "User logged in successfully",
@@ -496,14 +497,12 @@ async def signup(
 ):
     """Signs up a new user"""
     try:
-        supa.auth.sign_up(
-            {
-                "email": email,
-                "password": password,
-            }
-        )
-    except gotrue.errors.AuthApiError as error:
-        raise PermissionException("Sign up error") from error
+        auth_service.conn.auth.sign_up({
+            "email": email,
+            "password": password,
+            })
+    except gotrue.errors.AuthApiError as exce:
+        raise PermissionException("Sign up error") from exce
 
     return {
         "message": "Please check your email to confirm your account.",

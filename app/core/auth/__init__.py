@@ -12,31 +12,11 @@ import schema
 def admin_auth_check_decorator(func):
     """For all data managment APIs"""
 
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        # Extract the access token from the request headers
-        access_token = kwargs.get("token")
-        if not access_token:
-            raise ValueError("Access token is missing")
-        access_token_str = access_token.get_secret_value()
-        # Verify the access token using Supabase secret
-        try:
-            user_data = supa.auth.get_user(access_token_str)
-
-        except gotrue.errors.AuthApiError as error:
-            raise PermissionException("Unauthorized access. Invalid token.") from error
-        result = (
-            supa.table("adminUsers")
-            .select(
-                """
-                user_id
-                """
-            )
-            .eq("user_id", user_data.user.id)
-            .execute()
-        )
-        if not result.data:
-            raise PermissionException("Unauthorized access. User is not admin.")
+    def check_token(self,access_token:str) -> dict:
+        '''Decodes the token to get the user id'''
+        # To be implemented by the implementing class
+        # if adding more implemenations need to define the output object structure with a schema
+        return {}
 
     def check_role(self, user_id, role) -> bool:
         '''Check if the user has given role'''

@@ -1,9 +1,12 @@
 """Test connecting to test DB and uploading different types of documents"""
-import os
-import pytest
-from functools import wraps
 
-admin_token = os.getenv("ADMIN_ACCESS_TOKEN", "chatchatchat")
+import pytest
+
+from app import schema
+from . import client
+
+
+ADMIN_TOKEN = "dummy-admin-token"
 
 SENT_DATA = [
     {
