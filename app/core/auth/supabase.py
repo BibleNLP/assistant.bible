@@ -13,11 +13,7 @@ class Supabase(AuthInterface):
                 url=os.environ.get("SUPABASE_URL"),
                 key=os.environ.get("SUPABASE_KEY")):
         '''Connect to Supabase server'''
-        # FIXME : Ideal to be able to mock the __init__ from tests
-        if url is None or key is None:
-            self.conn = None
-        else:
-            self.conn = create_client(url, key)
+        self.conn = create_client(url, key)
 
     def check_token(self, access_token):
         '''Pass on the token from user to supabase and get id'''
