@@ -10,6 +10,8 @@ import openai
 from core.audio import AudioTranscriptionInterface
 from custom_exceptions import AccessException
 
+# pylint: disable= super-init-not-called, too-few-public-methods
+
 
 class WhisperAudioTranscription(AudioTranscriptionInterface):
     """Interface for audio transcription technology and its use"""

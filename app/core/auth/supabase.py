@@ -1,10 +1,13 @@
+"""
+This module contains the Supabase class which implements the AuthInterface. 
+It provides methods to interact with the Supabase server for authentication purposes.
+"""
 import os
-from supabase import create_client, Client
+from supabase import create_client
 import gotrue.errors
 
 from core.auth import AuthInterface
 from custom_exceptions import SupabaseException, GenericException, PermissionException
-from log_configs import log
 
 
 # pylint: disable=fixme
@@ -17,14 +20,15 @@ class Supabase(AuthInterface):
         """Connect to Supabase server"""
         self.conn = create_client(url, key)
 
-    def check_token(self, access_token):
+    def check_token(self, token):
         """Pass on the token from user to supabase and get id"""
         try:
-            access_token_str = access_token.get_secret_value()
+            access_token_str = token.get_secret_value()
             # Verify the access token using Supabase secret
             user_data = self.conn.auth.get_user(access_token_str)
         except gotrue.errors.AuthApiError as exe:
-            raise PermissionException("Unauthorized access. Invalid token.") from exe
+            raise PermissionException(
+                "Unauthorized access. Invalid token.") from exe
         except Exception as exe:  # pylint: disable=broad-exception-caught
             raise SupabaseException(str(exe)) from exe
         return {"user_id": user_data.user.id, "user_roles": [], "user_name": ""}

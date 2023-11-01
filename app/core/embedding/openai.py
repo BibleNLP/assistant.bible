@@ -8,7 +8,7 @@ from core.embedding import EmbeddingInterface
 from custom_exceptions import AccessException, OpenAIException
 
 
-# pylint: disable=too-few-public-methods
+# pylint: disable=too-few-public-methods, super-init-not-called,
 
 
 class OpenAIEmbedding(EmbeddingInterface):
@@ -41,7 +41,8 @@ class OpenAIEmbedding(EmbeddingInterface):
         """Generate embedding for the .text values and sets them to .embedding field of i/p items"""
         for doc in doc_list:
             input_text = doc.text.replace("\n", " ")
-            response = openai.Embedding.create(input=input_text, model=self.model)
+            response = openai.Embedding.create(
+                input=input_text, model=self.model)
             if "data" not in response:
                 raise OpenAIException(str(response))
             doc.embedding = response["data"][0]["embedding"]

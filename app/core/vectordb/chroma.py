@@ -10,7 +10,7 @@ from custom_exceptions import ChromaException
 import chromadb
 from chromadb.config import Settings
 
-# pylint: disable=too-few-public-methods, unused-argument, R0801
+# pylint: disable=too-few-public-methods, unused-argument, R0801, super-init-not-called
 QUERY_LIMIT = os.getenv("CHROMA_DB_QUERY_LIMIT", "10")
 
 

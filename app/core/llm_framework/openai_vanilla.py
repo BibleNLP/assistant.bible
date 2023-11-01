@@ -10,20 +10,21 @@ from core.vectordb import VectordbInterface
 from custom_exceptions import AccessException, OpenAIException
 from log_configs import log
 
-# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
+# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801,super-init-not-called,
+# pylint: disable=fixme
 
 
 def get_context(source_documents):
     """Constructs a context string based on the provided results."""
     context = "["
     # ** This will need to be adjusted, based on what the returned results look like **
-    for i in range(len(source_documents)):
+    for _, source_document in enumerate(source_documents):
         if (
-            len(source_documents[i].page_content) + len(context) > 11000
+            len(source_document.page_content) + len(context) > 11000
         ):  # FIXME: use tiktoken library to count tokens
             break
-        context += "{source:" + source_documents[i].metadata.get("source", "")
-        context += ", text: " + source_documents[i].page_content + "}" + ","
+        context += "{source:" + source_document.metadata.get("source", "")
+        context += ", text: " + source_document.page_content + "}" + ","
     context += "]" + "\n"
 
     return context
@@ -54,9 +55,9 @@ def append_query_to_prompt(prompt, query, chat_history):
     """Appends the provided query and chat history to the given prompt."""
     if len(chat_history) > 0:
         if len(chat_history) > 15:
-            chat_history = chat_history[
-                -15:
-            ]  # FIXME: use tiktoken library to check overall token count and ensure context window is not exceeded
+            # FIXME: use tiktoken library to check overall token count
+            # and ensure context window is not exceeded
+            chat_history = chat_history[-15:]
         for exchange in chat_history:
             prompt += "\nHuman: " + exchange[0] + "\nAI: " + exchange[1]
     prompt += "\nHuman: " + query + "\nAI: "

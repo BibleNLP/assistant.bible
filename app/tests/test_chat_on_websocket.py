@@ -6,6 +6,7 @@ from .test_dataupload import test_data_upload_processed_sentences
 
 admin_token = os.getenv("ADMIN_ACCESS_TOKEN", "chatchatchat")
 
+# pylint: disable=too-many-function-args
 COMMON_CONNECTION_ARGS = {
     "user": "xxx",
     "llmFrameworkType": "openai-langchain",

@@ -21,7 +21,7 @@ from core.llm_framework.openai_langchain import LangchainOpenAI
 from core.llm_framework.openai_vanilla import OpenAIVanilla
 from core.audio.whisper import WhisperAudioTranscription
 
-# pylint: disable=unused-argument
+# pylint: disable=unused-argument, dangerous-default-value, too-many-arguments
 
 
 class DataUploadPipeline:
@@ -45,7 +45,8 @@ class DataUploadPipeline:
         elif choice == schema.FileProcessorType.VANILLA:
             self.file_processor = VanillaLoader()
         else:
-            raise GenericException("This technology type is not supported (yet)!")
+            raise GenericException(
+                "This technology type is not supported (yet)!")
 
     def set_embedding(
         self,
@@ -80,7 +81,8 @@ class DataUploadPipeline:
             self.embedding = SentenceTransformerEmbedding(**args)
 
         else:
-            raise GenericException("This technology type is not supported (yet)!")
+            raise GenericException(
+                "This technology type is not supported (yet)!")
 
     def set_vectordb(
         self,
@@ -110,7 +112,8 @@ class DataUploadPipeline:
             args["labels"] = kwargs.get("labels")
             self.vectordb = Postgres(**args)
         else:
-            raise GenericException("This technology type is not supported (yet)!")
+            raise GenericException(
+                "This technology type is not supported (yet)!")
 
 
 class ConversationPipeline(DataUploadPipeline):

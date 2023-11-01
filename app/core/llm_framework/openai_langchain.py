@@ -16,7 +16,7 @@ from custom_exceptions import AccessException, OpenAIException, ChatErrorRespons
 from log_configs import log
 
 
-# pylint: disable=too-few-public-methods,fixme
+# pylint: disable=too-few-public-methods,fixme, super-init-not-called
 # pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
 
 
