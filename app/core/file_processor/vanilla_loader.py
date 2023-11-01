@@ -7,8 +7,7 @@ import schema
 from custom_exceptions import GenericException
 
 
-# pylint: disable=too-few-public-methods, unused-argument
-
+# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
 
 class VanillaLoader(FileProcessorInterface):
     """Vanilla implementation for file handling"""
@@ -60,7 +59,7 @@ class VanillaLoader(FileProcessorInterface):
         i = 0
 
         while i < len(texts):
-            split_text = texts[i : i + chunk_size]
+            split_text = texts[i: i + chunk_size]
             meta = metadata.copy()
             doc = schema.Document(
                 docId=f"{name}-{i // chunk_size}",

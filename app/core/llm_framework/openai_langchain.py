@@ -17,6 +17,7 @@ from log_configs import log
 
 
 # pylint: disable=too-few-public-methods,fixme
+# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
 
 
 class LangchainOpenAI(LLMFrameworkInterface):
@@ -35,7 +36,8 @@ class LangchainOpenAI(LLMFrameworkInterface):
         key: str = os.getenv("OPENAI_API_KEY", "dummy-for-test"),
         model_name: str = "gpt-3.5-turbo",
         vectordb: VectordbInterface = Chroma(),
-        max_tokens_limit: int = int(os.getenv("OPENAI_MAX_TOKEN_LIMIT", "3052")),
+        max_tokens_limit: int = int(
+            os.getenv("OPENAI_MAX_TOKEN_LIMIT", "3052")),
     ) -> None:
         """Sets the API key and initializes library objects if any"""
         if key is None:
@@ -74,4 +76,5 @@ class LangchainOpenAI(LLMFrameworkInterface):
         except ChatErrorResponse as exe:
             raise exe
         except Exception as exe:
-            raise OpenAIException("While generating answer: " + str(exe)) from exe
+            raise OpenAIException(
+                "While generating answer: " + str(exe)) from exe

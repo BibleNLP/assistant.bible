@@ -10,6 +10,8 @@ from core.vectordb import VectordbInterface
 from custom_exceptions import AccessException, OpenAIException
 from log_configs import log
 
+# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
+
 
 def get_context(source_documents):
     """Constructs a context string based on the provided results."""
@@ -92,11 +94,13 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         """Prompt completion for QA or Chat reponse, based on specific documents,
         if provided"""
         if len(kwargs) > 0:
-            log.warning("Unused arguments in VanillaOpenAI.generate_text(): ", **kwargs)
+            log.warning(
+                "Unused arguments in VanillaOpenAI.generate_text(): ", **kwargs)
 
         # Vectordb results are currently returned based on the whole chat history.
         # We'll need to figure out if this is optimal or not.
-        query_text = "\n".join([x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
+        query_text = "\n".join(
+            [x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
         query_text += "\n" + query
         source_documents = self.vectordb.get_relevant_documents(query_text)
         context = get_context(source_documents)
@@ -117,4 +121,5 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
             }
 
         except Exception as exe:
-            raise OpenAIException("While generating answer: " + str(exe)) from exe
+            raise OpenAIException(
+                "While generating answer: " + str(exe)) from exe

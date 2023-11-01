@@ -46,8 +46,8 @@ def test_chat_based_on_translationwords(fresh_db):
     args["dbPath"] = fresh_db["dbPath"]
     args["collectionName"] = fresh_db["collectionName"]
 
-    test_data_upload_markdown(fresh_db)
-    test_data_upload_processed_sentences(fresh_db)
+    test_data_upload_markdown(fresh_db, None, None, None)
+    test_data_upload_processed_sentences(fresh_db, None, None, None)
 
     with client.websocket_connect("/chat", params=args) as websocket:
         websocket.send_text("Hello")

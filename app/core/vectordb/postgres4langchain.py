@@ -15,7 +15,7 @@ from psycopg2.extras import execute_values
 from pgvector.psycopg2 import register_vector
 from log_configs import log
 
-# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments
+# pylint: disable=too-few-public-methods, unused-argument, too-many-arguments, R0801
 QUERY_LIMIT = os.getenv("POSTGRES_DB_QUERY_LIMIT", "10")
 MAX_COSINE_DISTANCE = os.getenv("POSTGRES_MAX_COSINE_DISTANCE", "0.1")
 
