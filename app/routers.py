@@ -325,8 +325,61 @@ async def upload_text_file( #pylint: disable=too-many-arguments
 
     # FIXME: This may have to be a background job!!!
     docs = data_stack.file_processor.process_file(
-        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_path=f"{UPLOAD_PATH}{file_obj.filename}",
         file_type=schema.FileType.TEXT,
+        label=label,
+        name="".join(file_obj.filename.split(".")[:-1])
+        )
+    data_stack.set_embedding(embedding_config.embeddingType,
+                                embedding_config.embeddingApiKey,
+                                embedding_config.embeddingModelName)
+    # FIXME: This may have to be a background job!!!
+    data_stack.embedding.get_embeddings(doc_list=docs)
+    data_stack.vectordb.add_to_collection(docs=docs)
+    return {"message": "Documents added to DB"}
+
+
+@router.post("/upload/pdf-file",
+    response_model=schema.APIInfoResponse,
+    responses={
+        422: {"model": schema.APIErrorResponse},
+        403: {"model": schema.APIErrorResponse},
+        500: {"model": schema.APIErrorResponse}},
+    status_code=201, tags=["Data Management"])
+@admin_auth_check_decorator
+async def upload_pdf_file( #pylint: disable=too-many-arguments
+    file_obj: UploadFile,
+    label:str=Query(..., desc="The label for the set of documents for access based filtering"),
+    file_processor_type: schema.FileProcessorType=Query(schema.FileProcessorType.LANGCHAIN),
+    vectordb_type:schema.DatabaseType=Query(schema.DatabaseType.CHROMA),
+    vectordb_config:schema.DBSelector = Depends(schema.DBSelector),
+    embedding_config:schema.EmbeddingSelector=Depends(schema.EmbeddingSelector),
+    token:SecretStr=Query(None,
+        desc="Optional access token to be used if user accounts not present")):
+    '''* Upload of a pdf file.
+    * Splits the whole document into smaller chunks using the selected file_processor
+    * Vectorises the text using OpenAI embdedding (or the one set in chroma DB settings).
+    * Keeps other details, sourceTag, link, and media as metadata in vector store
+    * embedding_type: optional for ChromaDB. For Postgres, if none, will use OpenAIEmbedding'''
+    log.info("Access token used: %s", token)
+
+    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
+    data_stack = DataUploadPipeline()
+    data_stack.set_vectordb(vectordb_type,**vectordb_args)
+
+    data_stack.set_file_processor(file_processor_type)
+
+    if not os.path.exists(UPLOAD_PATH):
+        os.mkdir(UPLOAD_PATH)
+
+    data = await file_obj.read()
+    with open(f"{UPLOAD_PATH}{file_obj.filename}", 'wb') as tfp:
+        tfp.write(data)
+
+    # FIXME: This may have to be a background job!!!
+    docs = data_stack.file_processor.process_file(
+        file_path=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.PDF,
         label=label,
         name="".join(file_obj.filename.split(".")[:-1])
         )
@@ -375,7 +428,7 @@ async def upload_csv_file( #pylint: disable=too-many-arguments
     elif col_delimiter==schema.CsvColDelimiter.TAB:
         col_delimiter="\t"
     docs = data_stack.file_processor.process_file(
-        file=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_path=f"{UPLOAD_PATH}{file_obj.filename}",
         file_type=schema.FileType.CSV,
         col_delimiter=col_delimiter
         )
