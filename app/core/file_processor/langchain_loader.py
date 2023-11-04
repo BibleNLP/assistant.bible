@@ -1,5 +1,4 @@
 """Langchain based implementation for file handling"""
-from io import TextIOWrapper
 from typing import List
 from langchain.text_splitter import TokenTextSplitter
 from langchain.document_loaders import TextLoader, UnstructuredPDFLoader
@@ -58,12 +57,14 @@ class LangchainLoader(FileProcessorInterface):
 
 
     def text_loader(self, file_path: str) -> List[schema.Document]:
+        """Uses langchain's TextLoader to load text contents from file"""
         loader = TextLoader(file_path)
         texts = loader.load()
         return texts
 
 
     def pdf_loader(self, file_path: str) -> List[schema.Document]:
+        """Uses langchain's UnstructuredPDFLoader to load text contents from file"""
         loader = UnstructuredPDFLoader(file_path)
         texts = loader.load()
         return texts
