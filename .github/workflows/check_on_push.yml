@@ -1,6 +1,6 @@
 # This is a basic workflow to help you run linting and test upon pushing to github or making PRs
 
-name: lint-n-test
+name: linting
 
 # Triggers the workflow on push or pull request
 on: [push, pull_request ]
@@ -24,20 +24,23 @@ jobs:
       - name: Run linter
         run: pylint --rcfile=.pylintrc app/*.py app/tests/*.py app/core/*/*.py
 
-  # build-n-test:
-  #   runs-on: ubuntu-latest
+  build-n-test:
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-  #     - uses: actions/checkout@v2
-  #     - uses: actions/setup-python@v2
-  #       with:
-  #           python-version: '3.10.6' # Version range or exact version
-  #           architecture: 'x64' # optional x64 or x86.
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+            python-version: '3.10.6' # Version range or exact version
+            architecture: 'x64' # optional x64 or x86.
 
-  #     - name: install packages
-  #       run: pip3 install -r requirements.txt
+      - name: install packages
+        run: pip3 install -r requirements.txt
+
+      - name: start pgvector docker
+        run: docker run -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=adotbcollection -p 5432:5432 --detach ankane/pgvector 
         
-  #     - name: Run Pytest
-  #       working-directory: ./app
-  #       run: python3 -m pytest tests/test_basics.py
+      - name: Run Pytest
+        working-directory: ./app
+        run: python3 -m pytest -s tests/test_basics.py tests/test_dataupload.py

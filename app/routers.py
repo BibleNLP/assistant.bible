@@ -209,6 +209,7 @@ def compose_vector_db_args(db_type, settings, embedding_config):
 
     return vectordb_args
 
+
 @router.websocket("/chat")
 @auth_service.chatbot_auth_check_decorator
 @auth_service.chatbot_get_labels_decorator
@@ -495,7 +496,7 @@ async def upload_pdf_file(  # pylint: disable=too-many-arguments
 
     vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
     data_stack = DataUploadPipeline()
-    data_stack.set_vectordb(vectordb_type,**vectordb_args)
+    data_stack.set_vectordb(vectordb_type, **vectordb_args)
 
     data_stack.set_file_processor(file_processor_type)
 
@@ -511,11 +512,13 @@ async def upload_pdf_file(  # pylint: disable=too-many-arguments
         file_path=f"{UPLOAD_PATH}{file_obj.filename}",
         file_type=schema.FileType.PDF,
         label=label,
-        name="".join(file_obj.filename.split(".")[:-1])
-        )
-    data_stack.set_embedding(embedding_config.embeddingType,
-                                embedding_config.embeddingApiKey,
-                                embedding_config.embeddingModelName)
+        name="".join(file_obj.filename.split(".")[:-1]),
+    )
+    data_stack.set_embedding(
+        embedding_config.embeddingType,
+        embedding_config.embeddingApiKey,
+        embedding_config.embeddingModelName,
+    )
     # FIXME: This may have to be a background job!!!
     data_stack.embedding.get_embeddings(doc_list=docs)
     data_stack.vectordb.add_to_collection(docs=docs)
