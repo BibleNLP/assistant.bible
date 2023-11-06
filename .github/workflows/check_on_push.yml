@@ -1,6 +1,6 @@
 # This is a basic workflow to help you run linting and test upon pushing to github or making PRs
 
-name: lint-n-test
+name: linting
 
 # Triggers the workflow on push or pull request
 on: [push, pull_request ]
