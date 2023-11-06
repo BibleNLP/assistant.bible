@@ -26,7 +26,7 @@ class LangchainLoader(FileProcessorInterface):
         with custom handling for its format and contents.
         Implementations should try to fill as much additional information like links, media etc.
         label, when provided, should apply to all documents in the o/p list"""
-        name = kwargs.get("name", file_path.split(".")[-1])
+        name = kwargs.get("name", file_path.split("/")[-1].split('.')[0])
         if file_type in [schema.FileType.TEXT, schema.FileType.MD]:
             metadata = kwargs.get("metadata", {})
             texts = self.text_loader(file_path = file_path)
