@@ -1,7 +1,6 @@
 """ Test fixtures and stuff"""
 
 import os
-import shutil
 import pytest
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
