@@ -1,6 +1,6 @@
 """Implemetations for vectordb interface for chroma"""
 import os
-from typing import List
+from typing import List, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
 from core.vectordb import VectordbInterface
@@ -11,7 +11,7 @@ from custom_exceptions import ChromaException
 import chromadb
 from chromadb.config import Settings
 
-# pylint: disable=too-few-public-methods, unused-argument, R0801, super-init-not-called
+# pylint: disable=too-few-public-methods, unused-argument, R0801
 QUERY_LIMIT = os.getenv("CHROMA_DB_QUERY_LIMIT", "10")
 
 
@@ -21,17 +21,17 @@ class Chroma(VectordbInterface, BaseRetriever):
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None  # Port to connect to a remote DB deployment
     db_path: str = "chromadb_store"  # Path for a local DB, if that is being used
-    collection_name: str = (
-        "aDotBCollection"  # Collection to connect to a remote/local DB
-    )
-    db_conn = None
-    db_client = None
-    embedding_function = None
+    collection_name: str = "adotbcollection"  # Collection to connect to a remote/local DB
+    db_conn: Any = None
+    db_client: Any = None
+    embedding_function: Any = None
 
     def __init__(
         self, host=None, port=None, path="chromadb_store", collection_name=None
-    ) -> None:  # pylint: disable=super-init-not-called
+    ) -> None:
         """Instanciate a chroma client"""
+        VectordbInterface.__init__(self, host, port, path, collection_name)
+        BaseRetriever.__init__(self)
         if host:
             self.db_host = host
         if port:

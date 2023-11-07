@@ -1,7 +1,7 @@
 """Implemetations for vectordb interface for postgres with vector store"""
 import math
 import os
-from typing import List, Optional
+from typing import List, Optional, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
 from core.vectordb import VectordbInterface
@@ -28,12 +28,11 @@ class Postgres(
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
     db_port: str = os.environ.get("POSTGRES_DB_PORT", "5432")
     db_path: Optional[str] = None  # Path for a local DB, if that is being used
-    collection_name: str = os.environ.get(
-        "POSTGRES_DB_NAME", "adotbcollection")
-    db_user = os.environ.get("POSTGRES_DB_USER", "admin")
-    db_password = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
+    collection_name: str = os.environ.get("POSTGRES_DB_NAME", "adotbcollection")
+    db_user: str = os.environ.get("POSTGRES_DB_USER", "admin")
+    db_password: str = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     embedding: EmbeddingInterface = None
-    db_client = None
+    db_client: Any = None
 
     def __init__(
         self,
@@ -42,10 +41,11 @@ class Postgres(
         port=None,
         path=None,
         collection_name=None,
-        # pylint: disable=super-init-not-called
         **kwargs,
-    ) -> None:  # pylint: disable=super-init-not-called
+    ) -> None:
         """Instantiate a chroma client"""
+        VectordbInterface.__init__(self, host, port, path, collection_name)
+        BaseRetriever.__init__(self)
         # You MUST set embedding with PGVector,
         # since with this DB type the embedding
         # dimension size always hard-coded on init

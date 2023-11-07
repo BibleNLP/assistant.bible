@@ -13,10 +13,8 @@ class VectordbInterface(ABC):
 
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None  # Port to connect to a remote DB deployment
-    db_path: str = "chromadb_store"  # Path for a local DB, if that is being used
-    collection_name: str = (
-        "aDotBCollection"  # Collection to connect to a remote/local DB
-    )
+    db_path: str = None  # Path for a local DB, if that is being used(in chroma)
+    collection_name: str = None  # Collection to connect to a remote/local DB
     db_conn = None
 
     def __init__(self, host, port, path, collection_name) -> None:
