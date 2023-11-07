@@ -78,7 +78,7 @@ class CsvColDelimiter(str, Enum):
     TAB = "tab"
 
 
-HostnPortPattern = constr(regex=r"^.*:\d+$")
+HostnPortPattern = constr(pattern=r"^.*:\d+$")
 
 
 class DBSelector(BaseModel):
