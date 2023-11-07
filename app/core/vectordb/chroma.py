@@ -103,7 +103,7 @@ class Chroma(VectordbInterface):
         except Exception as exe:
             raise ChromaException("While adding data: " + str(exe)) from exe
 
-    def get_relevant_documents(self, query: str, **kwargs) -> List:
+    def _get_relevant_documents(self, query: str, run_manager=None, **kwargs) -> List:
         """Similarity search on the vector store"""
         results = self.db_conn.query(
             query_texts=[query],

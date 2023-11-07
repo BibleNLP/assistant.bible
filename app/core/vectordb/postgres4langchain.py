@@ -4,6 +4,7 @@ import os
 from typing import List, Optional, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
+from langchain.callbacks.manager import CallbackManagerForRetrieverRun
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
@@ -33,15 +34,18 @@ class Postgres(
     db_password: str = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     embedding: EmbeddingInterface = None
     db_client: Any = None
-
+    db_conn:Any = None
+    labels:List[str] = []
+    query_limit:int = None
+    max_cosine_distance: str = None
     def __init__(
         self,
         embedding: EmbeddingInterface = None,
-        host=None,
-        port=None,
-        path=None,
-        collection_name=None,
-        **kwargs,
+        host:str=None,
+        port:int=None,
+        path:str=None,
+        collection_name:str=None,
+        **kwargs:str,
     ) -> None:
         """Instantiate a chroma client"""
         VectordbInterface.__init__(self, host, port, path, collection_name)
@@ -196,7 +200,9 @@ class Postgres(
         except Exception as exe:
             raise PostgresException("While adding data: " + str(exe)) from exe
 
-    def get_relevant_documents(self, query: list, **kwargs) -> List[LangchainDocument]:
+    def _get_relevant_documents(
+        self, query: list, run_manager: CallbackManagerForRetrieverRun, **kwargs
+    ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
         try:
@@ -249,8 +255,8 @@ class Postgres(
             for doc in records
         ]
 
-    async def aget_relevant_documents(
-        self, query: list, **kwargs
+    async def _aget_relevant_documents(
+        self, query: list, run_manager: CallbackManagerForRetrieverRun, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)

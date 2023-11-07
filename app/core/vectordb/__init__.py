@@ -1,6 +1,6 @@
 """Interface definition and common implemetations for vectordb classes"""
 import os
-from typing import List
+from typing import List, Any
 from abc import abstractmethod, ABC
 
 import schema
@@ -27,7 +27,7 @@ class VectordbInterface(ABC):
         return
 
     @abstractmethod
-    def get_relevant_documents(self, query: str, **kwargs) -> List:
+    def _get_relevant_documents(self, query: str, run_manager: Any=None, **kwargs) -> List:
         """Similarity search on the vector store"""
 
     @abstractmethod
