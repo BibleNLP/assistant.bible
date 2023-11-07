@@ -5,6 +5,7 @@ import shutil
 import pytest
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+import chromadb
 
 
 @pytest.fixture
@@ -15,9 +16,9 @@ def fresh_db():
     collection_name = "adotdcollection_test"
 
     # Chroma Specific clean up
-    chroma_db_path = "chromadb_store_test"
-    if os.path.exists(chroma_db_path):
-        shutil.rmtree(chroma_db_path)
+    chroma_db_path = 'chromadb_store_test'
+    chroma_client = chromadb.PersistentClient(path=chroma_db_path)
+    _ = chroma_client.get_or_create_collection(name=collection_name)
 
     # Postgres specific cleanup
     pg_db_host = os.environ.get("POSTGRES_DB_HOST", "localhost")
@@ -43,8 +44,9 @@ def fresh_db():
     try:
         yield {"dbPath": chroma_db_path, "collectionName": collection_name}
     finally:
-        if os.path.exists(chroma_db_path):
-            shutil.rmtree(chroma_db_path)
+        chroma_client = chromadb.PersistentClient(path='chromadb_store_test')
+        chroma_client.delete_collection(name=collection_name)
+
         db_conn = psycopg2.connect(
             user=pg_db_user,
             password=pg_db_password,
