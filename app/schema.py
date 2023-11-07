@@ -86,7 +86,7 @@ class DBSelector(BaseModel):
     """The credentials to connect to a remotely hosted chorma DB"""
 
     # dbTech: str = Field(DatabaseTech.CHROMA, desc="Technology choice like chroma, pinecone etc")
-    dbHostnPort: HostnPortPattern = Field(
+    dbHostnPort: HostnPortPattern | None = Field(
         None,
         examples=["api.vachanengine.org:6000"],
         desc="Host and port name to connect to a remote DB deployment",
@@ -99,9 +99,9 @@ class DBSelector(BaseModel):
         desc="Collection to connect to in a local/remote DB."
         + "One collection should use single embedding type for all docs",
     )
-    dbUser: str = Field(
+    dbUser: str | None = Field(
         None, desc="Creds to connect to the server or remote db")
-    dbPassword: SecretStr = Field(
+    dbPassword: SecretStr | None = Field(
         None, desc="Creds to connect to the server or remote db"
     )
 
@@ -113,10 +113,10 @@ class EmbeddingSelector(BaseModel):
         EmbeddingType.HUGGINGFACE_DEFAULT,
         desc="EmbeddingType used for storing and searching documents in vectordb",
     )
-    embeddingApiKey: str = Field(
+    embeddingApiKey: str | None = Field(
         None, desc="If using a cloud service, like OpenAI, the key obtained from them"
     )
-    embeddingModelName: str = Field(
+    embeddingModelName: str | None = Field(
         None, desc="If there is a model we can choose to use from the available"
     )
 
@@ -124,10 +124,10 @@ class EmbeddingSelector(BaseModel):
 class LLMFrameworkSelector(BaseModel):
     """The credentials and configs to be used in the LLM and its framework"""
 
-    llmApiKey: str = Field(
+    llmApiKey: str | None = Field(
         None, desc="If using a cloud service, like OpenAI, the key from them"
     )
-    llmModelName: str = Field(
+    llmModelName: str | None = Field(
         None, desc="The model to be used for chat completion")
 
 
@@ -206,7 +206,7 @@ class BotResponse(BaseModel):
 
     message: str = Field(..., examples=["Good Morning to you too!"])
     sender: SenderType = Field(..., examples=["You or BOT"])
-    sources: List[str] = Field(
+    sources: List[str] | None = Field(
         None,
         examples=[[
             "https://www.biblegateway.com/passage/?search=Genesis+1%3A1&version=NIV",
@@ -214,7 +214,7 @@ class BotResponse(BaseModel):
             + "bible/other/creation.md",
         ]],
     )
-    media: List[AnyUrl] = Field(
+    media: List[AnyUrl] | None = Field(
         None, examples=[["https://www.youtube.com/watch?v=teu7BCZTgDs"]]
     )
     type: ChatResponseType = Field(..., examples=["answer or error"])
@@ -234,7 +234,7 @@ class Job(BaseModel):
 
     jobId: int = Field(..., examples=[100000])
     status: JobStatus = Field(..., examples=["started"])
-    output: dict = Field(
+    output: dict | None = Field(
         None,
         examples=[{
             "error": "Gateway Error",
@@ -255,7 +255,7 @@ class Document(BaseModel):
     text: str = Field(
         ..., desc="The sentence to be vectorised and used for question answering"
     )
-    embedding: List[float] = Field(
+    embedding: List[float] | None = Field(
         None, desc="vector embedding for the text field")
     label: str = Field(
         "open-access",
