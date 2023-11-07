@@ -8,7 +8,6 @@ import schema
 from custom_exceptions import ChromaException
 
 import chromadb
-from chromadb.config import Settings
 
 # pylint: disable=too-few-public-methods, unused-argument, R0801
 QUERY_LIMIT = os.getenv("CHROMA_DB_QUERY_LIMIT", "10")
@@ -92,7 +91,10 @@ class Chroma(VectordbInterface):
         if docs[0].embedding is None:
             embeddings = None
         else:
-            embeddings = [doc.embedding for doc in docs]
+            embeddings = []
+            for doc in docs:
+                vector = [float(item) for item in doc.embedding]
+                embeddings.append(vector)
         try:
             self.db_conn.add(
                 embeddings=embeddings,
