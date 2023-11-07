@@ -4,6 +4,8 @@ from typing import List, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
 from langchain.callbacks.manager import CallbackManagerForRetrieverRun
+from langchain.callbacks.manager import AsyncCallbackManagerForRetrieverRun
+
 from core.vectordb import VectordbInterface
 from core.embedding.sentence_transformers import SentenceTransformerEmbedding
 import schema
@@ -107,7 +109,7 @@ class Chroma(VectordbInterface, BaseRetriever):
             raise ChromaException("While adding data: " + str(exe)) from exe
 
     def _get_relevant_documents(
-        self, query: str, run_manager: CallbackManagerForRetrieverRun, **kwargs
+        self, query: str, run_manager: CallbackManagerForRetrieverRun | None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         results = self.db_conn.query(
@@ -122,7 +124,7 @@ class Chroma(VectordbInterface, BaseRetriever):
         ]
 
     async def _aget_relevant_documents(
-        self, query: str, run_manager: CallbackManagerForRetrieverRun, **kwargs
+        self, query: str, run_manager: AsyncCallbackManagerForRetrieverRun| None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         results = self.db_conn.query(

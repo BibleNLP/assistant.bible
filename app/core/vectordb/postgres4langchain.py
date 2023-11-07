@@ -5,6 +5,7 @@ from typing import List, Optional, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
 from langchain.callbacks.manager import CallbackManagerForRetrieverRun
+from langchain.callbacks.manager import AsyncCallbackManagerForRetrieverRun
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
@@ -201,7 +202,7 @@ class Postgres(
             raise PostgresException("While adding data: " + str(exe)) from exe
 
     def _get_relevant_documents(
-        self, query: list, run_manager: CallbackManagerForRetrieverRun, **kwargs
+        self, query: list, run_manager: CallbackManagerForRetrieverRun| None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
@@ -256,7 +257,7 @@ class Postgres(
         ]
 
     async def _aget_relevant_documents(
-        self, query: list, run_manager: CallbackManagerForRetrieverRun, **kwargs
+        self, query: list, run_manager: AsyncCallbackManagerForRetrieverRun| None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
