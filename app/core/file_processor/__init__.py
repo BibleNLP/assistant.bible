@@ -13,7 +13,7 @@ class FileProcessorInterface:
 
     def process_file(
         self,
-        file: str,
+        file_path: str,
         label: str = None,
         file_type: str = schema.FileType.TEXT,
         **kwargs

@@ -1,8 +1,7 @@
 """Langchain based implementation for file handling"""
-from io import TextIOWrapper
 from typing import List
 from langchain.text_splitter import TokenTextSplitter
-from langchain.document_loaders import TextLoader
+from langchain.document_loaders import TextLoader, UnstructuredPDFLoader
 
 from core.file_processor import FileProcessorInterface
 import schema
@@ -17,7 +16,7 @@ class LangchainLoader(FileProcessorInterface):
 
     def process_file(
         self,
-        file: str,
+        file_path: str,
         label: str = "open-access",
         file_type: str = schema.FileType.TEXT,
         **kwargs,
@@ -27,36 +26,64 @@ class LangchainLoader(FileProcessorInterface):
         with custom handling for its format and contents.
         Implementations should try to fill as much additional information like links, media etc.
         label, when provided, should apply to all documents in the o/p list"""
+        name = kwargs.get("name", file_path.split("/")[-1].split('.')[0])
         if file_type in [schema.FileType.TEXT, schema.FileType.MD]:
-            name = kwargs.get("name", None)
             metadata = kwargs.get("metadata", {})
-            output_list = self.process_file_text(
-                file=file, label=label, name=name, metadata=metadata
-            )
+            texts = self.text_loader(file_path = file_path)
+            output_list = self.process_texts(
+                texts = texts,
+                label=label,
+                name=name,
+                metadata=metadata
+                )
+        elif file_type == schema.FileType.PDF:
+            metadata = kwargs.get("metadata", {})
+            texts = self.pdf_loader(file_path = file_path)
+            output_list = self.process_texts(
+                texts = texts,
+                label=label,
+                name=name,
+                metadata=metadata
+                )
         elif file_type == schema.FileType.CSV:
             args = {}
             col_delimiter = kwargs.get("col_delimiter")
             if col_delimiter is not None:
                 args["col_delimiter"] = col_delimiter
-            output_list = self.process_file_csv(file=file, **args)
+            output_list = self.process_file_csv(file=file_path, **args)
         else:
             raise GenericException("This file type is not supported (yet)!")
         return output_list
 
-    def process_file_text(
-        self, file: TextIOWrapper, label: str, name: str = None, metadata: dict = None
+
+    def text_loader(self, file_path: str) -> List[schema.Document]:
+        """Uses langchain's TextLoader to load text contents from file"""
+        loader = TextLoader(file_path)
+        texts = loader.load()
+        return texts
+
+
+    def pdf_loader(self, file_path: str) -> List[schema.Document]:
+        """Uses langchain's UnstructuredPDFLoader to load text contents from file"""
+        loader = UnstructuredPDFLoader(file_path)
+        texts = loader.load()
+        return texts
+
+
+    def process_texts(
+        self,
+        texts: List[schema.Document],
+        label:str,
+        name: str = None,
+        metadata: dict = None,
     ) -> List[schema.Document]:
         """Uses langchain's TokenTextSplitter to convert text contents into document format"""
         output_list = []
-        loader = TextLoader(file)
-        texts = loader.load()
         text_splitter = TokenTextSplitter(chunk_size=1000, chunk_overlap=50)
         text_splits = text_splitter.split_documents(texts)
 
         if not label:
             label = "open-access"
-        if name is None or name.strip() == "":
-            name = file.name
         if metadata is None:
             metadata = {}
         for i, split in enumerate(text_splits):

@@ -14,7 +14,7 @@ class VanillaLoader(FileProcessorInterface):
 
     def process_file(
         self,
-        file: str,
+        file_path: str,
         label: str = "open-access",
         file_type: str = schema.FileType.TEXT,
         **kwargs,
@@ -28,14 +28,14 @@ class VanillaLoader(FileProcessorInterface):
             name = kwargs.get("name", None)
             metadata = kwargs.get("metadata", {})
             output_list = self.process_file_text(
-                file=file, label=label, name=name, metadata=metadata
+                file=file_path, label=label, name=name, metadata=metadata
             )
         elif file_type == schema.FileType.CSV:
             args = {}
             col_delimiter = kwargs.get("col_delimiter")
             if col_delimiter is not None:
                 args["col_delimiter"] = col_delimiter
-            output_list = self.process_file_csv(file=file, **args)
+            output_list = self.process_file_csv(file=file_path, **args)
         else:
             raise GenericException("This file type is not supported (yet)!")
         return output_list

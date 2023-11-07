@@ -66,6 +66,7 @@ class FileType(str, Enum):
     TEXT = "Continuous text"
     MD = "Generic markdown"
     CSV = "CSV with fields (id, text, label, links, medialinks)"
+    PDF = "PDF file"
     # USFM = "Bible book in USFM format"
     # USX = "Bible book in USFM format"
 
