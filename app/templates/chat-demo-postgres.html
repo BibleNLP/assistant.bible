@@ -55,6 +55,18 @@
               >Tyndale Open Resources</label
             >
           </div>
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              id="faith-and-farming"
+              name="faith-and-farming"
+              value="faith_and_farming"
+              onchange="changeLabel(this)"
+            />
+            <label for="faith-and-farming" class="ml-2"
+              >Faith and Farming</label
+            >
+          </div>
         </div>
         <div class="w-full md:w-auto mt-4 md:mt-0">
           <a
@@ -194,12 +206,19 @@
 
         function changeLabel(src) {
             let labels = [];
-            let tyndaleOpenElement = document.getElementById('tyndale-open')
             var endpoint = {{ ws_url| tojson }};
+            var tyndaleOpenElement = document.getElementById("tyndale-open");
+            var faithAndFarmingElement = document.getElementById("faith-and-farming");
         endpoint += '?llmFrameworkType=openai-vanilla&vectordbType=postgres-with-pgvector&token=' + accessToken;
-        if (tyndaleOpenElement.checked == true) { endpoint += '&labels=' + tyndaleOpenElement.value }
+        if (tyndaleOpenElement.checked == true) { 
+            endpoint += '&labels=' + tyndaleOpenElement.value;
+            $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
+         }
+        if (faithAndFarmingElement.checked == true) { 
+            endpoint += '&labels=' + faithAndFarmingElement.value;
+            $('#messages').append('<div>---<b>Domain:Faith-and-Farming:' + faithAndFarmingElement.checked + '</b>---</div');
+         }
         ws.close();
-        $('#messages').append('<div>---<b>Domain:Tyndale-Open:' + tyndaleOpenElement.checked + '</b>---</div');
         console.log("endpoint: " + endpoint)
 
         ws = setupWebsocket(endpoint);          }
