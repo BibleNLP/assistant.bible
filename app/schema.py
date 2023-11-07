@@ -2,21 +2,22 @@
 # pylint: disable=too-many-lines, fixme
 from typing import List
 from enum import Enum
-from pydantic import BaseModel, Field, AnyUrl, constr, SecretStr  # , validator
+from pydantic import StringConstraints, BaseModel, Field, AnyUrl, SecretStr  # , validator
+from typing_extensions import Annotated
 
 
 class APIInfoResponse(BaseModel):
     """Response with only a message"""
 
-    message: str = Field(..., example="App is up and running")
+    message: str = Field(..., examples=["App is up and running"])
 
 
 class APIErrorResponse(BaseModel):
     """Common error response format"""
 
-    error: str = Field(..., example="Database Error")
+    error: str = Field(..., examples=["Database Error"])
     details: str = Field(...,
-                         example="Violation of unique constraint blah blah blah")
+                         examples=["Violation of unique constraint blah blah blah"])
 
 
 class FileProcessorType(str, Enum):
@@ -78,7 +79,7 @@ class CsvColDelimiter(str, Enum):
     TAB = "tab"
 
 
-HostnPortPattern = constr(pattern=r"^.*:\d+$")
+HostnPortPattern = Annotated[str, StringConstraints(pattern=r"^.*:\d+$")]
 
 
 class DBSelector(BaseModel):
@@ -87,7 +88,7 @@ class DBSelector(BaseModel):
     # dbTech: str = Field(DatabaseTech.CHROMA, desc="Technology choice like chroma, pinecone etc")
     dbHostnPort: HostnPortPattern = Field(
         None,
-        example="api.vachanengine.org:6000",
+        examples=["api.vachanengine.org:6000"],
         desc="Host and port name to connect to a remote DB deployment",
     )
     dbPath: str = Field(
@@ -137,18 +138,18 @@ class ChatPipelineSelector(BaseModel):
         LLMFrameworkType.LANGCHAIN,
         desc="The framework through which LLM access is handled",
     )
-    llmApiKey: str = Field(
+    llmApiKey: str | None = Field(
         None, desc="If using a cloud service, like OpenAI, the key from them"
     )
-    llmModelName: str = Field(
+    llmModelName: str | None = Field(
         None, desc="The model to be used for chat completion")
     vectordbType: DatabaseType = Field(
         DatabaseType.POSTGRES,
         desc="The Database to be connected to. Same one used for dataupload",
     )
-    dbHostnPort: HostnPortPattern = Field(
+    dbHostnPort: HostnPortPattern | None = Field(
         None,
-        example="api.vachanengine.org:6000",
+        examples=["api.vachanengine.org:6000"],
         desc="Host and port name to connect to a remote DB deployment",
     )
     dbPath: str = Field(
@@ -159,19 +160,19 @@ class ChatPipelineSelector(BaseModel):
         desc="Collection to connect to in a local/remote DB."
         + "One collection should use single embedding type for all docs",
     )
-    dbUser: str = Field(
+    dbUser: str | None = Field(
         None, desc="Creds to connect to the server or remote db")
-    dbPassword: SecretStr = Field(
+    dbPassword: SecretStr | None = Field(
         None, desc="Creds to connect to the server or remote db"
     )
     embeddingType: EmbeddingType = Field(
         EmbeddingType.HUGGINGFACE_DEFAULT,
         desc="EmbeddingType used for storing and searching documents in vectordb",
     )
-    embeddingApiKey: str = Field(
+    embeddingApiKey: str | None = Field(
         None, desc="If using a cloud service, like OpenAI, the key obtained from them"
     )
-    embeddingModelName: str = Field(
+    embeddingModelName: str | None = Field(
         None, desc="If there is a model we can choose to use from the available"
     )
     transcriptionFrameworkType: AudioTranscriptionType = Field(
@@ -203,20 +204,20 @@ class ChatResponseType(str, Enum):
 class BotResponse(BaseModel):
     """Chat response from server to UI or user app"""
 
-    message: str = Field(..., example="Good Morning to you too!")
-    sender: SenderType = Field(..., example="You or BOT")
+    message: str = Field(..., examples=["Good Morning to you too!"])
+    sender: SenderType = Field(..., examples=["You or BOT"])
     sources: List[str] = Field(
         None,
-        example=[
+        examples=[[
             "https://www.biblegateway.com/passage/?search=Genesis+1%3A1&version=NIV",
             "https://git.door43.org/Door43-Catalog/en_tw/src/branch/master/"
             + "bible/other/creation.md",
-        ],
+        ]],
     )
     media: List[AnyUrl] = Field(
-        None, example=["https://www.youtube.com/watch?v=teu7BCZTgDs"]
+        None, examples=[["https://www.youtube.com/watch?v=teu7BCZTgDs"]]
     )
-    type: ChatResponseType = Field(..., example="answer or error")
+    type: ChatResponseType = Field(..., examples=["answer or error"])
 
 
 class JobStatus(str, Enum):
@@ -231,14 +232,14 @@ class JobStatus(str, Enum):
 class Job(BaseModel):
     """Response object of Background Job status check"""
 
-    jobId: int = Field(..., example=100000)
-    status: JobStatus = Field(..., example="started")
+    jobId: int = Field(..., examples=[100000])
+    status: JobStatus = Field(..., examples=["started"])
     output: dict = Field(
         None,
-        example={
+        examples=[{
             "error": "Gateway Error",
             "details": "Connect to OpenAI terminated unexpectedly",
-        },
+        }],
     )
 
 
@@ -247,7 +248,7 @@ class Document(BaseModel):
 
     docId: str = Field(
         ...,
-        example="NIV Bible Mat 1:1-20",
+        examples=["NIV Bible Mat 1:1-20"],
         desc="Unique for a sentence. Used by the LLM to specify which document "
         + "it answers from. Better to combine the source tag and a serial number.",
     )
@@ -258,7 +259,7 @@ class Document(BaseModel):
         None, desc="vector embedding for the text field")
     label: str = Field(
         "open-access",
-        example="paratext user manual or bible or door-43-users",
+        examples=["paratext user manual or bible or door-43-users"],
         desc="The common tag for all sentences under a set. "
         + "Used for specifying access rules and filtering during querying",
     )
@@ -276,7 +277,7 @@ class Document(BaseModel):
         {},
         desc="Any additional data that needs to go along with the text,"
         + " as per usecases. Could help in pre- and/or post-processing",
-        example={"displayimages": True},
+        examples=[{"displayimages": True}],
     )
 
 
