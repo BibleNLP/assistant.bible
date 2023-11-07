@@ -111,7 +111,6 @@ class Chroma(VectordbInterface, BaseRetriever):
                 metadatas=metas,
                 ids=[doc.docId for doc in docs],
             )
-            self.db_client.persist()
         except Exception as exe:
             raise ChromaException("While adding data: " + str(exe)) from exe
 
@@ -150,7 +149,3 @@ class Chroma(VectordbInterface, BaseRetriever):
         labels = [meta["label"] for meta in rows["metadatas"]]
         labels = list(set(labels))
         return labels
-
-    def __del__(self):
-        """To persist DB upon app close"""
-        self.db_client.persist()
