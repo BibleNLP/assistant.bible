@@ -16,3 +16,5 @@ pgvector==0.1.8
 supabase==1.0.3
 duckdb==0.7.1
 tiktoken==0.5.1
+sentence-transformers==2.2.2
+ 
