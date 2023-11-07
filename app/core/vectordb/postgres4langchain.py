@@ -147,7 +147,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        str(doc.links),
                         doc.embedding,
                     ]
                 )
@@ -169,7 +169,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        str(doc.links),
                         doc.embedding,
                         doc.docId,
                     ),
