@@ -43,10 +43,7 @@ class Chroma(VectordbInterface, BaseRetriever):
             # This method connects to the DB that get stored on the server itself
             # where the app is running
             try:
-                chroma_client = chromadb.Client(
-                    Settings(chroma_db_impl="duckdb+parquet",
-                             persist_directory=path)
-                )
+                chroma_client = chromadb.PersistentClient(path=self.db_path)
             except Exception as exe:
                 raise ChromaException(
                     "While initializing client: " + str(exe)) from exe
@@ -63,13 +60,7 @@ class Chroma(VectordbInterface, BaseRetriever):
             #   each user's API request to let each user connect to the DB
             #   that he prefers and has rights for(fastapi's Depends())
             try:
-                chroma_client = chromadb.Client(
-                    Settings(
-                        chroma_api_impl="rest",
-                        chroma_server_host=host,
-                        chroma_server_http_port=port,
-                    )
-                )
+                chroma_client = chromadb.HttpClient(host=self.db_host, port=self.db_port)
             except Exception as exe:
                 raise ChromaException(
                     "While initializing client: " + str(exe)) from exe
