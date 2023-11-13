@@ -1,4 +1,4 @@
-'''Pipeline classes'''
+"""Pipeline classes"""
 from io import TextIOWrapper
 from typing import List, Tuple, Optional
 
@@ -21,101 +21,115 @@ from core.llm_framework.openai_langchain import LangchainOpenAI
 from core.llm_framework.openai_vanilla import OpenAIVanilla
 from core.audio.whisper import WhisperAudioTranscription
 
-#pylint: disable=unused-argument
+# pylint: disable=unused-argument, dangerous-default-value, too-many-arguments
+
 
 class DataUploadPipeline:
-    '''Interface for implementing dataupload tech stack'''
+    """Interface for implementing dataupload tech stack"""
 
-    def __init__(self,
-        file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=SentenceTransformerEmbedding(),
-        vectordb: VectordbInterface=Chroma()) -> None:
-        '''Define the stack with defaults, in the constructor'''
+    def __init__(
+        self,
+        file_processor: FileProcessorInterface = LangchainLoader,
+        embedding: EmbeddingInterface = SentenceTransformerEmbedding(),
+        vectordb: VectordbInterface = Chroma(),
+    ) -> None:
+        """Define the stack with defaults, in the constructor"""
         self.file_processor = file_processor()
         self.embedding = embedding
         self.vectordb = vectordb
 
-    def set_file_processor(self,
-        choice: schema.FileProcessorType,
-        **kwargs) -> None:
-        '''Change the default tech with one of our choice'''
+    def set_file_processor(self, choice: schema.FileProcessorType, **kwargs) -> None:
+        """Change the default tech with one of our choice"""
         if choice == schema.FileProcessorType.LANGCHAIN:
             self.file_processor = LangchainLoader()
         elif choice == schema.FileProcessorType.VANILLA:
             self.file_processor = VanillaLoader()
         else:
-            raise GenericException("This technology type is not supported (yet)!")
+            raise GenericException(
+                "This technology type is not supported (yet)!")
 
-    def set_embedding(self,
-        choice:schema.EmbeddingType,
-        api_key: Optional[str]=None,
-        model: Optional[str]=None,
-        **kwargs) -> None:
-        '''Change the default tech with one of our choice'''
+    def set_embedding(
+        self,
+        choice: schema.EmbeddingType,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        **kwargs
+    ) -> None:
+        """Change the default tech with one of our choice"""
         if choice == schema.EmbeddingType.OPENAI:
             args = {}
             if not api_key is None:
-                args['key'] = api_key
+                args["key"] = api_key
             if not model is None:
-                args['model'] = model
+                args["model"] = model
             self.embedding = OpenAIEmbedding(**args)
-        
+
         elif choice == schema.EmbeddingType.HUGGINGFACE_DEFAULT:
             args = {}
             if not model is None:
-                args['model'] = model
+                args["model"] = model
             self.embedding = SentenceTransformerEmbedding(**args)
-            
+
         elif choice == schema.EmbeddingType.HUGGINGFACE_MULTILINGUAL:
             args = {}
             if not model is None:
-                args['model'] = model # ? Do we need to allow model override if we are using multilingual?
+                args[
+                    "model"
+                ] = model  # ? Do we need to allow model override if we are using multilingual?
             else:
-                args['model'] = 'sentence-transformers/LaBSE'
+                args["model"] = "sentence-transformers/LaBSE"
             self.embedding = SentenceTransformerEmbedding(**args)
-        
-        else:
-            raise GenericException("This technology type is not supported (yet)!")
 
-    def set_vectordb(self,
-        choice:schema.DatabaseType,
-        host_n_port:schema.HostnPortPattern=None,
-        path: Optional[str]=None,
-        collection_name: Optional[str]=None,
+        else:
+            raise GenericException(
+                "This technology type is not supported (yet)!")
+
+    def set_vectordb(
+        self,
+        choice: schema.DatabaseType,
+        host_n_port: schema.HostnPortPattern = None,
+        path: Optional[str] = None,
+        collection_name: Optional[str] = None,
         embedding_function=SentenceTransformerEmbedding(),
-        **kwargs) -> None:
-        '''Change the default tech with one of our choice'''
+        **kwargs
+    ) -> None:
+        """Change the default tech with one of our choice"""
         args = {}
         if not host_n_port is None:
             parts = host_n_port.split(":")
-            args['host'] = "".join(parts[:-1])
-            args['port'] = parts[-1]
+            args["host"] = "".join(parts[:-1])
+            args["port"] = parts[-1]
         if not path is None:
-            args['path'] = path
+            args["path"] = path
         if not collection_name is None:
-            args['collection_name'] = collection_name
+            args["collection_name"] = collection_name
         if choice == schema.DatabaseType.CHROMA:
             self.vectordb = Chroma(**args)
         elif choice == schema.DatabaseType.POSTGRES:
-            args['user'] = kwargs.get("user")
-            args['password'] = kwargs.get('password')
-            args['embedding'] = kwargs.get('embedding')
-            args['labels'] = kwargs.get('labels')
+            args["user"] = kwargs.get("user")
+            args["password"] = kwargs.get("password")
+            args["embedding"] = kwargs.get("embedding")
+            args["labels"] = kwargs.get("labels")
             self.vectordb = Postgres(**args)
         else:
-            raise GenericException("This technology type is not supported (yet)!")
+            raise GenericException(
+                "This technology type is not supported (yet)!")
+
 
 class ConversationPipeline(DataUploadPipeline):
-    '''The tech stack for implementing chat bot'''
-    def __init__(self, #pylint: disable=too-many-arguments,dangerous-default-value
+    """The tech stack for implementing chat bot"""
+
+    def __init__(
+        self,  # pylint: disable=too-many-arguments,dangerous-default-value
         user,
-        labels:List[str] = ["ESV-Bible"],
-        file_processor: FileProcessorInterface=LangchainLoader,
-        embedding: EmbeddingInterface=SentenceTransformerEmbedding(),
-        vectordb: VectordbInterface=Chroma(),
-        llm_framework: LLMFrameworkInterface=LangchainOpenAI(),
-        transcription_framework: AudioTranscriptionInterface=WhisperAudioTranscription) -> None:
-        '''Instantiate with default tech stack'''
+        labels: List[str] = ["ESV-Bible"],
+        file_processor: FileProcessorInterface = LangchainLoader,
+        embedding: EmbeddingInterface = SentenceTransformerEmbedding(),
+        vectordb: VectordbInterface = Chroma(),
+        llm_framework: LLMFrameworkInterface = LangchainOpenAI(),
+        transcription_framework: AudioTranscriptionInterface = WhisperAudioTranscription,
+    ) -> None:
+        """Instantiate with default tech stack"""
         super().__init__(file_processor, embedding, vectordb)
         self.user = user
         if labels is not None:
@@ -126,32 +140,44 @@ class ConversationPipeline(DataUploadPipeline):
         self.llm_framework = llm_framework
         self.transcription_framework = transcription_framework()
 
-    def set_llm_framework(self,
-        choice:schema.LLMFrameworkType,
-        api_key: Optional[str]=None,
-        model_name: Optional[str]=None,
-        vectordb:VectordbInterface=Chroma,
-        **kwargs) -> None:
-        '''Change the default tech with one of our choice'''
+    def set_llm_framework(
+        self,
+        choice: schema.LLMFrameworkType,
+        api_key: Optional[str] = None,
+        model_name: Optional[str] = None,
+        vectordb: VectordbInterface = Chroma,
+        **kwargs
+    ) -> None:
+        """Change the default tech with one of our choice"""
         self.llm_framework.api_key = api_key
         self.llm_framework.model_name = model_name
         if choice == schema.LLMFrameworkType.LANGCHAIN:
             if isinstance(vectordb, Chroma):
-                vectordb = ChromaLC(host=vectordb.db_host, port=vectordb.db_port,
-                    path=vectordb.db_path, collection_name=vectordb.collection_name)
+                vectordb = ChromaLC(
+                    host=vectordb.db_host,
+                    port=vectordb.db_port,
+                    path=vectordb.db_path,
+                    collection_name=vectordb.collection_name,
+                )
             self.llm_framework = LangchainOpenAI(vectordb=vectordb)
         elif choice == schema.LLMFrameworkType.VANILLA:
             if isinstance(vectordb, Chroma):
-                vectordb = ChromaLC(host=vectordb.db_host, port=vectordb.db_port,
-                    path=vectordb.db_path, collection_name=vectordb.collection_name)
+                vectordb = ChromaLC(
+                    host=vectordb.db_host,
+                    port=vectordb.db_port,
+                    path=vectordb.db_path,
+                    collection_name=vectordb.collection_name,
+                )
             self.llm_framework = OpenAIVanilla(vectordb=vectordb)
 
-    def set_transcription_framework(self,
-        choice:schema.AudioTranscriptionType,
-        api_key: Optional[str]=None,
-        model_name: Optional[str]=None,
-        **kwargs) -> None:
-        '''Change the default tech with one of our choice'''
+    def set_transcription_framework(
+        self,
+        choice: schema.AudioTranscriptionType,
+        api_key: Optional[str] = None,
+        model_name: Optional[str] = None,
+        **kwargs
+    ) -> None:
+        """Change the default tech with one of our choice"""
         self.transcription_framework.api_key = api_key
         self.transcription_framework.model_name = model_name
         if choice == schema.AudioTranscriptionType.WHISPER:
