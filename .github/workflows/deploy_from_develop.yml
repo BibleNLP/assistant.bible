@@ -16,7 +16,7 @@ jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
     env:
-      HOST: dev.assitant.bible
+      HOST: dev.assistant.bible
     steps:
     - name: Execute Commands on Remote Server
       id: deployment
