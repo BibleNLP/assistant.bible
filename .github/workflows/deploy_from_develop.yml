@@ -6,8 +6,6 @@ name: deploy_and_test
 # Triggers the workflow on push to main branch 
 
 
-env:
-  HOST: "dev.assitant.bible"
 
 on:
   push:
@@ -18,7 +16,7 @@ jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
     env:
-      DOMAIN: ${{ env.HOST }}
+      HOST: "dev.assitant.bible"
     steps:
     - name: Execute Commands on Remote Server
       id: deployment
