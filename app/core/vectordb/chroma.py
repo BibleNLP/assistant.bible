@@ -84,7 +84,7 @@ class Chroma(VectordbInterface):
                 {
                     "label": doc.label,
                     "media": ",".join(doc.media),
-                    "links": ",".join(str(doc.links)),
+                    "links": ",".join([str(link) for link in doc.links]),
                 }
             )
             metas.append(meta)
