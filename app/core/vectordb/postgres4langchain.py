@@ -1,9 +1,11 @@
 """Implemetations for vectordb interface for postgres with vector store"""
 import math
 import os
-from typing import List, Optional
+from typing import List, Optional, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
+from langchain.callbacks.manager import CallbackManagerForRetrieverRun
+from langchain.callbacks.manager import AsyncCallbackManagerForRetrieverRun
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
@@ -28,24 +30,27 @@ class Postgres(
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
     db_port: str = os.environ.get("POSTGRES_DB_PORT", "5432")
     db_path: Optional[str] = None  # Path for a local DB, if that is being used
-    collection_name: str = os.environ.get(
-        "POSTGRES_DB_NAME", "adotbcollection")
-    db_user = os.environ.get("POSTGRES_DB_USER", "admin")
-    db_password = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
+    collection_name: str = os.environ.get("POSTGRES_DB_NAME", "adotbcollection")
+    db_user: str = os.environ.get("POSTGRES_DB_USER", "admin")
+    db_password: str = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     embedding: EmbeddingInterface = None
-    db_client = None
-
+    db_client: Any = None
+    db_conn:Any = None
+    labels:List[str] = []
+    query_limit:int = None
+    max_cosine_distance: str = None
     def __init__(
         self,
         embedding: EmbeddingInterface = None,
-        host=None,
-        port=None,
-        path=None,
-        collection_name=None,
-        # pylint: disable=super-init-not-called
-        **kwargs,
-    ) -> None:  # pylint: disable=super-init-not-called
+        host:str=None,
+        port:int=None,
+        path:str=None,
+        collection_name:str=None,
+        **kwargs:str,
+    ) -> None:
         """Instantiate a chroma client"""
+        VectordbInterface.__init__(self, host, port, path, collection_name)
+        BaseRetriever.__init__(self)
         # You MUST set embedding with PGVector,
         # since with this DB type the embedding
         # dimension size always hard-coded on init
@@ -142,7 +147,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        str(doc.links),
                         doc.embedding,
                     ]
                 )
@@ -164,7 +169,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        str(doc.links),
                         doc.embedding,
                         doc.docId,
                     ),
@@ -196,7 +201,9 @@ class Postgres(
         except Exception as exe:
             raise PostgresException("While adding data: " + str(exe)) from exe
 
-    def get_relevant_documents(self, query: list, **kwargs) -> List[LangchainDocument]:
+    def _get_relevant_documents(
+        self, query: list, run_manager: CallbackManagerForRetrieverRun| None = None, **kwargs
+    ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
         try:
@@ -249,8 +256,8 @@ class Postgres(
             for doc in records
         ]
 
-    async def aget_relevant_documents(
-        self, query: list, **kwargs
+    async def _aget_relevant_documents(
+        self, query: list, run_manager: AsyncCallbackManagerForRetrieverRun| None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
