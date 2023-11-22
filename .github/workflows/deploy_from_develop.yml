@@ -1,9 +1,12 @@
 # Workflow to deploy to a DC server via SSH over RSA
 
-name: deploy
+name: deploy_and_test
 
 # on: [push ]
 # Triggers the workflow on push to main branch 
+
+
+
 on:
   push:
     branches: [ develop ]
@@ -12,11 +15,14 @@ on:
 jobs:
   pull-n-deploy:
     runs-on: ubuntu-latest
+    env:
+      HOST: dev.assistant.bible
     steps:
     - name: Execute Commands on Remote Server
+      id: deployment
       uses: appleboy/ssh-action@master
       with:
-        host: dev.assistant.bible
+        host: ${{ env.HOST }}
         username: root
         key: ${{ secrets.DEV_SIL_SSH_KEY }}
         port: 22
@@ -26,5 +32,33 @@ jobs:
           git pull origin develop
           su - assistant-bible
           cd deployment
+          docker tag deployment-chatbot:latest deployment-chatbot:backup
+          docker compose down
           docker compose --env-file .env up --force-recreate --build -d
 
+    - name: Test Application Endpoint
+      if: steps.deployment.outcome == 'success'
+      run: |
+        for i in {1..5}; do
+          curl --fail http://{${{ env.HOST }}} && exit 0
+          echo "Attempt $i failed... retrying in 10 seconds."
+          sleep 10
+        done
+        exit 1
+    
+    - name: Execute Rollback on Failure
+      if: ${{ failure() }}
+      uses: appleboy/ssh-action@master
+      with:
+        host: dev.assistant.bible
+        username: root
+        key: ${{ secrets.DEV_SIL_SSH_KEY }}
+        port: 22
+        script: |
+          echo "Rolling back to previous state..."
+          # Stopping current containers
+          docker compose down
+          # Reverting the chatbot image to the backup tag
+          docker tag deployment-chatbot:backup deployment-chatbot:latest
+          # Restarting the containers with the rolled-back image
+          docker compose --env-file .env up  -d
