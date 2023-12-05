@@ -11,9 +11,9 @@ server {
     proxy_connect_timeout 300;
     proxy_send_timeout 300;
 
-#    location /.well-known/acme-challenge/ {
-#        root /var/www/certbot;
-#    }
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
     
     location / {
      return 301 https://${CHAT_DOMAIN}$request_uri;
@@ -37,6 +37,10 @@ server {
 
     ssl_certificate /etc/nginx/ssl/live/${CHAT_DOMAIN}/fullchain.pem;
     ssl_certificate_key /etc/nginx/ssl/live/${CHAT_DOMAIN}/privkey.pem;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
     location /chat {
         proxy_pass http://chatbot:9000/chat;
@@ -65,9 +69,9 @@ server {
     server_name ${PROD_DOMAIN};
     client_max_body_size 100M;
 
-#    location /.well-known/acme-challenge/ {
-#        root /var/www/certbot;
-#    }
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
 
     proxy_read_timeout 300;
     proxy_connect_timeout 300;
