@@ -140,6 +140,7 @@ class Postgres(
             cur.execute(
                 "SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
             doc_id_already_exists = cur.fetchone()
+            links= ",".join([str(item) for item in doc.links])
             if not doc_id_already_exists:
                 data_list.append(
                     [
@@ -147,7 +148,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        str(doc.links),
+                        links,
                         doc.embedding,
                     ]
                 )
@@ -169,7 +170,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        str(doc.links),
+                        links,
                         doc.embedding,
                         doc.docId,
                     ),
@@ -216,7 +217,7 @@ class Postgres(
             cur = self.db_conn.cursor()
             cur.execute(
                 """
-                SELECT source_id, document 
+                SELECT label, media, links, source_id, document 
                 FROM embeddings 
                 WHERE label = ANY(%s) 
                 AND embedding <=> %s < %s 
@@ -252,7 +253,12 @@ class Postgres(
                 )
             ]
         return [
-            LangchainDocument(page_content=doc[1], metadata={"source": doc[0]})
+            
+            LangchainDocument(page_content=doc[1], metadata={"label": doc[0],
+                                                             "media": doc[1],
+                                                             'link':doc[2],
+                                                            'source_id':doc[3],
+                                                            'document':doc[4]})
             for doc in records
         ]
 
