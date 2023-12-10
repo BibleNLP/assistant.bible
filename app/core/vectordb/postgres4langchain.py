@@ -253,7 +253,6 @@ class Postgres(
                 )
             ]
         return [
-            
             LangchainDocument(page_content=doc[1], metadata={"label": doc[0],
                                                              "media": doc[1],
                                                              'link':doc[2],
