@@ -200,19 +200,47 @@ class ChatResponseType(str, Enum):
     ANSWER = "answer"
     ERROR = "error"
 
+class SourceDocument(BaseModel):
+    """Source field of Chat response from server to UI or user app"""
+    label: str = Field(
+        "open-access",
+        examples=["paratext user manual or bible or door-43-users"],
+        desc="The common tag for all sentences under a set. "
+        + "Used for specifying access rules and filtering during querying",
+    )
+    media:str = Field(
+        None,
+        desc="Additional media links, like images, videos etc "
+        + "to be used in output to make the chat interface multimodel",
+    )
+    link: str = Field(
+        None,
+        desc="The links to fetch the actual resource. "
+        + "To be used by end user like a search result",
+    )
+    source_id: str = Field(
+        None,
+        examples=["NIV Bible Mat 1:1-20"],
+        desc="Unique for a sentence. Used by the LLM to specify which document "
+        + "it answers from. Better to combine the source tag and a serial number.",
+    )
+    document: str = Field(
+        None, desc="The sentence which is used for question answering"
+    )
+
 
 class BotResponse(BaseModel):
     """Chat response from server to UI or user app"""
 
     message: str = Field(..., examples=["Good Morning to you too!"])
     sender: SenderType = Field(..., examples=["You or BOT"])
-    sources: List[str] | None = Field(
+    sources: List[SourceDocument] | None = Field(
         None,
-        examples=[[
-            "https://www.biblegateway.com/passage/?search=Genesis+1%3A1&version=NIV",
-            "https://git.door43.org/Door43-Catalog/en_tw/src/branch/master/"
-            + "bible/other/creation.md",
-        ]],
+        examples=[{'source': 'ESV-Bible',
+                   'media': {"https://www.youtube.com/watch?v=teu7BCZTgDs"}, 
+                   'link': 'https://www.esv.org/Genesis+1/,https://www.esv.org/Genesis+1/',
+                   'source_id': 'ESV-gen1:1',
+                   'document': 'In the beginning, God created the heavens and the earth.'}],
     )
     media: List[AnyUrl] | None = Field(
         None, examples=[["https://www.youtube.com/watch?v=teu7BCZTgDs"]]
