@@ -43,4 +43,4 @@ jobs:
         
       - name: Run Pytest
         working-directory: ./app
-        run: python3 -m pytest -s tests/test_basics.py tests/test_dataupload.py
+        run: python3 -m pytest -s -m "not with_llm"
