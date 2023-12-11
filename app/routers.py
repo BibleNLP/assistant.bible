@@ -296,7 +296,7 @@ async def websocket_chat_endpoint(
                     "Human: {0}\nBot:{1}\nSources:{2}\n\n".format(
                         question,
                         bot_response['answer'],
-                        [item.metadata['source']
+                        [item.metadata
                             for item in bot_response['source_documents']]
                     )
                 )
@@ -314,7 +314,7 @@ async def websocket_chat_endpoint(
                     message=bot_response["answer"],
                     type=schema.ChatResponseType.ANSWER,
                     sources=[
-                        item.metadata["source"]
+                        item.metadata
                         for item in bot_response["source_documents"]
                     ],
                     media=[],
