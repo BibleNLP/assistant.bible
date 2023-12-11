@@ -61,6 +61,7 @@ def test_data_upload_processed_sentences(mocker, vectordb, fresh_db):
             "dbPath": fresh_db["dbPath"],
             "collectionName": fresh_db["collectionName"],
             "embeddingType": schema.EmbeddingType.HUGGINGFACE_DEFAULT.value,
+            "llmApiKey":"dummy-value",
         },
         json=SENT_DATA,
     )
@@ -101,6 +102,7 @@ def test_data_upload_markdown(mocker, vectordb, chunker, fresh_db):
                     "dbPath": fresh_db["dbPath"],
                     "collectionName": fresh_db["collectionName"],
                     "token": ADMIN_TOKEN,
+                    "llmApiKey":"dummy-value",
                 }
                 # json={"vectordb_config": fresh_db}
             )
@@ -132,6 +134,7 @@ def test_data_upload_csv(mocker, vectordb, fresh_db):
                 "dbPath": fresh_db["dbPath"],
                 "collectionName": fresh_db["collectionName"],
                 "token": ADMIN_TOKEN,
+                "llmApiKey":"dummy-value",
             },
             json={"vectordb_config": fresh_db},
         )

@@ -33,7 +33,7 @@ class LangchainOpenAI(LLMFrameworkInterface):
     def __init__(
         self,  # pylint: disable=super-init-not-called
         # FIXME : Ideal to be able to mock the __init__ from tests
-        key: str = os.getenv("OPENAI_API_KEY", "dummy-for-test"),
+        key: str = os.getenv("OPENAI_API_KEY"),
         model_name: str = "gpt-3.5-turbo",
         vectordb: VectordbInterface = Chroma(),
         max_tokens_limit: int = int(

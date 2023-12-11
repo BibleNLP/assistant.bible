@@ -179,6 +179,9 @@ class ChatPipelineSelector(BaseModel):
         AudioTranscriptionType.WHISPER,
         desc="The framework through which audio transcription is handled",
     )
+    transcriptionApiKey: str | None = Field(
+        None, desc="If using a cloud service, like OpenAI, the key obtained from them"
+    )
 
 
 # class UserPrompt(BaseModel): # not using this as we recieve string from websocket

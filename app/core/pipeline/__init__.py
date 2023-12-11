@@ -126,8 +126,10 @@ class ConversationPipeline(DataUploadPipeline):
         file_processor: FileProcessorInterface = LangchainLoader,
         embedding: EmbeddingInterface = SentenceTransformerEmbedding(),
         vectordb: VectordbInterface = Chroma(),
-        llm_framework: LLMFrameworkInterface = LangchainOpenAI(),
+        llm_framework: LLMFrameworkInterface = LangchainOpenAI,
+        llm_api_key: str | None = None,
         transcription_framework: AudioTranscriptionInterface = WhisperAudioTranscription,
+        transcription_api_key: str | None = None,
     ) -> None:
         """Instantiate with default tech stack"""
         super().__init__(file_processor, embedding, vectordb)
@@ -138,7 +140,8 @@ class ConversationPipeline(DataUploadPipeline):
         self.embedding = embedding
         self.vectordb = vectordb
         self.llm_framework = llm_framework
-        self.transcription_framework = transcription_framework()
+        self.transcription_framework = transcription_framework(key=transcription_api_key)
+        self.llm_framework = llm_framework(key=llm_api_key)
 
     def set_llm_framework(
         self,
@@ -159,7 +162,7 @@ class ConversationPipeline(DataUploadPipeline):
                     path=vectordb.db_path,
                     collection_name=vectordb.collection_name,
                 )
-            self.llm_framework = LangchainOpenAI(vectordb=vectordb)
+            self.llm_framework = LangchainOpenAI(vectordb=vectordb, api_key=api_key)
         elif choice == schema.LLMFrameworkType.VANILLA:
             if isinstance(vectordb, Chroma):
                 vectordb = ChromaLC(
@@ -168,7 +171,7 @@ class ConversationPipeline(DataUploadPipeline):
                     path=vectordb.db_path,
                     collection_name=vectordb.collection_name,
                 )
-            self.llm_framework = OpenAIVanilla(vectordb=vectordb)
+            self.llm_framework = OpenAIVanilla(vectordb=vectordb, key=api_key)
 
     def set_transcription_framework(
         self,
@@ -181,4 +184,4 @@ class ConversationPipeline(DataUploadPipeline):
         self.transcription_framework.api_key = api_key
         self.transcription_framework.model_name = model_name
         if choice == schema.AudioTranscriptionType.WHISPER:
-            self.transcription_framework = WhisperAudioTranscription()
+            self.transcription_framework = WhisperAudioTranscription(key=api_key)

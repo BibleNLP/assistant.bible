@@ -18,6 +18,8 @@ COMMON_CONNECTION_ARGS = {
     "collectionName": "adotdcollection_test",
     "labels": ["NIV bible", "ESV-Bible", "translationwords", "open-access"],
     "token": admin_token,
+    "transcriptionApiKey":"dummy-key-for-openai",
+    "llmApiKey":"dummy-key-for-openai",
 }
 
 
@@ -33,7 +35,7 @@ def assert_positive_bot_response(resp_json):
     assert resp_json["sender"] in ["Bot", "You"]
 
 
-def test_chat_websocket_connection(mocker, fresh_db):
+def test_chat_websocket_connection(mocker, fresh_db, monkeypatch):
     """Check if websocket is connecting to and is bot responding"""
     mocker.patch("app.routers.Supabase.check_token",
                  return_value={"user_id": "1111"})
