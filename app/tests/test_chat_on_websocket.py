@@ -35,7 +35,7 @@ def assert_positive_bot_response(resp_json):
     assert resp_json["sender"] in ["Bot", "You"]
 
 
-def test_chat_websocket_connection(mocker, fresh_db, monkeypatch):
+def test_chat_websocket_connection(mocker, fresh_db):
     """Check if websocket is connecting to and is bot responding"""
     mocker.patch("app.routers.Supabase.check_token",
                  return_value={"user_id": "1111"})

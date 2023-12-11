@@ -162,7 +162,7 @@ class ConversationPipeline(DataUploadPipeline):
                     path=vectordb.db_path,
                     collection_name=vectordb.collection_name,
                 )
-            self.llm_framework = LangchainOpenAI(vectordb=vectordb, api_key=api_key)
+            self.llm_framework = LangchainOpenAI(vectordb=vectordb, key=api_key)
         elif choice == schema.LLMFrameworkType.VANILLA:
             if isinstance(vectordb, Chroma):
                 vectordb = ChromaLC(
