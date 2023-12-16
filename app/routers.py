@@ -228,7 +228,10 @@ async def websocket_chat_endpoint(
     if token:
         log.info("User, connecting with token, %s", token)
     await websocket.accept()
-    chat_stack = ConversationPipeline(user="XXX", labels=labels)
+    chat_stack = ConversationPipeline(user="XXX",
+                                        labels=labels,
+                                        transcription_api_key=settings.transcriptionApiKey,
+                                        llm_api_key=settings.llmApiKey)
 
     vectordb_args = compose_vector_db_args(
         settings.vectordbType,
@@ -246,7 +249,8 @@ async def websocket_chat_endpoint(
     chat_stack.set_llm_framework(
         settings.llmFrameworkType, vectordb=chat_stack.vectordb, **llm_args
     )
-    chat_stack.set_transcription_framework(settings.transcriptionFrameworkType)
+    chat_stack.set_transcription_framework(settings.transcriptionFrameworkType,
+                                            api_key=settings.transcriptionApiKey)
 
     # Not implemented using custom embeddings
 

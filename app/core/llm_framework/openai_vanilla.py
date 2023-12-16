@@ -3,6 +3,7 @@ import os
 from typing import List, Tuple
 
 import openai
+from openai import ChatCompletion
 
 from core.llm_framework import LLMFrameworkInterface
 from core.vectordb import VectordbInterface
@@ -111,7 +112,7 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         print(f"{prompt=}")
 
         try:
-            response = openai.ChatCompletion.create(
+            response = ChatCompletion.create(
                 model=self.model_name,
                 temperature=0,
                 messages=[{"role": "user", "content": prompt}],
