@@ -221,6 +221,7 @@
             var endpoint = {{ ws_url| tojson }};
             var tyndaleOpenElement = document.getElementById("tyndale-open");
             var faithAndFarmingElement = document.getElementById("faith-and-farming");
+            var aquaDocsElement = document.getElementById("aqua-docs");
         endpoint += '?llmFrameworkType=openai-vanilla&vectordbType=postgres-with-pgvector&token=' + accessToken;
         if (tyndaleOpenElement.checked == true) { 
             endpoint += '&labels=' + tyndaleOpenElement.value;
@@ -230,6 +231,14 @@
             endpoint += '&labels=' + faithAndFarmingElement.value;
             $('#messages').append('<div>---<b>Domain:Faith-and-Farming:' + faithAndFarmingElement.checked + '</b>---</div');
          }
+         if (faithAndFarmingElement.checked == true) { 
+            endpoint += '&labels=' + faithAndFarmingElement.value;
+            $('#messages').append('<div>---<b>Domain:Faith-and-Farming:' + faithAndFarmingElement.checked + '</b>---</div');
+         }
+            if (aquaDocsElement.checked == true) { 
+                endpoint += '&labels=' + aquaDocsElement.value;
+                $('#messages').append('<div>---<b>Domain:AQuA-Docs:' + aquaDocsElement.checked + '</b>---</div');
+            }
         ws.close();
         console.log("endpoint: " + endpoint)
 
