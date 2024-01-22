@@ -24,8 +24,9 @@ def get_context(source_documents):
             len(source_document.page_content) + len(context) > 11000
         ):  # FIXME: use tiktoken library to count tokens
             break
-        context += "{source:" + source_document.metadata.get("source", "")
-        context += ", text: " + source_document.page_content + "}" + ","
+        if source_document.metadata.get("source", "") is not None:
+            context += "{source:" + source_document.metadata.get("source", "")
+            context += ", text: " + source_document.page_content + "}" + ","
     context += "]" + "\n"
 
     return context

@@ -18,6 +18,8 @@ COMMON_CONNECTION_ARGS = {
     "collectionName": "adotdcollection_test",
     "labels": ["NIV bible", "ESV-Bible", "translationwords", "open-access"],
     "token": admin_token,
+    "transcriptionApiKey":"dummy-key-for-openai",
+    "llmApiKey":"dummy-key-for-openai",
 }
 
 
