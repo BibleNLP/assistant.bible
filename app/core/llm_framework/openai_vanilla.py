@@ -21,7 +21,7 @@ def get_context(source_documents):
     # ** This will need to be adjusted, based on what the returned results look like **
     for _, source_document in enumerate(source_documents):
         if (
-            len(source_document.page_content) + len(context) > 11000
+            len(source_document.page_content) + len(context) > 44000
         ):  # FIXME: use tiktoken library to count tokens
             break
         if source_document.metadata.get("source", "") is not None:
@@ -36,7 +36,8 @@ def get_pre_prompt(context):
     """Constructs a pre-prompt for the conversation, including the context"""
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
-    chat_prefix += " helpful, creative, clever, very friendly and follows instructions carefully.\n"
+    chat_prefix += "verbose, helpful, creative, clever, very friendly and follows instructions carefully,"
+    chat_prefix += "giving as much information as possible.\n"
     prompt = (
         chat_prefix
         + "Read the paragraph below and answer the question, using only the information"
@@ -77,7 +78,7 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
     def __init__(
         self,  # pylint: disable=super-init-not-called
         key: str = os.getenv("OPENAI_API_KEY"),
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = "gpt-3.5-turbo-1106",
         vectordb: VectordbInterface = None,  # What should this be by default?
     ) -> None:
         """Sets the API key and initializes library objects if any"""
