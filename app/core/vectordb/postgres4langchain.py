@@ -136,6 +136,12 @@ class Postgres(
         """Loads the document object as per chroma DB formats into the collection"""
         data_list = []
         for doc in docs:
+            doc.text = (doc.text
+                        .replace("\n", " ")
+                        .replace("\r", " ")
+                        .replace("\t", " ")
+                        .replace('\x00', '')
+            )
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
