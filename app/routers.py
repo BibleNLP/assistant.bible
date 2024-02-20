@@ -24,6 +24,7 @@ import gotrue.errors
 import schema
 from log_configs import log
 from core.auth.supabase import Supabase
+from core.translation import translate_text
 
 # from core.auth.supabase import (admin_auth_check_decorator,
 #     chatbot_auth_check_decorator, chatbot_get_labels_decorator)
@@ -275,6 +276,7 @@ async def websocket_chat_endpoint(
                 question = chat_stack.transcription_framework.transcribe_audio(
                     received_bytes
                 )
+                
                 start_human_q = schema.BotResponse(
                     sender=schema.SenderType.USER,
                     message=question,
@@ -285,6 +287,12 @@ async def websocket_chat_endpoint(
                 await websocket.send_json(start_human_q.dict())
 
             if len(question) > 0:
+                translation_response = translate_text(question)
+                english_query_text = translation_response.translations[0].translated_text
+                query_language_code = translation_response.translations[0].detected_language_code
+                query_language = translation_response['language']
+                print(f'{query_language=}')
+                print(f'{english_query_text=}')
                 bot_response = chat_stack.llm_framework.generate_text(
                     query=question, chat_history=chat_stack.chat_history
                 )
