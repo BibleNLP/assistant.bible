@@ -15,16 +15,13 @@ def translate_text(text: str):
     :return: The translated text
     """
     translate = boto3.client(service_name="translate", use_ssl=True)
-    try:
-        # Call AWS Translate
-        response = translate.translate_text(
-            Text=text,
-            SourceLanguageCode="auto",  # Automatically detect the source language
-            TargetLanguageCode="en",  # Target language code is 'en' for English
-        )
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return {}
+
+    # Call AWS Translate
+    response = translate.translate_text(
+        Text=text,
+        SourceLanguageCode="auto",  # Automatically detect the source language
+        TargetLanguageCode="en",  # Target language code is 'en' for English
+    )
 
     source_language_code = response.get("SourceLanguageCode", "").split("-")[
         0
