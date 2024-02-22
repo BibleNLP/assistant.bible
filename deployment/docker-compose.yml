@@ -76,7 +76,7 @@ services:
      - chatbot
     environment:
       - CHAT_DOMAIN=${DOMAIN:-"localhost"}
-      - PROD_DOMAIN=${DOMAIN2:-assistant.bible}
+      - PROD_DOMAIN=${DOMAIN2:-dev.assistant.bible}
     volumes:
      - ./nginx/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
      # - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -93,7 +93,7 @@ services:
      - ./certbot/conf/:/etc/letsencrypt/:rw
     networks:
      - chatbot-network
-
+    # command: certonly --webroot --webroot-path=/var/www/certbot --email alejandro_quintero@sil.org --agree-tos --no-eff-email --staging -d dev.assistant.bible 
   ofelia-scheduler:
     image: mcuadros/ofelia:v0.3.7
     depends_on:

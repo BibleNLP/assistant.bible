@@ -1,6 +1,6 @@
 """Implemetations for vectordb interface for chroma"""
 import os
-from typing import List
+from typing import List, Any
 
 from core.vectordb import VectordbInterface
 from core.embedding.sentence_transformers import SentenceTransformerEmbedding
@@ -8,9 +8,8 @@ import schema
 from custom_exceptions import ChromaException
 
 import chromadb
-from chromadb.config import Settings
 
-# pylint: disable=too-few-public-methods, unused-argument, R0801, super-init-not-called
+# pylint: disable=too-few-public-methods, unused-argument, R0801
 QUERY_LIMIT = os.getenv("CHROMA_DB_QUERY_LIMIT", "10")
 
 
@@ -20,17 +19,16 @@ class Chroma(VectordbInterface):
     db_host: str = None  # Host name to connect to a remote DB deployment
     db_port: str = None  # Port to connect to a remote DB deployment
     db_path: str = "chromadb_store"  # Path for a local DB, if that is being used
-    collection_name: str = (
-        "adotbcollection"  # Collection to connect to a remote/local DB
-    )
-    db_conn = None
-    db_client = None
-    embedding_function = None
+    collection_name: str = "adotbcollection"  # Collection to connect to a remote/local DB
+    db_conn: Any = None
+    db_client: Any = None
+    embedding_function: Any = None
 
     def __init__(
         self, host=None, port=None, path="chromadb_store", collection_name=None
-    ) -> None:  # pylint: disable=super-init-not-called
+    ) -> None:
         """Instanciate a chroma client"""
+        VectordbInterface.__init__(self, host, port, path, collection_name)
         if host:
             self.db_host = host
         if port:
@@ -42,10 +40,7 @@ class Chroma(VectordbInterface):
             # This method connects to the DB that get stored on the server itself
             # where the app is running
             try:
-                chroma_client = chromadb.Client(
-                    Settings(chroma_db_impl="duckdb+parquet",
-                             persist_directory=path)
-                )
+                chroma_client = chromadb.PersistentClient(path=self.db_path)
             except Exception as exe:
                 raise ChromaException(
                     "While initializing client: " + str(exe)) from exe
@@ -62,13 +57,7 @@ class Chroma(VectordbInterface):
             #   each user's API request to let each user connect to the DB
             #   that he prefers and has rights for(fastapi's Depends())
             try:
-                chroma_client = chromadb.Client(
-                    Settings(
-                        chroma_api_impl="rest",
-                        chroma_server_host=host,
-                        chroma_server_http_port=port,
-                    )
-                )
+                chroma_client = chromadb.HttpClient(host=self.db_host, port=self.db_port)
             except Exception as exe:
                 raise ChromaException(
                     "While initializing client: " + str(exe)) from exe
@@ -95,14 +84,17 @@ class Chroma(VectordbInterface):
                 {
                     "label": doc.label,
                     "media": ",".join(doc.media),
-                    "links": ",".join(doc.links),
+                    "links": ",".join([str(link) for link in doc.links]),
                 }
             )
             metas.append(meta)
         if docs[0].embedding is None:
             embeddings = None
         else:
-            embeddings = [doc.embedding for doc in docs]
+            embeddings = []
+            for doc in docs:
+                vector = [float(item) for item in doc.embedding]
+                embeddings.append(vector)
         try:
             self.db_conn.add(
                 embeddings=embeddings,
@@ -110,11 +102,10 @@ class Chroma(VectordbInterface):
                 metadatas=metas,
                 ids=[doc.docId for doc in docs],
             )
-            self.db_client.persist()
         except Exception as exe:
             raise ChromaException("While adding data: " + str(exe)) from exe
 
-    def get_relevant_documents(self, query: str, **kwargs) -> List:
+    def _get_relevant_documents(self, query: str, run_manager=None, **kwargs) -> List:
         """Similarity search on the vector store"""
         results = self.db_conn.query(
             query_texts=[query],
@@ -131,7 +122,3 @@ class Chroma(VectordbInterface):
         labels = [meta["label"] for meta in rows["metadatas"]]
         labels = list(set(labels))
         return labels
-
-    def __del__(self):
-        """To persist DB upon app close"""
-        self.db_client.persist()

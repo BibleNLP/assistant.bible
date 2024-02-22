@@ -45,6 +45,8 @@ Environment variables and their default values,
 * `DOMAIN=assistant.bible`
 * `SUPABASE_URL`
 * `SUPABASE_KEY`
+* `SUPABASE_JWT_SECRET`
+* `WEBSOCKET_URL=ws://localhost/chat`
 
 
 If using default values, once started the app should be running at [http://localhost:8000](http://localhost:8000) and dev UI available at [http://localhost:8000/ui](http://localhost:8000/ui) and API docs at [http://localhost:8000/docs](http://localhost:8000/docs).
@@ -72,8 +74,10 @@ If using default values, once started the app should be running at [http://local
 	POSTGRES_DB_NAME=adotbcollection
 	POSTGRES_DB_USER=postgres
 	POSTGRES_DB_PASSWORD=secret
-	export SUPABASE_URL=https://<your_supabase_instance>.supabase.co
-	export SUPABASE_KEY=<your_supabase_key>
+	SUPABASE_URL=https://<your_supabase_instance>.supabase.co
+	SUPABASE_KEY=<your_supabase_key>
+	SUPABASE_JWT_SECRET=<from your account>
+	WEBSOCKET_URL=ws://localhost/chat
 	```
 	If you dont want to mess with the locally running postgres version, running it as a docker container is a safer alternative: 
 	`docker run -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=secret -e POSTGRES_DB=adotbcollection -p 5432:5432 ankane/pgvector`

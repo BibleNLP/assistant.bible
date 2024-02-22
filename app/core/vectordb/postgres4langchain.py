@@ -1,9 +1,11 @@
 """Implemetations for vectordb interface for postgres with vector store"""
 import math
 import os
-from typing import List, Optional
+from typing import List, Optional, Any
 from langchain.schema import Document as LangchainDocument
 from langchain.schema import BaseRetriever
+from langchain.callbacks.manager import CallbackManagerForRetrieverRun
+from langchain.callbacks.manager import AsyncCallbackManagerForRetrieverRun
 from core.vectordb import VectordbInterface
 from core.embedding import EmbeddingInterface
 import schema
@@ -28,24 +30,27 @@ class Postgres(
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
     db_port: str = os.environ.get("POSTGRES_DB_PORT", "5432")
     db_path: Optional[str] = None  # Path for a local DB, if that is being used
-    collection_name: str = os.environ.get(
-        "POSTGRES_DB_NAME", "adotbcollection")
-    db_user = os.environ.get("POSTGRES_DB_USER", "admin")
-    db_password = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
+    collection_name: str = os.environ.get("POSTGRES_DB_NAME", "adotbcollection")
+    db_user: str = os.environ.get("POSTGRES_DB_USER", "admin")
+    db_password: str = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     embedding: EmbeddingInterface = None
-    db_client = None
-
+    db_client: Any = None
+    db_conn:Any = None
+    labels:List[str] = []
+    query_limit:int = None
+    max_cosine_distance: str = None
     def __init__(
         self,
         embedding: EmbeddingInterface = None,
-        host=None,
-        port=None,
-        path=None,
-        collection_name=None,
-        # pylint: disable=super-init-not-called
-        **kwargs,
-    ) -> None:  # pylint: disable=super-init-not-called
+        host:str=None,
+        port:int=None,
+        path:str=None,
+        collection_name:str=None,
+        **kwargs:str,
+    ) -> None:
         """Instantiate a chroma client"""
+        VectordbInterface.__init__(self, host, port, path, collection_name)
+        BaseRetriever.__init__(self)
         # You MUST set embedding with PGVector,
         # since with this DB type the embedding
         # dimension size always hard-coded on init
@@ -131,10 +136,18 @@ class Postgres(
         """Loads the document object as per chroma DB formats into the collection"""
         data_list = []
         for doc in docs:
+            doc.text = (doc.text
+                        .replace("\n", " ")
+                        .replace("\r", " ")
+                        .replace("\t", " ")
+                        .replace('\x00', '')
+            )
             cur = self.db_conn.cursor()
             cur.execute(
                 "SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
             doc_id_already_exists = cur.fetchone()
+            links= ",".join([str(item) for item in doc.links])
+            doc.text = doc.text.replace('\0', '').replace('\x00', '').replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
             if not doc_id_already_exists:
                 data_list.append(
                     [
@@ -142,7 +155,7 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        links,
                         doc.embedding,
                     ]
                 )
@@ -164,39 +177,38 @@ class Postgres(
                         doc.text,
                         doc.label,
                         doc.media,
-                        doc.links,
+                        links,
                         doc.embedding,
                         doc.docId,
                     ),
                 )
             cur.close()
-        try:
-            cur = self.db_conn.cursor()
-            execute_values(
-                cur,
-                "INSERT INTO embeddings (source_id, document, label, media, links, embedding"
-                ") VALUES %s",
-                data_list,
-            )
-            self.db_conn.commit()
+        cur = self.db_conn.cursor()
+        execute_values(
+            cur,
+            "INSERT INTO embeddings (source_id, document, label, media, links, embedding"
+            ") VALUES %s",
+            data_list,
+        )
+        self.db_conn.commit()
 
-            # create index
-            cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
-            num_records = cur.fetchone()[0]
-            num_lists = num_records / 1000
-            num_lists = max(10, num_lists, math.sqrt(num_records))
-            # use the cosine distance measure, which is what we'll later use for querying
-            cur.execute(
-                "CREATE INDEX ON embeddings USING ivfflat (embedding vector_cosine_ops) "
-                + f"WITH (lists = {num_lists});"
-            )
-            self.db_conn.commit()
+        # create index
+        cur.execute("SELECT COUNT(*) as cnt FROM embeddings;")
+        num_records = cur.fetchone()[0]
+        num_lists = num_records / 1000
+        num_lists = max(10, num_lists, math.sqrt(num_records))
+        # use the cosine distance measure, which is what we'll later use for querying
+        cur.execute(
+            "CREATE INDEX ON embeddings USING ivfflat (embedding vector_cosine_ops) "
+            + f"WITH (lists = {num_lists});"
+        )
+        self.db_conn.commit()
 
-            cur.close()
-        except Exception as exe:
-            raise PostgresException("While adding data: " + str(exe)) from exe
+        cur.close()
 
-    def get_relevant_documents(self, query: list, **kwargs) -> List[LangchainDocument]:
+    def _get_relevant_documents(
+        self, query: list, run_manager: CallbackManagerForRetrieverRun| None = None, **kwargs
+    ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
         try:
@@ -209,7 +221,7 @@ class Postgres(
             cur = self.db_conn.cursor()
             cur.execute(
                 """
-                SELECT source_id, document 
+                SELECT label, media, links, source_id, document 
                 FROM embeddings 
                 WHERE label = ANY(%s) 
                 AND embedding <=> %s < %s 
@@ -245,12 +257,16 @@ class Postgres(
                 )
             ]
         return [
-            LangchainDocument(page_content=doc[1], metadata={"source": doc[0]})
+            LangchainDocument(page_content=doc[1], metadata={"label": doc[0],
+                                                             "media": doc[1],
+                                                             'link':doc[2],
+                                                            'source_id':doc[3],
+                                                            'document':doc[4]})
             for doc in records
         ]
 
-    async def aget_relevant_documents(
-        self, query: list, **kwargs
+    async def _aget_relevant_documents(
+        self, query: list, run_manager: AsyncCallbackManagerForRetrieverRun| None = None, **kwargs
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)

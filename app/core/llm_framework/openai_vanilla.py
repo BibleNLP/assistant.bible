@@ -3,6 +3,7 @@ import os
 from typing import List, Tuple
 
 import openai
+from openai import ChatCompletion
 
 from core.llm_framework import LLMFrameworkInterface
 from core.vectordb import VectordbInterface
@@ -20,11 +21,12 @@ def get_context(source_documents):
     # ** This will need to be adjusted, based on what the returned results look like **
     for _, source_document in enumerate(source_documents):
         if (
-            len(source_document.page_content) + len(context) > 11000
+            len(source_document.page_content) + len(context) > 44000
         ):  # FIXME: use tiktoken library to count tokens
             break
-        context += "{source:" + source_document.metadata.get("source", "")
-        context += ", text: " + source_document.page_content + "}" + ","
+        if source_document.metadata.get("source", "") is not None:
+            context += "{source:" + source_document.metadata.get("source", "")
+            context += ", text: " + source_document.page_content + "}" + ","
     context += "]" + "\n"
 
     return context
@@ -34,7 +36,8 @@ def get_pre_prompt(context, response_language="English"):
     """Constructs a pre-prompt for the conversation, including the context"""
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
-    chat_prefix += " helpful, creative, clever, very friendly and follows instructions carefully.\n"
+    chat_prefix += "verbose, helpful, creative, clever, very friendly and follows instructions carefully,"
+    chat_prefix += "giving as much information as possible.\n"
     prompt = (
         chat_prefix
         + "Read the paragraph below and answer the question, using only the information"
@@ -106,14 +109,14 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         # We'll need to figure out if this is optimal or not.
         query_text = "\n".join([x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
         query_text += "\n" + query
-        source_documents = self.vectordb.get_relevant_documents(query_text)
+        source_documents = self.vectordb._get_relevant_documents(query_text) #pylint: disable=protected-access
         context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context, response_language=response_language)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
         print(f"{prompt=}")
 
         try:
-            response = openai.ChatCompletion.create(
+            response = ChatCompletion.create(
                 model=self.model_name,
                 temperature=0,
                 messages=[{"role": "user", "content": prompt}],
