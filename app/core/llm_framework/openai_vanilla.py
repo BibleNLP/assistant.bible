@@ -36,7 +36,8 @@ def get_pre_prompt(context, response_language="English"):
     """Constructs a pre-prompt for the conversation, including the context"""
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
-    chat_prefix += "verbose, helpful, creative, clever, very friendly and follows instructions carefully,"
+    chat_prefix += "verbose, helpful, creative, clever, very friendly "
+    chat_prefix += "and follows instructions carefully,"
     chat_prefix += "giving as much information as possible.\n"
     prompt = (
         chat_prefix
@@ -109,7 +110,7 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         # We'll need to figure out if this is optimal or not.
         query_text = "\n".join([x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
         query_text += "\n" + query
-        source_documents = self.vectordb._get_relevant_documents(query_text) #pylint: disable=protected-access
+        source_documents = self.vectordb._get_relevant_documents(query_text)  # pylint: disable=protected-access
         context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context, response_language=response_language)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
