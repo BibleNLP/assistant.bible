@@ -2,8 +2,8 @@ import json
 
 import boto3
 
-# with open('../iso639-1.json') as f:
-#     iso_639_1 = json.load(f)
+with open('../iso639-1.json') as f:
+    iso_639_1 = json.load(f)
 
 
 def translate_text(text:str):
@@ -20,7 +20,7 @@ def translate_text(text:str):
         return {}
     
     source_language_code = response.get('SourceLanguageCode', '').split('-')[0]  # Extracting ISO 639-1 code part
-    # response['language'] = iso_639_1.get(source_language_code, "Unknown language")
+    response['language'] = iso_639_1.get(source_language_code, "Unknown language")
 
     return response
 
