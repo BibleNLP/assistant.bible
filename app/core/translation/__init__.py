@@ -12,7 +12,7 @@ def translate_text(text: str):
     """
     Translates the given text to English using AWS Translate service
     :param text: The text to translate
-    :return: The translated text
+    :return: The response, including the translated text
     """
     translate = boto3.client(service_name="translate", use_ssl=True)
 
