@@ -4,7 +4,7 @@ import json
 
 import boto3
 
-with open("../iso639-1.json", "r", encoding="utf-8") as f:
+with open("./iso639-1.json", "r", encoding="utf-8") as f:
     iso_639_1 = json.load(f)
 
 
