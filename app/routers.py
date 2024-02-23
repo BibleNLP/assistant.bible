@@ -24,6 +24,7 @@ import gotrue.errors
 import schema
 from log_configs import log
 from core.auth.supabase import Supabase
+from core.translation import translate_text
 
 # from core.auth.supabase import (admin_auth_check_decorator,
 #     chatbot_auth_check_decorator, chatbot_get_labels_decorator)
@@ -45,8 +46,7 @@ POSTGRES_DB_HOST = os.getenv("POSTGRES_DB_HOST", "localhost")
 POSTGRES_DB_PORT = os.getenv("POSTGRES_DB_PORT", "5432")
 POSTGRES_DB_NAME = os.getenv("POSTGRES_DB_NAME", "adotbcollection")
 CHROMA_DB_PATH = os.environ.get("CHROMA_DB_PATH", "chromadb_store")
-CHROMA_DB_COLLECTION = os.environ.get(
-    "CHROMA_DB_COLLECTION", "adotbcollection")
+CHROMA_DB_COLLECTION = os.environ.get("CHROMA_DB_COLLECTION", "adotbcollection")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 UPLOAD_PATH = "./uploaded-files/"
@@ -204,8 +204,7 @@ def compose_vector_db_args(db_type, settings, embedding_config):
         elif embedding_config.embeddingType == schema.EmbeddingType.OPENAI:
             vectordb_args["embedding"] = OpenAIEmbedding()
         else:
-            raise GenericException(
-                "This embedding type is not supported (yet)!")
+            raise GenericException("This embedding type is not supported (yet)!")
 
     return vectordb_args
 
@@ -275,6 +274,7 @@ async def websocket_chat_endpoint(
                 question = chat_stack.transcription_framework.transcribe_audio(
                     received_bytes
                 )
+
                 start_human_q = schema.BotResponse(
                     sender=schema.SenderType.USER,
                     message=question,
@@ -285,23 +285,27 @@ async def websocket_chat_endpoint(
                 await websocket.send_json(start_human_q.dict())
 
             if len(question) > 0:
+                translation_response = translate_text(question)
+                english_query_text = translation_response["TranslatedText"]
+                query_language = translation_response["language"]
                 bot_response = chat_stack.llm_framework.generate_text(
-                    query=question, chat_history=chat_stack.chat_history
+                    query=english_query_text,
+                    chat_history=chat_stack.chat_history,
+                    response_language=query_language,
                 )
                 log.debug(
                     "Human: {0}\nBot:{1}\nSources:{2}\n\n".format(
                         question,
-                        bot_response['answer'],
-                        [item.metadata['source']
-                            for item in bot_response['source_documents']]
+                        bot_response["answer"],
+                        [
+                            item.metadata["source"]
+                            for item in bot_response["source_documents"]
+                        ],
                     )
                 )
 
                 chat_stack.chat_history.append(
-                    (
-                        bot_response["question"],
-                        bot_response["answer"]
-                    )
+                    (bot_response["question"], bot_response["answer"])
                 )
 
                 # Construct a response
@@ -357,8 +361,7 @@ async def upload_sentences(
     ),
     vectordb_type: schema.DatabaseType = Query(schema.DatabaseType.CHROMA),
     vectordb_config: schema.DBSelector = Depends(schema.DBSelector),
-    embedding_config: schema.EmbeddingSelector = Depends(
-        schema.EmbeddingSelector),
+    embedding_config: schema.EmbeddingSelector = Depends(schema.EmbeddingSelector),
     token: SecretStr = Query(
         None, desc="Optional access token to be used if user accounts not present"
     ),
@@ -409,8 +412,7 @@ async def upload_text_file(  # pylint: disable=too-many-arguments
     ),
     vectordb_type: schema.DatabaseType = Query(schema.DatabaseType.CHROMA),
     vectordb_config: schema.DBSelector = Depends(schema.DBSelector),
-    embedding_config: schema.EmbeddingSelector = Depends(
-        schema.EmbeddingSelector),
+    embedding_config: schema.EmbeddingSelector = Depends(schema.EmbeddingSelector),
     token: SecretStr = Query(
         None, desc="Optional access token to be used if user accounts not present"
     ),
@@ -473,15 +475,9 @@ async def upload_pdf_file(  # pylint: disable=too-many-arguments
     file_processor_type: schema.FileProcessorType = Query(
         schema.FileProcessorType.LANGCHAIN
     ),
-    vectordb_type: schema.DatabaseType = Query(
-        schema.DatabaseType.CHROMA
-    ),
-    vectordb_config: schema.DBSelector = Depends(
-        schema.DBSelector
-    ),
-    embedding_config: schema.EmbeddingSelector = Depends(
-        schema.EmbeddingSelector
-    ),
+    vectordb_type: schema.DatabaseType = Query(schema.DatabaseType.CHROMA),
+    vectordb_config: schema.DBSelector = Depends(schema.DBSelector),
+    embedding_config: schema.EmbeddingSelector = Depends(schema.EmbeddingSelector),
     token: SecretStr = Query(
         None, desc="Optional access token to be used if user accounts not present"
     ),
@@ -494,7 +490,9 @@ async def upload_pdf_file(  # pylint: disable=too-many-arguments
     """
     log.info("Access token used: %s", token)
 
-    vectordb_args = compose_vector_db_args(vectordb_type, vectordb_config, embedding_config)
+    vectordb_args = compose_vector_db_args(
+        vectordb_type, vectordb_config, embedding_config
+    )
     data_stack = DataUploadPipeline()
     data_stack.set_vectordb(vectordb_type, **vectordb_args)
 
@@ -524,6 +522,7 @@ async def upload_pdf_file(  # pylint: disable=too-many-arguments
     data_stack.vectordb.add_to_collection(docs=docs)
     return {"message": "Documents added to DB"}
 
+
 @router.post(
     "/upload/csv-file",
     response_model=schema.APIInfoResponse,
@@ -543,8 +542,7 @@ async def upload_csv_file(  # pylint: disable=too-many-arguments
     ),
     vectordb_type: schema.DatabaseType = Query(schema.DatabaseType.CHROMA),
     vectordb_config: schema.DBSelector = Depends(schema.DBSelector),
-    embedding_config: schema.EmbeddingSelector = Depends(
-        schema.EmbeddingSelector),
+    embedding_config: schema.EmbeddingSelector = Depends(schema.EmbeddingSelector),
     token: SecretStr = Query(
         None, desc="Optional access token to be used if user accounts not present"
     ),
@@ -571,10 +569,10 @@ async def upload_csv_file(  # pylint: disable=too-many-arguments
     elif col_delimiter == schema.CsvColDelimiter.TAB:
         col_delimiter = "\t"
     docs = data_stack.file_processor.process_file(
-        file_path = f"{UPLOAD_PATH}{file_obj.filename}",
-        file_type = schema.FileType.CSV,
-        col_delimiter = col_delimiter,
-        )
+        file_path=f"{UPLOAD_PATH}{file_obj.filename}",
+        file_type=schema.FileType.CSV,
+        col_delimiter=col_delimiter,
+    )
     data_stack.set_embedding(
         embedding_config.embeddingType,
         embedding_config.embeddingApiKey,
@@ -626,8 +624,7 @@ async def check_job_status(
 async def get_source_tags(
     db_type: schema.DatabaseType = schema.DatabaseType.CHROMA,
     settings: schema.DBSelector = Depends(schema.DBSelector),
-    embedding_config: schema.EmbeddingSelector = Depends(
-        schema.EmbeddingSelector),
+    embedding_config: schema.EmbeddingSelector = Depends(schema.EmbeddingSelector),
     token: SecretStr = Query(
         None, desc="Optional access token to be used if user accounts not present"
     ),
@@ -672,8 +669,7 @@ async def login(
                 + "Please confirm your email and then try to log in again.",
             ) from exe
 
-        raise PermissionException(
-            "Unauthorized access. Invalid credentials.") from exe
+        raise PermissionException("Unauthorized access. Invalid credentials.") from exe
 
     return {
         "message": "User logged in successfully",

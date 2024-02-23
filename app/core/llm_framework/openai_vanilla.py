@@ -30,7 +30,7 @@ def get_context(source_documents):
     return context
 
 
-def get_pre_prompt(context):
+def get_pre_prompt(context, response_language="English"):
     """Constructs a pre-prompt for the conversation, including the context"""
     chat_prefix = "The following is a conversation with an AI assistant for "
     chat_prefix += "Bible translators. The assistant is"
@@ -39,6 +39,7 @@ def get_pre_prompt(context):
         chat_prefix
         + "Read the paragraph below and answer the question, using only the information"
         " in the context delimited by triple backticks. "
+        f" Your response should be in the {response_language} language."
         "If the question cannot be answered based on the context alone, "
         'write "Sorry, I had trouble answering this question based on the '
         "information I found\n"
@@ -75,7 +76,7 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
     def __init__(
         self,  # pylint: disable=super-init-not-called
         key: str = os.getenv("OPENAI_API_KEY"),
-        model_name: str = "gpt-3.5-turbo",
+        model_name: str = os.getenv("OPENAI_LLM_NAME", "gpt-3.5-turbo"),
         vectordb: VectordbInterface = None,  # What should this be by default?
     ) -> None:
         """Sets the API key and initializes library objects if any"""
@@ -90,22 +91,24 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         self.vectordb = vectordb
 
     def generate_text(
-        self, query: str, chat_history: List[Tuple[str, str]], **kwargs
+        self,
+        query: str,
+        chat_history: List[Tuple[str, str]],
+        response_language: str = "English",
+        **kwargs,
     ) -> dict:
         """Prompt completion for QA or Chat reponse, based on specific documents,
         if provided"""
         if len(kwargs) > 0:
-            log.warning(
-                "Unused arguments in VanillaOpenAI.generate_text(): ", **kwargs)
+            log.warning("Unused arguments in VanillaOpenAI.generate_text(): ", **kwargs)
 
         # Vectordb results are currently returned based on the whole chat history.
         # We'll need to figure out if this is optimal or not.
-        query_text = "\n".join(
-            [x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
+        query_text = "\n".join([x[0] + "/n" + x[1][:50] + "\n" for x in chat_history])
         query_text += "\n" + query
         source_documents = self.vectordb.get_relevant_documents(query_text)
         context = get_context(source_documents)
-        pre_prompt = get_pre_prompt(context)
+        pre_prompt = get_pre_prompt(context, response_language=response_language)
         prompt = append_query_to_prompt(pre_prompt, query, chat_history)
         print(f"{prompt=}")
 
@@ -122,5 +125,4 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
             }
 
         except Exception as exe:
-            raise OpenAIException(
-                "While generating answer: " + str(exe)) from exe
+            raise OpenAIException("While generating answer: " + str(exe)) from exe
