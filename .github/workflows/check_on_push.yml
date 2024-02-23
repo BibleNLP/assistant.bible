@@ -2,8 +2,16 @@
 
 name: linting
 
-# Triggers the workflow on push or pull request
-on: [push, pull_request ]
+# Triggers the workflow on push or pull request for branches develop and main
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
 
 # Jobs can run in parallel
 jobs:

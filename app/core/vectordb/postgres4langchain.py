@@ -22,9 +22,7 @@ QUERY_LIMIT = os.getenv("POSTGRES_DB_QUERY_LIMIT", "10")
 MAX_COSINE_DISTANCE = os.getenv("POSTGRES_MAX_COSINE_DISTANCE", "0.1")
 
 
-class Postgres(
-    VectordbInterface, BaseRetriever
-):  # pylint: disable=too-many-instance-attributes
+class Postgres(VectordbInterface, BaseRetriever):  # pylint: disable=too-many-instance-attributes
     """Interface for vector database technology, its connection, configs and operations"""
 
     db_host: str = os.environ.get("POSTGRES_DB_HOST", "localhost")
@@ -35,18 +33,19 @@ class Postgres(
     db_password: str = os.environ.get("POSTGRES_DB_PASSWORD", "secret")
     embedding: EmbeddingInterface = None
     db_client: Any = None
-    db_conn:Any = None
-    labels:List[str] = []
-    query_limit:int = None
+    db_conn: Any = None
+    labels: List[str] = []
+    query_limit: int = None
     max_cosine_distance: str = None
+
     def __init__(
         self,
         embedding: EmbeddingInterface = None,
-        host:str=None,
-        port:int=None,
-        path:str=None,
-        collection_name:str=None,
-        **kwargs:str,
+        host: str = None,
+        port: int = None,
+        path: str = None,
+        collection_name: str = None,
+        **kwargs: str,
     ) -> None:
         """Instantiate a chroma client"""
         VectordbInterface.__init__(self, host, port, path, collection_name)
@@ -129,25 +128,29 @@ class Postgres(
             cur.close()
             self.db_conn.commit()
         except Exception as exe:
-            raise PostgresException(
-                "While initializing client: " + str(exe)) from exe
+            raise PostgresException("While initializing client: " + str(exe)) from exe
 
     def add_to_collection(self, docs: List[schema.Document], **kwargs) -> None:
         """Loads the document object as per chroma DB formats into the collection"""
         data_list = []
         for doc in docs:
-            doc.text = (doc.text
-                        .replace("\n", " ")
-                        .replace("\r", " ")
-                        .replace("\t", " ")
-                        .replace('\x00', '')
+            doc.text = (
+                doc.text.replace("\n", " ")
+                .replace("\r", " ")
+                .replace("\t", " ")
+                .replace("\x00", "")
             )
             cur = self.db_conn.cursor()
-            cur.execute(
-                "SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
+            cur.execute("SELECT 1 FROM embeddings WHERE source_id = %s", (doc.docId,))
             doc_id_already_exists = cur.fetchone()
-            links= ",".join([str(item) for item in doc.links])
-            doc.text = doc.text.replace('\0', '').replace('\x00', '').replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+            links = ",".join([str(item) for item in doc.links])
+            doc.text = (
+                doc.text.replace("\0", "")
+                .replace("\x00", "")
+                .replace("\n", " ")
+                .replace("\r", " ")
+                .replace("\t", " ")
+            )
             if not doc_id_already_exists:
                 data_list.append(
                     [
@@ -207,7 +210,10 @@ class Postgres(
         cur.close()
 
     def _get_relevant_documents(
-        self, query: list, run_manager: CallbackManagerForRetrieverRun| None = None, **kwargs
+        self,
+        query: list,
+        run_manager: CallbackManagerForRetrieverRun | None = None,
+        **kwargs,
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
@@ -215,8 +221,7 @@ class Postgres(
             self.embedding.get_embeddings(doc_list=[query_doc])
             query_vector = query_doc.embedding
         except Exception as exe:
-            raise GenericException(
-                "While vectorising the query: " + str(exe)) from exe
+            raise GenericException("While vectorising the query: " + str(exe)) from exe
         try:
             cur = self.db_conn.cursor()
             cur.execute(
@@ -251,22 +256,28 @@ class Postgres(
                         "This question can't be answered, but the user could try "
                         "rewording or asking something else."
                     ),
-                    metadata={
-                        "source": "no records found"
-                    },
+                    metadata={"source": "no records found"},
                 )
             ]
         return [
-            LangchainDocument(page_content=doc[1], metadata={"label": doc[0],
-                                                             "media": doc[1],
-                                                             'link':doc[2],
-                                                            'source_id':doc[3],
-                                                            'document':doc[4]})
+            LangchainDocument(
+                page_content=doc[1],
+                metadata={
+                    "label": doc[0],
+                    "media": doc[1],
+                    "link": doc[2],
+                    "source_id": doc[3],
+                    "document": doc[4],
+                },
+            )
             for doc in records
         ]
 
     async def _aget_relevant_documents(
-        self, query: list, run_manager: AsyncCallbackManagerForRetrieverRun| None = None, **kwargs
+        self,
+        query: list,
+        run_manager: AsyncCallbackManagerForRetrieverRun | None = None,
+        **kwargs,
     ) -> List[LangchainDocument]:
         """Similarity search on the vector store"""
         query_doc = schema.Document(docId="xxx", text=query)
@@ -274,8 +285,7 @@ class Postgres(
             self.embedding.get_embeddings(doc_list=[query_doc])
             query_vector = query_doc.embedding
         except Exception as exe:
-            raise GenericException(
-                "While vectorising the query: " + str(exe)) from exe
+            raise GenericException("While vectorising the query: " + str(exe)) from exe
         try:
             cur = self.db_conn.cursor()
             cur.execute(
@@ -311,9 +321,7 @@ class Postgres(
                         "This question can't be answered, but the user could try "
                         "rewording or asking something else."
                     ),
-                    metadata={
-                        "source": "no records found"
-                    },
+                    metadata={"source": "no records found"},
                 )
             ]
         return [
@@ -330,7 +338,6 @@ class Postgres(
             records = cur.fetchall()
             cur.close()
         except Exception as exe:
-            raise PostgresException(
-                "While querying for labels: " + str(exe)) from exe
+            raise PostgresException("While querying for labels: " + str(exe)) from exe
         labels = [row[0] for row in records]
         return labels
