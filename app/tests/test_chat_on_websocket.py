@@ -43,7 +43,7 @@ def test_chat_websocket_connection(mocker, fresh_db):
     mocker.patch("app.routers.Supabase.get_accessible_labels", return_value=["mock-label"])
     mocker.patch("app.core.llm_framework.openai_vanilla.ChatCompletion.create",
                             return_value={"choices":[{"message":{"content":"Mock response"}}]})
-    mocker.patch("app.core.translation.translate_text",
+    mocker.patch("app.routers.translate_text",
                             return_value={'TranslatedText': 'Hello, world', 'SourceLanguageCode': 'es', 'TargetLanguageCode': 'en'})
     args = COMMON_CONNECTION_ARGS.copy()
     args["dbPath"] = fresh_db["dbPath"]
