@@ -14,8 +14,10 @@ def translate_text(text: str):
     :param text: The text to translate
     :return: The response, including the translated text
     """
-    translate = boto3.client(service_name="translate", use_ssl=True)
-
+    # add region as us_east_1
+    translate = boto3.client(
+        service_name="translate", region_name="us-east-1", use_ssl=True
+    )
     # Call AWS Translate
     response = translate.translate_text(
         Text=text,
