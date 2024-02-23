@@ -31,7 +31,7 @@ chat_stack = ConversationPipeline(
     user="test_user")
 chat_stack.set_llm_framework(schema.LLMFrameworkType.LANGCHAIN,
     api_key=os.getenv('OPENAI_API_KEY'),
-    model='gpt-3.5-turbo',
+    model=os.getenv('OPENAI_LLM_NAME', 'gpt-3.5-turbo'),
     vectordb=chat_stack.vectordb)
 chat_stack.label = RESOURCE_LABEL
 
