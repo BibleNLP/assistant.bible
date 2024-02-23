@@ -25,7 +25,7 @@ services:
      - POSTGRES_MAX_COSINE_DISTANCE=${POSTGRES_MAX_COSINE_DISTANCE:-0.1}
      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-     - OPENAI_LLM_NAME="gpt-4-1106-preview"
+     - OPENAI_LLM_NAME=gpt-4-1106-preview
     command: uvicorn main:app --host 0.0.0.0 --port 9000 --workers 1
     logging:
      options:
