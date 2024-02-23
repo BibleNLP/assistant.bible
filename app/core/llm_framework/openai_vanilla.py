@@ -41,6 +41,7 @@ def get_pre_prompt(context, response_language="English"):
         " in the context delimited by triple backticks. "
         f" Your response should be in the {response_language} language."
         "If the question cannot be answered based on the context alone, "
+        "You should be as verbose as possible, without going outside the context.\n"
         'write "Sorry, I had trouble answering this question based on the '
         "information I found\n"
         "\n"
@@ -52,7 +53,7 @@ def get_pre_prompt(context, response_language="English"):
     return prompt
 
 
-def append_query_to_prompt(prompt, query, chat_history):
+def append_query_to_prompt(prompt, query, chat_history, response_language="English"):
     """Appends the provided query and chat history to the given prompt."""
     if len(chat_history) > 0:
         if len(chat_history) > 15:
@@ -61,7 +62,7 @@ def append_query_to_prompt(prompt, query, chat_history):
             chat_history = chat_history[-15:]
         for exchange in chat_history:
             prompt += "\nHuman: " + exchange[0] + "\nAI: " + exchange[1]
-    prompt += "\nHuman: " + query + "\nAI: "
+    prompt += "\nHuman: " + query + f"\nAI: (in {response_language} language)"
 
     return prompt
 
@@ -109,7 +110,7 @@ class OpenAIVanilla(LLMFrameworkInterface):  # pylint: disable=too-few-public-me
         source_documents = self.vectordb.get_relevant_documents(query_text)
         context = get_context(source_documents)
         pre_prompt = get_pre_prompt(context, response_language=response_language)
-        prompt = append_query_to_prompt(pre_prompt, query, chat_history)
+        prompt = append_query_to_prompt(pre_prompt, query, chat_history, response_language=response_language)
         print(f"{prompt=}")
 
         try:
